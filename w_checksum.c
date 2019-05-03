@@ -26,11 +26,12 @@
 #include "w_checksum.h"
 #include "w_wad.h"
 
-static wad_file_t **open_wadfiles = NULL;
-static int num_open_wadfiles = 0;
+// static wad_file_t **open_wadfiles = NULL;
+// static int num_open_wadfiles = 0;
 
 static int GetFileNumber(wad_file_t *handle)
 {
+    printf("NRF-TODO: GetFileNumber\n"); return 0; /*
     int i;
     int result;
 
@@ -53,10 +54,12 @@ static int GetFileNumber(wad_file_t *handle)
     ++num_open_wadfiles;
 
     return result;
+    */
 }
 
 static void ChecksumAddLump(sha1_context_t *sha1_context, lumpinfo_t *lump)
 {
+    printf("NRF-TODO: ChecksumAddLump\n"); /*
     char buf[9];
 
     M_StringCopy(buf, lump->name, sizeof(buf));
@@ -64,6 +67,7 @@ static void ChecksumAddLump(sha1_context_t *sha1_context, lumpinfo_t *lump)
     SHA1_UpdateInt32(sha1_context, GetFileNumber(lump->wad_file));
     SHA1_UpdateInt32(sha1_context, lump->position);
     SHA1_UpdateInt32(sha1_context, lump->size);
+    */
 }
 
 void W_Checksum(sha1_digest_t digest)
@@ -73,14 +77,15 @@ void W_Checksum(sha1_digest_t digest)
 
     SHA1_Init(&sha1_context);
 
-    num_open_wadfiles = 0;
+    // NRFD-TODO
+    // num_open_wadfiles = 0;
 
     // Go through each entry in the WAD directory, adding information
     // about each entry to the SHA1 hash.
 
     for (i = 0; i < numlumps; ++i)
     {
-        ChecksumAddLump(&sha1_context, lumpinfo[i]);
+        ChecksumAddLump(&sha1_context, &lumpinfo[i]);
     }
 
     SHA1_Final(digest, &sha1_context);

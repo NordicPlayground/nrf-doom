@@ -37,7 +37,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-#include "config.h"
+#include "doom_config.h"
 #ifdef HAVE_LIBPNG
 #include <png.h>
 #endif
@@ -58,7 +58,7 @@ byte *xlatab = NULL;
 
 static pixel_t *dest_screen = NULL;
 
-int dirtybox[4]; 
+// NRFD-EXCLUDE //int dirtybox[4]; 
 
 // haleyjd 08/28/10: clipping callback function for patches.
 // This is needed for Chocolate Strife, which clips patches to the screen.
@@ -71,12 +71,13 @@ void V_MarkRect(int x, int y, int width, int height)
 { 
     // If we are temporarily using an alternate screen, do not 
     // affect the update box.
-
+    /* NRFD-EXCLUDE:
     if (dest_screen == I_VideoBuffer)
     {
         M_AddToBox (dirtybox, x, y); 
         M_AddToBox (dirtybox, x + width-1, y + height-1); 
     }
+    */
 } 
  
 
@@ -139,6 +140,7 @@ void V_SetPatchClipCallback(vpatchclipfunc_t func)
 
 void V_DrawPatch(int x, int y, patch_t *patch)
 { 
+    N_ldbg("V_DrawPatch\n");
     int count;
     int col;
     column_t *column;
@@ -833,6 +835,8 @@ void WritePNGfile(char *filename, byte *data,
 
 void V_ScreenShot(char *format)
 {
+/* NRFD-TODO: Screenshot
+
     int i;
     char lbmname[16]; // haleyjd 20110213: BUG FIX - 12 is too small!
     char *ext;
@@ -874,7 +878,6 @@ void V_ScreenShot(char *format)
             I_Error ("V_ScreenShot: Couldn't create a PCX");
         }
     }
-
 #ifdef HAVE_LIBPNG
     if (png_screenshots)
     {
@@ -890,7 +893,10 @@ void V_ScreenShot(char *format)
                  SCREENWIDTH, SCREENHEIGHT,
                  W_CacheLumpName (DEH_String("PLAYPAL"), PU_CACHE));
     }
+    */
 }
+
+/* NRFD-EXCLUDE
 
 #define MOUSE_SPEED_BOX_WIDTH  120
 #define MOUSE_SPEED_BOX_HEIGHT 9
@@ -1016,3 +1022,4 @@ void V_DrawMouseSpeedBox(int speed)
     }
 }
 
+*/

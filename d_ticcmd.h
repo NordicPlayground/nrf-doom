@@ -29,7 +29,7 @@
 // Mainly movements/button commands per game tick,
 // plus a checksum for internal state consistency.
 
-typedef struct
+typedef struct   __attribute__((packed))
 {
     signed char	forwardmove;	// *2048 for move
     signed char	sidemove;	// *2048 for move
@@ -42,6 +42,7 @@ typedef struct
 
     // villsa - Strife specific:
 
+    /* NRFD-EXLUDE
     byte buttons2;
     int inventory;
    
@@ -49,6 +50,7 @@ typedef struct
 
     byte lookfly;               // look/fly up/down/centering
     byte arti;                  // artitype_t to use
+    */
 } ticcmd_t;
 
 

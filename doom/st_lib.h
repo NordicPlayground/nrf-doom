@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-// 	The status bar widget code.
+//  The status bar widget code.
 //
 
 #ifndef __STLIB__
@@ -29,28 +29,30 @@
 
 // Number widget
 
-typedef struct
+// NRFD-NOTE: int changed to short in structs below
+
+typedef struct __attribute__((packed))
 {
     // upper right-hand corner
     //  of the number (right-justified)
-    int		x;
-    int		y;
+    short     x;
+    short     y;
 
     // max # of digits in number
-    int width;    
+    short width;    
 
     // last number value
-    int		oldnum;
+    short     oldnum;
     
     // pointer to current value
-    int*	num;
+    short*    num;
 
     // pointer to boolean stating
     //  whether to update number
-    boolean*	on;
+    boolean*    on;
 
     // list of patches for 0-9
-    patch_t**	p;
+    patch_t**   p;
 
     // user data
     int data;
@@ -64,37 +66,38 @@ typedef struct
 typedef struct
 {
     // number information
-    st_number_t		n;
+    st_number_t     n;
 
     // percent sign graphic
-    patch_t*		p;
+    patch_t*        p;
     
 } st_percent_t;
 
 
 
 // Multiple Icon widget
-typedef struct
+typedef struct __attribute__((packed))
 {
      // center-justified location of icons
-    int			x;
-    int			y;
+    
+    short           x;
+    short           y;
 
     // last icon number
-    int			oldinum;
+    short         oldinum;
 
     // pointer to current icon
-    int*		inum;
+    short*        inum;
 
     // pointer to boolean stating
     //  whether to update icon
-    boolean*		on;
+    boolean*        on;
 
     // list of icons
-    patch_t**		p;
+    patch_t**       p;
     
     // user data
-    int			data;
+    int         data;
     
 } st_multicon_t;
 
@@ -103,25 +106,25 @@ typedef struct
 
 // Binary Icon widget
 
-typedef struct
+typedef struct __attribute__((packed))
 {
     // center-justified location of icon
-    int			x;
-    int			y;
+    short         x;
+    short         y;
 
     // last icon value
-    boolean		oldval;
+    boolean     oldval;
 
     // pointer to current icon status
-    boolean*		val;
+    boolean*        val;
 
     // pointer to boolean
     //  stating whether to update icon
-    boolean*		on;  
+    boolean*        on;  
 
 
-    patch_t*		p;	// icon
-    int			data;   // user data
+    patch_t*        p;  // icon
+    int         data;   // user data
     
 } st_binicon_t;
 
@@ -137,73 +140,73 @@ typedef struct
 //
 void STlib_init(void);
 
-
+// NRFD-NOTE: int changed to short in functions below
 
 // Number widget routines
 void
 STlib_initNum
-( st_number_t*		n,
-  int			x,
-  int			y,
-  patch_t**		pl,
-  int*			num,
-  boolean*		on,
-  int			width );
+( st_number_t*      n,
+  short           x,
+  short           y,
+  patch_t**     pl,
+  short*          num,
+  boolean*      on,
+  short           width );
 
 void
 STlib_updateNum
-( st_number_t*		n,
-  boolean		refresh );
+( st_number_t*      n,
+  boolean       refresh );
 
 
 // Percent widget routines
 void
 STlib_initPercent
-( st_percent_t*		p,
-  int			x,
-  int			y,
-  patch_t**		pl,
-  int*			num,
-  boolean*		on,
-  patch_t*		percent );
+( st_percent_t*     p,
+  short           x,
+  short           y,
+  patch_t**     pl,
+  short*          num,
+  boolean*      on,
+  patch_t*      percent );
 
 
 void
 STlib_updatePercent
-( st_percent_t*		per,
-  int			refresh );
+( st_percent_t*     per,
+  int           refresh );
 
 
 // Multiple Icon widget routines
 void
 STlib_initMultIcon
-( st_multicon_t*	mi,
-  int			x,
-  int			y,
-  patch_t**		il,
-  int*			inum,
-  boolean*		on );
+( st_multicon_t*    mi,
+  short           x,
+  short           y,
+  patch_t**     il,
+  short*          inum,
+  boolean*      on );
 
 
 void
 STlib_updateMultIcon
-( st_multicon_t*	mi,
-  boolean		refresh );
+( st_multicon_t*    mi,
+  boolean       refresh );
 
 // Binary Icon widget routines
 
 void
 STlib_initBinIcon
-( st_binicon_t*		b,
-  int			x,
-  int			y,
-  patch_t*		i,
-  boolean*		val,
-  boolean*		on );
+( st_binicon_t*     b,
+  short           x,
+  short           y,
+  patch_t*      i,
+  boolean*      val,
+  boolean*      on );
 
 void
 STlib_updateBinIcon
-( st_binicon_t*		bi,
-  boolean		refresh );
+( st_binicon_t*     bi,
+  boolean       refresh );
 
 #endif

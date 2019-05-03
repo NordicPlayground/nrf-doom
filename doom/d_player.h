@@ -52,7 +52,7 @@ typedef enum
     // Dead on the ground, view follows killer.
     PST_DEAD,
     // Ready to restart/respawn???
-    PST_REBORN		
+    PST_REBORN      
 
 } playerstate_t;
 
@@ -63,11 +63,11 @@ typedef enum
 typedef enum
 {
     // No clipping, walk through barriers.
-    CF_NOCLIP		= 1,
+    CF_NOCLIP       = 1,
     // No damage, no health loss.
-    CF_GODMODE		= 2,
+    CF_GODMODE      = 2,
     // Not really a cheat, just a debug aid.
-    CF_NOMOMENTUM	= 4
+    CF_NOMOMENTUM   = 4
 
 } cheat_t;
 
@@ -75,88 +75,88 @@ typedef enum
 //
 // Extended player object info: player_t
 //
-typedef struct player_s
+typedef struct __attribute__((packed)) player_s
 {
-    mobj_t*		mo;
-    playerstate_t	playerstate;
-    ticcmd_t		cmd;
+    mobj_t*     mo;
+    playerstate_t   playerstate;
+    ticcmd_t        cmd;
 
     // Determine POV,
     //  including viewpoint bobbing during movement.
     // Focal origin above r.z
-    fixed_t		viewz;
+    fixed_t     viewz;
     // Base height above floor for viewz.
-    fixed_t		viewheight;
+    fixed_t     viewheight;
     // Bob/squat speed.
-    fixed_t         	deltaviewheight;
+    fixed_t             deltaviewheight;
     // bounded/scaled total momentum.
-    fixed_t         	bob;	
+    fixed_t             bob;    
 
     // This is only used between levels,
     // mo->health is used during levels.
-    int			health;	
-    int			armorpoints;
+    short           health;  // NRFD: Changed from int to short
+    short         armorpoints;  // NRFD: Changed from int to short
     // Armor type is 0-2.
-    int			armortype;	
+    char         armortype;   // NRFD: Changed from int to char
 
     // Power ups. invinc and invis are tic counters.
-    int			powers[NUMPOWERS];
-    boolean		cards[NUMCARDS];
-    boolean		backpack;
+    int         powers[NUMPOWERS];
+    boolean     cards[NUMCARDS];
+    boolean     backpack;
     
     // Frags, kills of other players.
-    int			frags[MAXPLAYERS];
-    weapontype_t	readyweapon;
+    short           frags[MAXPLAYERS];  // NRFD: Changed from int to short
+    weapontype_t    readyweapon;
     
     // Is wp_nochange if not changing.
-    weapontype_t	pendingweapon;
+    weapontype_t    pendingweapon;
 
-    int                 weaponowned[NUMWEAPONS];
-    int			ammo[NUMAMMO];
-    int			maxammo[NUMAMMO];
+    short                 weaponowned[NUMWEAPONS];  // NRFD: Changed from int to short
+    short           ammo[NUMAMMO]; // NRFD: Changed from int to short
+    short         maxammo[NUMAMMO]; // NRFD: Changed from int to short
 
     // True if button down last tic.
-    int			attackdown;
-    int			usedown;
+    boolean         attackdown; // NRFD: Was int
+    boolean         usedown;    // NRFD: Was int
 
     // Bit flags, for cheats and debug.
     // See cheat_t, above.
-    int			cheats;		
+    int         cheats;
 
     // Refired shots are less accurate.
-    int			refire;		
+    short         refire;      // NRFD: Was int
 
      // For intermission stats.
-    int			killcount;
-    int			itemcount;
-    int			secretcount;
+    short         killcount; // NRFD: Was int
+    short         itemcount; // NRFD: Was int
+    short         secretcount; // NRFD: Was int
 
     // Hint messages.
-    char*		message;	
+    char*       message;    
     
     // For screen flashing (red or bright).
-    int			damagecount;
-    int			bonuscount;
+    int         damagecount;
+    int         bonuscount;
 
     // Who did damage (NULL for floors/ceilings).
-    mobj_t*		attacker;
+    mobj_t*     attacker;
     
     // So gun flashes light up areas.
-    int			extralight;
+    int8_t         extralight;
 
     // Current PLAYPAL, ???
     //  can be set to REDCOLORMAP for pain, etc.
-    int			fixedcolormap;
+    short         fixedcolormap;     // NRFD: Was int
 
     // Player skin colorshift,
     //  0-3 for which color to draw player.
-    int			colormap;	
+    short         colormap;    // NRFD: Was int
 
     // Overlay view sprites (gun, etc).
-    pspdef_t		psprites[NUMPSPRITES];
+    pspdef_t        psprites[NUMPSPRITES];
 
     // True if secret level has been done.
-    boolean		didsecret;	
+    boolean     didsecret;  
 
 } player_t;
 
@@ -167,41 +167,41 @@ typedef struct player_s
 //
 typedef struct
 {
-    boolean	in;	// whether the player is in game
+    boolean in; // whether the player is in game
     
     // Player stats, kills, collected items etc.
-    int		skills;
-    int		sitems;
-    int		ssecret;
-    int		stime; 
-    int		frags[4];
-    int		score;	// current score on entry, modified on return
+    int     skills;
+    int     sitems;
+    int     ssecret;
+    int     stime; 
+    int     frags[4];
+    int     score;  // current score on entry, modified on return
   
 } wbplayerstruct_t;
 
 typedef struct
 {
-    int		epsd;	// episode # (0-2)
+    int     epsd;   // episode # (0-2)
 
     // if true, splash the secret level
-    boolean	didsecret;
+    boolean didsecret;
     
     // previous and next levels, origin 0
-    int		last;
-    int		next;	
+    int     last;
+    int     next;   
     
-    int		maxkills;
-    int		maxitems;
-    int		maxsecret;
-    int		maxfrags;
+    int     maxkills;
+    int     maxitems;
+    int     maxsecret;
+    int     maxfrags;
 
     // the par time
-    int		partime;
+    int     partime;
     
     // index of this player in game
-    int		pnum;	
+    int     pnum;   
 
-    wbplayerstruct_t	plyr[MAXPLAYERS];
+    wbplayerstruct_t    plyr[MAXPLAYERS];
 
 } wbstartstruct_t;
 

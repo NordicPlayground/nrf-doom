@@ -152,6 +152,8 @@ void P_LoadVertexes (int lump)
 //
 sector_t* GetSectorAtNullAddress(void)
 {
+    printf("NRFD-TODO: GetSectorAtNullAddress\n"); return NULL;
+    /*
     static boolean null_sector_is_initialized = false;
     static sector_t null_sector;
 
@@ -164,6 +166,7 @@ sector_t* GetSectorAtNullAddress(void)
     }
 
     return &null_sector;
+    */
 }
 
 //
@@ -859,9 +862,12 @@ P_SetupLevel
 //
 void P_Init (void)
 {
+    printf("NRFD-TODO: P_Init\n");
+    /*
     P_InitSwitchList ();
     P_InitPicAnims ();
     R_InitSprites (sprnames);
+    */
 }
 
 

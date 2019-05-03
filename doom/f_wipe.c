@@ -234,8 +234,10 @@ wipe_StartScreen
   int	width,
   int	height )
 {
+  printf("NRFD-TODO: wipe_StartScreen\n");
+  /*
     wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
-    I_ReadScreen(wipe_scr_start);
+    I_ReadScreen(wipe_scr_start);*/
     return 0;
 }
 
@@ -246,9 +248,12 @@ wipe_EndScreen
   int	width,
   int	height )
 {
+  printf("NRFD-TODO: wipe_EndScreen\n");
+  /*(
     wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
     V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
+    */
     return 0;
 }
 

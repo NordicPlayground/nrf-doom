@@ -78,21 +78,21 @@ void I_StartTic (void);
 
 void I_EnableLoadingDisk(int xoffs, int yoffs);
 
-extern char *video_driver;
-extern boolean screenvisible;
+// extern char *video_driver;
+extern const boolean screenvisible;
 
 extern int vanilla_keyboard_mapping;
-extern boolean screensaver_mode;
+// extern const boolean screensaver_mode;
 extern int usegamma;
-extern pixel_t *I_VideoBuffer;
+extern pixel_t I_VideoBuffer[];
 
-extern int screen_width;
-extern int screen_height;
-extern int fullscreen;
-extern int aspect_ratio_correct;
-extern int integer_scaling;
-extern int vga_porch_flash;
-extern int force_software_renderer;
+// extern int screen_width;
+// extern int screen_height;
+// extern int fullscreen;
+// extern int aspect_ratio_correct;
+// extern int integer_scaling;
+// extern int vga_porch_flash;
+// extern int force_software_renderer;
 
 extern char *window_position;
 void I_GetWindowPosition(int *x, int *y, int w, int h);

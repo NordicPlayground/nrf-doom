@@ -16,30 +16,26 @@
 //      Timer functions.
 //
 
-#include "SDL.h"
-
 #include "i_timer.h"
 #include "doomtype.h"
+
+#undef PACKED_STRUCT
+#include "nrf_delay.h"
 
 //
 // I_GetTime
 // returns time in 1/35th second tics
 //
 
-static Uint32 basetime = 0;
+//static Uint32 basetime = 0;
+
+// NRFD-TODO: Handle overflow of timer
 
 int  I_GetTime (void)
 {
-    Uint32 ticks;
-
-    ticks = SDL_GetTicks();
-
-    if (basetime == 0)
-        basetime = ticks;
-
-    ticks -= basetime;
-
-    return (ticks * TICRATE) / 1000;    
+    NRF_TIMER0->TASKS_CAPTURE[0] = 1;
+    uint32_t cc = NRF_TIMER0->CC[0];
+    return (cc * TICRATE)*10/625/1000; 
 }
 
 //
@@ -48,21 +44,17 @@ int  I_GetTime (void)
 
 int I_GetTimeMS(void)
 {
-    Uint32 ticks;
-
-    ticks = SDL_GetTicks();
-
-    if (basetime == 0)
-        basetime = ticks;
-
-    return ticks - basetime;
+    NRF_TIMER0->TASKS_CAPTURE[0] = 1;
+    uint32_t cc = NRF_TIMER0->CC[0];
+    cc = cc*10/625;
+    return cc;
 }
 
 // Sleep for a specified number of ms
 
 void I_Sleep(int ms)
 {
-    SDL_Delay(ms);
+    nrf_delay_ms(ms);
 }
 
 void I_WaitVBL(int count)
@@ -74,7 +66,12 @@ void I_WaitVBL(int count)
 void I_InitTimer(void)
 {
     // initialize timer
-
-    SDL_Init(SDL_INIT_TIMER);
+    NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer;
+    NRF_TIMER0->BITMODE = TIMER_BITMODE_BITMODE_32Bit;
+    NRF_TIMER0->PRESCALER = 8;
+    // fTIMER = 16 MHz / (2*PRESCALER)
+    // 2**8 = 256
+    // fTIMER = 62.5Khz;
+    NRF_TIMER0->TASKS_START = 1;
 }
 

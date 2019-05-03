@@ -15,7 +15,8 @@
 #ifndef NET_STRUCTRW_H
 #define NET_STRUCTRW_H
 
-#include "aes_prng.h"
+// NRFD-TODO?
+// #include "aes_prng.h"
 #include "sha1.h"
 #include "net_defs.h"
 #include "net_packet.h"
@@ -43,8 +44,10 @@ void NET_WriteSHA1Sum(net_packet_t *packet, sha1_digest_t digest);
 void NET_WriteWaitData(net_packet_t *packet, net_waitdata_t *data);
 boolean NET_ReadWaitData(net_packet_t *packet, net_waitdata_t *data);
 
+/* NRFD-TODO?
 boolean NET_ReadPRNGSeed(net_packet_t *packet, prng_seed_t seed);
 void NET_WritePRNGSeed(net_packet_t *packet, prng_seed_t seed);
+*/
 
 // Protocol list exchange.
 net_protocol_t NET_ReadProtocol(net_packet_t *packet);

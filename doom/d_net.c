@@ -42,6 +42,7 @@ ticcmd_t *netcmds;
 
 static void PlayerQuitGame(player_t *player)
 {
+    /* NRFD-TODO: net
     static char exitmsg[80];
     unsigned int player_num;
 
@@ -64,6 +65,7 @@ static void PlayerQuitGame(player_t *player)
     {
         G_CheckDemoStatus ();
     }
+    */
 }
 
 static void RunTic(ticcmd_t *cmds, boolean *ingame)
@@ -112,18 +114,20 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     startmap = settings->map;
     startskill = settings->skill;
     startloadgame = settings->loadgame;
-    lowres_turn = settings->lowres_turn;
+    // lowres_turn = settings->lowres_turn; // NRFD-TODO? demo
     nomonsters = settings->nomonsters;
     fastparm = settings->fast_monsters;
     respawnparm = settings->respawn_monsters;
     timelimit = settings->timelimit;
     consoleplayer = settings->consoleplayer;
 
+    /*
     if (lowres_turn)
     {
         printf("NOTE: Turning resolution is reduced; this is probably "
                "because there is a client recording a Vanilla demo.\n");
     }
+    */
 
     for (i = 0; i < MAXPLAYERS; ++i)
     {

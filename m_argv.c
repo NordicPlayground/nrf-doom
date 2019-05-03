@@ -26,11 +26,8 @@
 #include "m_misc.h"
 #include "m_argv.h"  // haleyjd 20110212: warning fix
 
-int		myargc;
-char**		myargv;
-
-
-
+int     myargc;
+char**      myargv;
 
 //
 // M_CheckParm
@@ -42,14 +39,16 @@ char**		myargv;
 
 int M_CheckParmWithArgs(char *check, int num_args)
 {
+    // NRFD-EXCLUDE
+    /*
     int i;
 
     for (i = 1; i < myargc - num_args; i++)
     {
-	if (!strcasecmp(check, myargv[i]))
-	    return i;
+        if (!strcasecmp(check, myargv[i]))
+           return i;
     }
-
+*/
     return 0;
 }
 
@@ -74,6 +73,8 @@ int M_CheckParm(char *check)
 
 static void LoadResponseFile(int argv_index)
 {
+        // NRFD-EXCLUDE
+    /*
     FILE *handle;
     int size;
     char *infile;
@@ -222,6 +223,7 @@ static void LoadResponseFile(int argv_index)
         printf("'%s'\n", myargv[k]);
     }
 #endif
+*/
 }
 
 //
@@ -230,6 +232,8 @@ static void LoadResponseFile(int argv_index)
 
 void M_FindResponseFile(void)
 {
+    // NRFD-EXCLUDE
+    /*
     int             i;
 
     for (i = 1; i < myargc; i++)
@@ -239,23 +243,18 @@ void M_FindResponseFile(void)
             LoadResponseFile(i);
         }
     }
+    */
 }
 
 // Return the name of the executable used to start the program:
 
 char *M_GetExecutableName(void)
 {
-    char *sep;
-
-    sep = strrchr(myargv[0], DIR_SEPARATOR);
-
-    if (sep == NULL)
-    {
-        return myargv[0];
-    }
-    else
-    {
-        return sep + 1;
-    }
+    return "doom"; // NRFD-NOTE: Not applicable to NRFD
 }
 
+void M_ArgvInit(void)
+{
+    myargc = 0;
+    myargv = NULL;
+}

@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	WAD I/O functions.
+//      WAD I/O functions.
 //
 
 
@@ -37,21 +37,21 @@
 typedef struct lumpinfo_s lumpinfo_t;
 typedef int lumpindex_t;
 
-struct lumpinfo_s
+struct __attribute__((packed)) lumpinfo_s
 {
-    char	name[8];
-    wad_file_t *wad_file;
-    int		position;
-    int		size;
+    char        name[8];
+    // wad_file_t *wad_file; // NRFD
+    int         position;
+    int         size;
     void       *cache;
 
     // Used for hash table lookups
-    lumpindex_t next;
+    // lumpindex_t next;
 };
 
 
-extern lumpinfo_t **lumpinfo;
-extern unsigned int numlumps;
+extern lumpinfo_t lumpinfo[];
+extern unsigned short numlumps;
 
 wad_file_t *W_AddFile(char *filename);
 void W_Reload(void);

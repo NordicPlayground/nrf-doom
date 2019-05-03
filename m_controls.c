@@ -26,48 +26,50 @@
 // Keyboard controls
 //
 
-int key_right = KEY_RIGHTARROW;
-int key_left = KEY_LEFTARROW;
+// NRFD-TODO: Configurable controls
 
-int key_up = KEY_UPARROW;
-int key_down = KEY_DOWNARROW; 
-int key_strafeleft = ',';
-int key_straferight = '.';
-int key_fire = KEY_RCTRL;
-int key_use = ' ';
-int key_strafe = KEY_RALT;
-int key_speed = KEY_RSHIFT; 
+const int key_right = KEY_RIGHTARROW;
+const int key_left = KEY_LEFTARROW;
+
+const int key_up = KEY_UPARROW;
+const int key_down = KEY_DOWNARROW; 
+const int key_strafeleft = ',';
+const int key_straferight = '.';
+const int key_fire = KEY_RCTRL;
+const int key_use = ' ';
+const int key_strafe = KEY_RALT;
+const int key_speed = KEY_RSHIFT; 
 
 // 
 // Heretic keyboard controls
 //
  
-int key_flyup = KEY_PGUP;
-int key_flydown = KEY_INS;
-int key_flycenter = KEY_HOME;
+const int key_flyup = KEY_PGUP;
+const int key_flydown = KEY_INS;
+const int key_flycenter = KEY_HOME;
 
-int key_lookup = KEY_PGDN;
-int key_lookdown = KEY_DEL;
-int key_lookcenter = KEY_END;
+const int key_lookup = KEY_PGDN;
+const int key_lookdown = KEY_DEL;
+const int key_lookcenter = KEY_END;
 
-int key_invleft = '[';
-int key_invright = ']';
-int key_useartifact = KEY_ENTER;
+const int key_invleft = '[';
+const int key_invright = ']';
+const int key_useartifact = KEY_ENTER;
 
 //
 // Hexen key controls
 //
 
-int key_jump = '/';
+const int key_jump = '/';
 
-int key_arti_all             = KEY_BACKSPACE;
-int key_arti_health          = '\\';
-int key_arti_poisonbag       = '0';
-int key_arti_blastradius     = '9';
-int key_arti_teleport        = '8';
-int key_arti_teleportother   = '7';
-int key_arti_egg             = '6';
-int key_arti_invulnerability = '5';
+const int key_arti_all             = KEY_BACKSPACE;
+const int key_arti_health          = '\\';
+const int key_arti_poisonbag       = '0';
+const int key_arti_blastradius     = '9';
+const int key_arti_teleport        = '8';
+const int key_arti_teleportother   = '7';
+const int key_arti_egg             = '6';
+const int key_arti_invulnerability = '5';
 
 //
 // Strife key controls
@@ -78,126 +80,126 @@ int key_arti_invulnerability = '5';
 // Note: Strife also uses key_invleft, key_invright, key_jump, key_lookup, and
 // key_lookdown, but with different default values.
 
-int key_usehealth = 'h';
-int key_invquery  = 'q';
-int key_mission   = 'w';
-int key_invpop    = 'z';
-int key_invkey    = 'k';
-int key_invhome   = KEY_HOME;
-int key_invend    = KEY_END;
-int key_invuse    = KEY_ENTER;
-int key_invdrop   = KEY_BACKSPACE;
+const int key_usehealth = 'h';
+const int key_invquery  = 'q';
+const int key_mission   = 'w';
+const int key_invpop    = 'z';
+const int key_invkey    = 'k';
+const int key_invhome   = KEY_HOME;
+const int key_invend    = KEY_END;
+const int key_invuse    = KEY_ENTER;
+const int key_invdrop   = KEY_BACKSPACE;
 
 
 //
 // Mouse controls
 //
 
-int mousebfire = 0;
-int mousebstrafe = 1;
-int mousebforward = 2;
+const int mousebfire = 0;
+const int mousebstrafe = 1;
+const int mousebforward = 2;
 
-int mousebjump = -1;
+const int mousebjump = -1;
 
-int mousebstrafeleft = -1;
-int mousebstraferight = -1;
-int mousebbackward = -1;
-int mousebuse = -1;
+const int mousebstrafeleft = -1;
+const int mousebstraferight = -1;
+const int mousebbackward = -1;
+const int mousebuse = -1;
 
-int mousebprevweapon = -1;
-int mousebnextweapon = -1;
+const int mousebprevweapon = -1;
+const int mousebnextweapon = -1;
 
 
-int key_message_refresh = KEY_ENTER;
-int key_pause = KEY_PAUSE;
-int key_demo_quit = 'q';
-int key_spy = KEY_F12;
+const int key_message_refresh = KEY_ENTER;
+const int key_pause = KEY_PAUSE;
+const int key_demo_quit = 'q';
+const int key_spy = KEY_F12;
 
 // Multiplayer chat keys:
 
-int key_multi_msg = 't';
-int key_multi_msgplayer[8];
+const int key_multi_msg = 't';
+const int key_multi_msgplayer[8];
 
 // Weapon selection keys:
 
-int key_weapon1 = '1';
-int key_weapon2 = '2';
-int key_weapon3 = '3';
-int key_weapon4 = '4';
-int key_weapon5 = '5';
-int key_weapon6 = '6';
-int key_weapon7 = '7';
-int key_weapon8 = '8';
-int key_prevweapon = 0;
-int key_nextweapon = 0;
+const int key_weapon1 = '1';
+const int key_weapon2 = '2';
+const int key_weapon3 = '3';
+const int key_weapon4 = '4';
+const int key_weapon5 = '5';
+const int key_weapon6 = '6';
+const int key_weapon7 = '7';
+const int key_weapon8 = '8';
+const int key_prevweapon = 0;
+const int key_nextweapon = 0;
 
 // Map control keys:
 
-int key_map_north     = KEY_UPARROW;
-int key_map_south     = KEY_DOWNARROW;
-int key_map_east      = KEY_RIGHTARROW;
-int key_map_west      = KEY_LEFTARROW;
-int key_map_zoomin    = '=';
-int key_map_zoomout   = '-';
-int key_map_toggle    = KEY_TAB;
-int key_map_maxzoom   = '0';
-int key_map_follow    = 'f';
-int key_map_grid      = 'g';
-int key_map_mark      = 'm';
-int key_map_clearmark = 'c';
+const int key_map_north     = KEY_UPARROW;
+const int key_map_south     = KEY_DOWNARROW;
+const int key_map_east      = KEY_RIGHTARROW;
+const int key_map_west      = KEY_LEFTARROW;
+const int key_map_zoomin    = '=';
+const int key_map_zoomout   = '-';
+const int key_map_toggle    = KEY_TAB;
+const int key_map_maxzoom   = '0';
+const int key_map_follow    = 'f';
+const int key_map_grid      = 'g';
+const int key_map_mark      = 'm';
+const int key_map_clearmark = 'c';
 
 // menu keys:
 
-int key_menu_activate  = KEY_ESCAPE;
-int key_menu_up        = KEY_UPARROW;
-int key_menu_down      = KEY_DOWNARROW;
-int key_menu_left      = KEY_LEFTARROW;
-int key_menu_right     = KEY_RIGHTARROW;
-int key_menu_back      = KEY_BACKSPACE;
-int key_menu_forward   = KEY_ENTER;
-int key_menu_confirm   = 'y';
-int key_menu_abort     = 'n';
+const int key_menu_activate  = KEY_ESCAPE;
+const int key_menu_up        = KEY_UPARROW;
+const int key_menu_down      = KEY_DOWNARROW;
+const int key_menu_left      = KEY_LEFTARROW;
+const int key_menu_right     = KEY_RIGHTARROW;
+const int key_menu_back      = KEY_BACKSPACE;
+const int key_menu_forward   = KEY_ENTER;
+const int key_menu_confirm   = 'y';
+const int key_menu_abort     = 'n';
 
-int key_menu_help      = KEY_F1;
-int key_menu_save      = KEY_F2;
-int key_menu_load      = KEY_F3;
-int key_menu_volume    = KEY_F4;
-int key_menu_detail    = KEY_F5;
-int key_menu_qsave     = KEY_F6;
-int key_menu_endgame   = KEY_F7;
-int key_menu_messages  = KEY_F8;
-int key_menu_qload     = KEY_F9;
-int key_menu_quit      = KEY_F10;
-int key_menu_gamma     = KEY_F11;
+const int key_menu_help      = KEY_F1;
+const int key_menu_save      = KEY_F2;
+const int key_menu_load      = KEY_F3;
+const int key_menu_volume    = KEY_F4;
+const int key_menu_detail    = KEY_F5;
+const int key_menu_qsave     = KEY_F6;
+const int key_menu_endgame   = KEY_F7;
+const int key_menu_messages  = KEY_F8;
+const int key_menu_qload     = KEY_F9;
+const int key_menu_quit      = KEY_F10;
+const int key_menu_gamma     = KEY_F11;
 
-int key_menu_incscreen = KEY_EQUALS;
-int key_menu_decscreen = KEY_MINUS;
-int key_menu_screenshot = 0;
+const int key_menu_incscreen = KEY_EQUALS;
+const int key_menu_decscreen = KEY_MINUS;
+const int key_menu_screenshot = 0;
 
 //
 // Joystick controls
 //
 
-int joybfire = 0;
-int joybstrafe = 1;
-int joybuse = 3;
-int joybspeed = 2;
+const int joybfire = 0;
+const int joybstrafe = 1;
+const int joybuse = 3;
+const int joybspeed = 2;
 
-int joybstrafeleft = -1;
-int joybstraferight = -1;
+const int joybstrafeleft = -1;
+const int joybstraferight = -1;
 
-int joybjump = -1;
+const int joybjump = -1;
 
-int joybprevweapon = -1;
-int joybnextweapon = -1;
+const int joybprevweapon = -1;
+const int joybnextweapon = -1;
 
-int joybmenu = -1;
-int joybautomap = -1;
+const int joybmenu = -1;
+const int joybautomap = -1;
 
 // Control whether if a mouse button is double clicked, it acts like 
 // "use" has been pressed
 
-int dclick_use = 1;
+const int dclick_use = 1;
  
 // 
 // Bind all of the common controls used by Doom and all other games.
@@ -205,6 +207,8 @@ int dclick_use = 1;
 
 void M_BindBaseControls(void)
 {
+    printf("NRFD-TODO: M_BindStrifeControls\n");
+    /* 
     M_BindIntVariable("key_right",          &key_right);
     M_BindIntVariable("key_left",           &key_left);
     M_BindIntVariable("key_up",             &key_up);
@@ -232,6 +236,7 @@ void M_BindBaseControls(void)
 
     M_BindIntVariable("joyb_strafeleft",     &joybstrafeleft);
     M_BindIntVariable("joyb_straferight",    &joybstraferight);
+
     M_BindIntVariable("mouseb_strafeleft",   &mousebstrafeleft);
     M_BindIntVariable("mouseb_straferight",  &mousebstraferight);
     M_BindIntVariable("mouseb_use",          &mousebuse);
@@ -239,10 +244,13 @@ void M_BindBaseControls(void)
     M_BindIntVariable("dclick_use",          &dclick_use);
     M_BindIntVariable("key_pause",           &key_pause);
     M_BindIntVariable("key_message_refresh", &key_message_refresh);
+    */
 }
 
 void M_BindHereticControls(void)
 {
+    printf("NRFD-TODO: M_BindStrifeControls\n");
+    /* 
     M_BindIntVariable("key_flyup",          &key_flyup);
     M_BindIntVariable("key_flydown",        &key_flydown);
     M_BindIntVariable("key_flycenter",      &key_flycenter);
@@ -254,10 +262,14 @@ void M_BindHereticControls(void)
     M_BindIntVariable("key_invleft",        &key_invleft);
     M_BindIntVariable("key_invright",       &key_invright);
     M_BindIntVariable("key_useartifact",    &key_useartifact);
+    */
 }
 
 void M_BindHexenControls(void)
 {
+    printf("NRFD-TODO: M_BindStrifeControls\n");
+    /* 
+
     M_BindIntVariable("key_jump",           &key_jump);
     M_BindIntVariable("mouseb_jump",        &mousebjump);
     M_BindIntVariable("joyb_jump",          &joybjump);
@@ -270,10 +282,13 @@ void M_BindHexenControls(void)
     M_BindIntVariable("key_arti_teleportother",   &key_arti_teleportother);
     M_BindIntVariable("key_arti_egg",             &key_arti_egg);
     M_BindIntVariable("key_arti_invulnerability", &key_arti_invulnerability);
+    */
 }
 
 void M_BindStrifeControls(void)
 {
+    printf("NRFD-TODO: M_BindStrifeControls\n");
+    /* 
     // These are shared with all games, but have different defaults:
     key_message_refresh = '/';
 
@@ -305,10 +320,13 @@ void M_BindStrifeControls(void)
     // manner as Hexen!
     M_BindIntVariable("mouseb_jump",        &mousebjump);
     M_BindIntVariable("joyb_jump",          &joybjump);
+    */
 }
 
 void M_BindWeaponControls(void)
 {
+    printf("NRFD-TODO: M_BindWeaponControls\n");
+    /*
     M_BindIntVariable("key_weapon1",        &key_weapon1);
     M_BindIntVariable("key_weapon2",        &key_weapon2);
     M_BindIntVariable("key_weapon3",        &key_weapon3);
@@ -326,10 +344,13 @@ void M_BindWeaponControls(void)
 
     M_BindIntVariable("mouseb_prevweapon",  &mousebprevweapon);
     M_BindIntVariable("mouseb_nextweapon",  &mousebnextweapon);
+    */
 }
 
 void M_BindMapControls(void)
 {
+    printf("NRFD-TODO: M_BindMapControls\n");
+    /*
     M_BindIntVariable("key_map_north",      &key_map_north);
     M_BindIntVariable("key_map_south",      &key_map_south);
     M_BindIntVariable("key_map_east",       &key_map_east);
@@ -342,10 +363,13 @@ void M_BindMapControls(void)
     M_BindIntVariable("key_map_grid",       &key_map_grid);
     M_BindIntVariable("key_map_mark",       &key_map_mark);
     M_BindIntVariable("key_map_clearmark",  &key_map_clearmark);
+    */
 }
 
 void M_BindMenuControls(void)
 {
+    printf("NRFD-TODO: M_BindMenuControls\n");
+    /*
     M_BindIntVariable("key_menu_activate",  &key_menu_activate);
     M_BindIntVariable("key_menu_up",        &key_menu_up);
     M_BindIntVariable("key_menu_down",      &key_menu_down);
@@ -373,10 +397,13 @@ void M_BindMenuControls(void)
     M_BindIntVariable("key_menu_screenshot",&key_menu_screenshot);
     M_BindIntVariable("key_demo_quit",      &key_demo_quit);
     M_BindIntVariable("key_spy",            &key_spy);
+    */
 }
 
 void M_BindChatControls(unsigned int num_players)
 {
+    printf("NRFD-TODO: M_BindChatControls\n");
+    /* 
     char name[32];  // haleyjd: 20 not large enough - Thank you, come again!
     unsigned int i; // haleyjd: signedness conflict
 
@@ -387,6 +414,7 @@ void M_BindChatControls(unsigned int num_players)
         M_snprintf(name, sizeof(name), "key_multi_msgplayer%i", i + 1);
         M_BindIntVariable(name, &key_multi_msgplayer[i]);
     }
+    */
 }
 
 //

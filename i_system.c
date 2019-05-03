@@ -23,19 +23,11 @@
 
 #include <stdarg.h>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
+#include "doom_config.h"
 
-#include "SDL.h"
-
-#include "config.h"
-
-#include "deh_str.h"
+//NRFD-TODO: #include "deh_str.h"
 #include "doomtype.h"
+
 #include "m_argv.h"
 #include "m_config.h"
 #include "m_misc.h"
@@ -52,7 +44,7 @@
 #define DEFAULT_RAM 16 /* MiB */
 #define MIN_RAM     4  /* MiB */
 
-
+/* NRFD-EXCLUDE:
 typedef struct atexit_listentry_s atexit_listentry_t;
 
 struct atexit_listentry_s
@@ -63,9 +55,11 @@ struct atexit_listentry_s
 };
 
 static atexit_listentry_t *exit_funcs = NULL;
+*/
 
 void I_AtExit(atexit_func_t func, boolean run_on_error)
 {
+    /*NRFD-EXCLUDE
     atexit_listentry_t *entry;
 
     entry = malloc(sizeof(*entry));
@@ -74,6 +68,7 @@ void I_AtExit(atexit_func_t func, boolean run_on_error)
     entry->run_on_error = run_on_error;
     entry->next = exit_funcs;
     exit_funcs = entry;
+    */
 }
 
 // Tactile feedback function, probably used for the Logitech Cyberman
@@ -88,6 +83,8 @@ void I_Tactile(int on, int off, int total)
 
 static byte *AutoAllocMemory(int *size, int default_ram, int min_ram)
 {
+    printf("TODO AutoAllocMemory\n"); return NULL;
+    /* NRFD-TODO: 
     byte *zonemem;
 
     // Allocate the zone memory.  This loop tries progressively smaller
@@ -122,10 +119,13 @@ static byte *AutoAllocMemory(int *size, int default_ram, int min_ram)
     }
 
     return zonemem;
+    */
 }
 
 byte *I_ZoneBase (int *size)
 {
+    printf("TODO I_ZoneBase\n"); return NULL;
+    /* NRFD-TODO:
     byte *zonemem;
     int min_ram, default_ram;
     int p;
@@ -155,6 +155,7 @@ byte *I_ZoneBase (int *size)
            zonemem, *size);
 
     return zonemem;
+    */
 }
 
 void I_PrintBanner(char *msg)
@@ -186,11 +187,10 @@ void I_PrintStartupBanner(char *gamedescription)
     I_PrintBanner(gamedescription);
     I_PrintDivider();
     
-    printf(
-    " " PACKAGE_NAME " is free software, covered by the GNU General Public\n"
-    " License.  There is NO warranty; not even for MERCHANTABILITY or FITNESS\n"
-    " FOR A PARTICULAR PURPOSE. You are welcome to change and distribute\n"
-    " copies under certain conditions. See the source for more information.\n");
+    printf(" " DOOM_PACKAGE_NAME " is free software, covered by the GNU General Public\n");
+    printf(" License.  There is NO warranty; not even for MERCHANTABILITY or FITNESS\n");
+    printf(" FOR A PARTICULAR PURPOSE. You are welcome to change and distribute\n");
+    printf(" copies under certain conditions. See the source for more information.\n");
 
     I_PrintDivider();
 }
@@ -203,12 +203,7 @@ void I_PrintStartupBanner(char *gamedescription)
 
 boolean I_ConsoleStdout(void)
 {
-#ifdef _WIN32
-    // SDL "helpfully" always redirects stdout to a file.
-    return false;
-#else
-    return isatty(fileno(stdout));
-#endif
+    return true;
 }
 
 //
@@ -235,6 +230,7 @@ void I_BindVariables(void)
 
 void I_Quit (void)
 {
+    /* NRFD-EXCLUDE
     atexit_listentry_t *entry;
 
     // Run through all exit functions
@@ -246,9 +242,7 @@ void I_Quit (void)
         entry->func();
         entry = entry->next;
     }
-
-    SDL_Quit();
-
+    */
     exit(0);
 }
 
@@ -262,10 +256,10 @@ static boolean already_quitting = false;
 
 void I_Error (char *error, ...)
 {
-    char msgbuf[512];
+    //char msgbuf[512];
     va_list argptr;
-    atexit_listentry_t *entry;
-    boolean exit_gui_popup;
+    //atexit_listentry_t *entry;
+    //boolean exit_gui_popup;
 
     if (already_quitting)
     {
@@ -280,19 +274,20 @@ void I_Error (char *error, ...)
     // Message first.
     va_start(argptr, error);
     //fprintf(stderr, "\nError: ");
-    vfprintf(stderr, error, argptr);
-    fprintf(stderr, "\n\n");
+    vprintf(error, argptr);
+    printf("\n\n");
     va_end(argptr);
-    fflush(stderr);
 
+    /* NRFD-EXCLUDE
     // Write a copy of the message into buffer.
     va_start(argptr, error);
     memset(msgbuf, 0, sizeof(msgbuf));
     M_vsnprintf(msgbuf, sizeof(msgbuf), error, argptr);
     va_end(argptr);
+    */
 
     // Shutdown. Here might be other errors.
-
+    /* NRFD-EXCLUDE
     entry = exit_funcs;
 
     while (entry != NULL)
@@ -319,6 +314,7 @@ void I_Error (char *error, ...)
     // abort();
 
     SDL_Quit();
+    */
 
     exit(-1);
 }
@@ -341,38 +337,9 @@ void *I_Realloc(void *ptr, size_t size)
     return new_ptr;
 }
 
-//
-// Read Access Violation emulation.
-//
-// From PrBoom+, by entryway.
-//
-
-// C:\>debug
-// -d 0:0
-//
-// DOS 6.22:
-// 0000:0000  (57 92 19 00) F4 06 70 00-(16 00)
-// DOS 7.1:
-// 0000:0000  (9E 0F C9 00) 65 04 70 00-(16 00)
-// Win98:
-// 0000:0000  (9E 0F C9 00) 65 04 70 00-(16 00)
-// DOSBox under XP:
-// 0000:0000  (00 00 00 F1) ?? ?? ?? 00-(07 00)
-
-#define DOS_MEM_DUMP_SIZE 10
-
-static const unsigned char mem_dump_dos622[DOS_MEM_DUMP_SIZE] = {
-  0x57, 0x92, 0x19, 0x00, 0xF4, 0x06, 0x70, 0x00, 0x16, 0x00};
-static const unsigned char mem_dump_win98[DOS_MEM_DUMP_SIZE] = {
-  0x9E, 0x0F, 0xC9, 0x00, 0x65, 0x04, 0x70, 0x00, 0x16, 0x00};
-static const unsigned char mem_dump_dosbox[DOS_MEM_DUMP_SIZE] = {
-  0x00, 0x00, 0x00, 0xF1, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00};
-static unsigned char mem_dump_custom[DOS_MEM_DUMP_SIZE];
-
-static const unsigned char *dos_mem_dump = mem_dump_dos622;
-
 boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
 {
+    /* NRFD-EXCLUDE
     static boolean firsttime = true;
 
     if (firsttime)
@@ -443,7 +410,7 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
                                   | (dos_mem_dump[offset + 3] << 24);
         return true;
     }
-
+    */
     return false;
 }
 

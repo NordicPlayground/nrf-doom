@@ -54,143 +54,61 @@
 #include "diskio_blkdev.h"
 #include "nrf_block_dev_sdc.h"
 
-
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
-#define FILE_NAME   "NORDIC.TXT"
-#define TEST_STRING "SD card example."
+#include "n_fs.h"
+#include "n_mem.h"
 
-#define SDC_SCK_PIN     ARDUINO_13_PIN  ///< SDC serial clock (SCK) pin.
-#define SDC_MOSI_PIN    ARDUINO_11_PIN  ///< SDC serial data in (DI) pin.
-#define SDC_MISO_PIN    ARDUINO_12_PIN  ///< SDC serial data out (DO) pin.
-#define SDC_CS_PIN      ARDUINO_10_PIN  ///< SDC chip select (CS) pin.
+#include "nrf_delay.h"
 
-/**
- * @brief  SDC block device definition
- * */
-NRF_BLOCK_DEV_SDC_DEFINE(
-        m_block_dev_sdc,
-        NRF_BLOCK_DEV_SDC_CONFIG(
-                SDC_SECTOR_SIZE,
-                APP_SDCARD_CONFIG(SDC_MOSI_PIN, SDC_MISO_PIN, SDC_SCK_PIN, SDC_CS_PIN)
-         ),
-         NFR_BLOCK_DEV_INFO_CONFIG("Nordic", "SDC", "1.00")
-);
-
-/**
- * @brief Function for demonstrating FAFTS usage.
- */
-static void fatfs_example()
+static void uart_init(void)
 {
-    static FATFS fs;
-    static DIR dir;
-    static FILINFO fno;
-    static FIL file;
-
-    uint32_t bytes_written;
-    FRESULT ff_result;
-    DSTATUS disk_state = STA_NOINIT;
-
-    // Initialize FATFS disk I/O interface by providing the block device.
-    static diskio_blkdev_t drives[] =
-    {
-            DISKIO_BLOCKDEV_CONFIG(NRF_BLOCKDEV_BASE_ADDR(m_block_dev_sdc, block_dev), NULL)
-    };
-
-    diskio_blockdev_register(drives, ARRAY_SIZE(drives));
-
-    NRF_LOG_INFO("Initializing disk 0 (SDC)...");
-    for (uint32_t retries = 3; retries && disk_state; --retries)
-    {
-        disk_state = disk_initialize(0);
-    }
-    if (disk_state)
-    {
-        NRF_LOG_INFO("Disk initialization failed.");
-        return;
-    }
-
-    uint32_t blocks_per_mb = (1024uL * 1024uL) / m_block_dev_sdc.block_dev.p_ops->geometry(&m_block_dev_sdc.block_dev)->blk_size;
-    uint32_t capacity = m_block_dev_sdc.block_dev.p_ops->geometry(&m_block_dev_sdc.block_dev)->blk_count / blocks_per_mb;
-    NRF_LOG_INFO("Capacity: %d MB", capacity);
-
-    NRF_LOG_INFO("Mounting volume...");
-    ff_result = f_mount(&fs, "", 1);
-    if (ff_result)
-    {
-        NRF_LOG_INFO("Mount failed.");
-        return;
-    }
-
-    NRF_LOG_INFO("\r\n Listing directory: /");
-    ff_result = f_opendir(&dir, "/");
-    if (ff_result)
-    {
-        NRF_LOG_INFO("Directory listing failed!");
-        return;
-    }
-
-    do
-    {
-        ff_result = f_readdir(&dir, &fno);
-        if (ff_result != FR_OK)
-        {
-            NRF_LOG_INFO("Directory read failed.");
-            return;
-        }
-
-        if (fno.fname[0])
-        {
-            if (fno.fattrib & AM_DIR)
-            {
-                NRF_LOG_RAW_INFO("   <DIR>   %s",(uint32_t)fno.fname);
-            }
-            else
-            {
-                NRF_LOG_RAW_INFO("%9lu  %s", fno.fsize, (uint32_t)fno.fname);
-            }
-        }
-    }
-    while (fno.fname[0]);
-    NRF_LOG_RAW_INFO("");
-
-    NRF_LOG_INFO("Writing to file " FILE_NAME "...");
-    ff_result = f_open(&file, FILE_NAME, FA_READ | FA_WRITE | FA_OPEN_APPEND);
-    if (ff_result != FR_OK)
-    {
-        NRF_LOG_INFO("Unable to open or create file: " FILE_NAME ".");
-        return;
-    }
-
-    ff_result = f_write(&file, TEST_STRING, sizeof(TEST_STRING) - 1, (UINT *) &bytes_written);
-    if (ff_result != FR_OK)
-    {
-        NRF_LOG_INFO("Write failed\r\n.");
-    }
-    else
-    {
-        NRF_LOG_INFO("%d bytes written.", bytes_written);
-    }
-
-    (void) f_close(&file);
-    return;
+    NRF_UART0->PSELTXD = TX_PIN_NUMBER;
+    NRF_UART0->BAUDRATE = UART_BAUDRATE_BAUDRATE_Baud115200;
+    NRF_UART0->CONFIG = 0;
+    NRF_UART0->ENABLE = UART_ENABLE_ENABLE_Enabled;
+    NRF_UART0->TASKS_STARTTX = 1; 
 }
 
-/**
- * @brief Function for main application entry.
- */
+
+void D_DoomMain (void);
+void M_ArgvInit(void);
+
+void HardFault_Handler(void)
+{
+    bsp_board_led_on(2);
+    char *panic_msg = "PANIC!\n";
+    for (int i=0;i<7;i++) {
+        NRF_UART0->EVENTS_TXDRDY = 0;
+        NRF_UART0->TXD = panic_msg[i];
+        while (!NRF_UART0->EVENTS_TXDRDY) {}
+    }
+    while (1) { }
+}
+
 int main(void)
 {
-    bsp_board_init(BSP_INIT_LEDS);
 
+    bsp_board_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS);
+    bsp_board_led_on(1);
     APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
     NRF_LOG_DEFAULT_BACKENDS_INIT();
+	
+    NRF_LOG_INFO("NRF Log Initialized");
 
-    NRF_LOG_INFO("FATFS example started.");
+    uart_init();
 
-    fatfs_example();
+    NRF_LOG_INFO("NRF Uart Initialized");
+
+    printf("\n\n----------------------------------\n");
+    printf("UART Initialized\n");
+    printf("---------------------------------\n");
+
+    N_fs_init();
+    M_ArgvInit();
+    D_DoomMain();
 
     while (true)
     {
@@ -198,4 +116,10 @@ int main(void)
     }
 }
 
-/** @} */
+void exit(int code) {
+    printf("exit\n");
+    while (true)
+    {
+        __WFE();
+    }
+}

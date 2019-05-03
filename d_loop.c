@@ -35,12 +35,12 @@
 #include "net_io.h"
 #include "net_query.h"
 #include "net_server.h"
-#include "net_sdl.h"
+//#include "net_sdl.h"
 #include "net_loop.h"
 
 // The complete set of data for a particular tic.
 
-typedef struct
+typedef struct   __attribute__((packed))
 {
     ticcmd_t cmds[NET_MAXPLAYERS];
     boolean ingame[NET_MAXPLAYERS];
@@ -133,15 +133,14 @@ static int GetAdjustedTime(void)
 
         time_ms += (offsetms / FRACUNIT);
     }
-
-    return (time_ms * TICRATE) / 1000;
+    int adjusted_time = (time_ms * TICRATE) / 1000;
+    return adjusted_time;
 }
 
 static boolean BuildNewTic(void)
 {
     int	gameticdiv;
     ticcmd_t cmd;
-
     gameticdiv = gametic/ticdup;
 
     I_StartTic ();
@@ -213,15 +212,13 @@ void NetUpdate (void)
     if (singletics)
         return;
 
-    // Run network subsystems
-
+    // Run network subsystems    
     NET_CL_Run();
     NET_SV_Run();
 
     // check time
     nowtime = GetAdjustedTime() / ticdup;
     newtics = nowtime - lasttime;
-
     lasttime = nowtime;
 
     if (skiptics <= newtics)
@@ -236,7 +233,6 @@ void NetUpdate (void)
     }
 
     // build new ticcmds for console player
-
     for (i=0 ; i<newtics ; i++)
     {
         if (!BuildNewTic())
@@ -248,6 +244,8 @@ void NetUpdate (void)
 
 static void D_Disconnected(void)
 {
+    printf("NRFD-TODO: D_Disconnected\n");
+    /*
     // In drone mode, the game cannot continue once disconnected.
 
     if (drone)
@@ -258,6 +256,7 @@ static void D_Disconnected(void)
     // disconnected from server
 
     printf("Disconnected from server.\n");
+    */
 }
 
 //
@@ -301,6 +300,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
 void D_StartGameLoop(void)
 {
+    printf("D_StartGameLoop\n");
     lasttime = GetAdjustedTime() / ticdup;
 }
 
@@ -311,6 +311,8 @@ void D_StartGameLoop(void)
 static void BlockUntilStart(net_gamesettings_t *settings,
                             netgame_startup_callback_t callback)
 {
+    printf("NRFD-TODO: BlockUntilStart");
+    /*
     while (!NET_CL_GetSettings(settings))
     {
         NET_CL_Run();
@@ -329,6 +331,7 @@ static void BlockUntilStart(net_gamesettings_t *settings,
 
         I_Sleep(100);
     }
+    */
 }
 
 void D_StartNetGame(net_gamesettings_t *settings,
@@ -433,6 +436,8 @@ void D_StartNetGame(net_gamesettings_t *settings,
 
 boolean D_InitNetGame(net_connect_data_t *connect_data)
 {
+        printf("NRFD-TODO: D_InitNetGame\n");
+/*
     boolean result = false;
     net_addr_t *addr = NULL;
     int i;
@@ -526,6 +531,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
     }
 
     return result;
+    */ return false;
 }
 
 
@@ -536,8 +542,11 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 //
 void D_QuitNetGame (void)
 {
+        printf("NRFD-TODO: ");
+/*
     NET_SV_Shutdown();
     NET_CL_Disconnect();
+    */
 }
 
 static int GetLowTic(void)
@@ -686,6 +695,7 @@ void TryRunTics (void)
     int	availabletics;
     int	counts;
 
+
     // get real tics
     entertic = I_GetTime() / ticdup;
     realtics = entertic - oldentertics;
@@ -711,7 +721,7 @@ void TryRunTics (void)
 
     if (new_sync)
     {
-	counts = availabletics;
+        counts = availabletics;
     }
     else
     {
@@ -733,17 +743,17 @@ void TryRunTics (void)
     }
 
     if (counts < 1)
-	counts = 1;
+        counts = 1;
 
     // wait for new tics if needed
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
-	NetUpdate ();
+        NetUpdate ();
 
         lowtic = GetLowTic();
 
-	if (lowtic < gametic/ticdup)
-	    I_Error ("TryRunTics: lowtic < gametic");
+        if (lowtic < gametic/ticdup)
+            I_Error ("TryRunTics: lowtic < gametic");
 
         // Still no tics to run? Sleep until some are available.
         if (lowtic < gametic/ticdup + counts)
@@ -777,22 +787,23 @@ void TryRunTics (void)
             SinglePlayerClear(set);
         }
 
-	for (i=0 ; i<ticdup ; i++)
-	{
+        for (i=0 ; i<ticdup ; i++)
+        {
+
             if (gametic/ticdup > lowtic)
                 I_Error ("gametic>lowtic");
 
             memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
 
             loop_interface->RunTic(set->cmds, set->ingame);
-	    gametic++;
+            gametic++;
 
-	    // modify command for duplicated tics
+            // modify command for duplicated tics
 
             TicdupSquash(set);
-	}
+        }
 
-	NetUpdate ();	// check for new console commands
+        NetUpdate ();	// check for new console commands
     }
 }
 
@@ -841,6 +852,7 @@ boolean D_NonVanillaRecord(boolean conditional, char *feature)
 // file, as opposed to a WAD.
 static boolean IsDemoFile(int lumpnum)
 {
+    printf("NRFD-TODO: IsDemoFile\n"); return false; /*
     char *lower;
     boolean result;
 
@@ -849,7 +861,7 @@ static boolean IsDemoFile(int lumpnum)
     result = M_StringEndsWith(lower, ".lmp");
     free(lower);
 
-    return result;
+    return result; */
 }
 
 // If the provided conditional value is true, we're trying to play back

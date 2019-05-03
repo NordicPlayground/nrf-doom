@@ -220,12 +220,14 @@ void F_Ticker (void)
 // F_TextWrite
 //
 
+/* NRFD-TODO: HU
 #include "hu_stuff.h"
 extern	patch_t *hu_font[HU_FONTSIZE];
-
+*/
 
 void F_TextWrite (void)
 {
+    /* NRFD-TODO: HU
     byte*	src;
     pixel_t*	dest;
     
@@ -289,6 +291,7 @@ void F_TextWrite (void)
 	V_DrawPatch(cx, cy, hu_font[c]);
 	cx+=w;
     }
+    */
 	
 }
 
@@ -303,7 +306,7 @@ typedef struct
     mobjtype_t	type;
 } castinfo_t;
 
-castinfo_t	castorder[] = {
+const castinfo_t	castorder[] = {
     {CC_ZOMBIE, MT_POSSESSED},
     {CC_SHOTGUN, MT_SHOTGUY},
     {CC_HEAVY, MT_CHAINGUY},
@@ -485,6 +488,7 @@ boolean F_CastResponder (event_t* ev)
 
 void F_CastPrint (char* text)
 {
+    /* NRFD-TODO: HU
     char*	ch;
     int		c;
     int		cx;
@@ -530,6 +534,7 @@ void F_CastPrint (char* text)
 	V_DrawPatch(cx, 180, hu_font[c]);
 	cx+=w;
     }
+    */
 	
 }
 

@@ -63,7 +63,8 @@ extern int		loopcount;
 
 #define MAXLIGHTSCALE		48
 #define LIGHTSCALESHIFT		12
-#define MAXLIGHTZ	       128
+/* NRFD-TODO !! MAXLIGHTZ        128 */
+#define MAXLIGHTZ	       32
 #define LIGHTZSHIFT		20
 
 extern lighttable_t*	scalelight[LIGHTLEVELS][MAXLIGHTSCALE];

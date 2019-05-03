@@ -486,8 +486,8 @@ typedef enum
 } ceiling_e;
 
 
-
-typedef struct
+// NRFD-TODO: ints changed to char/short in struct below
+typedef struct __attribute__((packed))
 {
     thinker_t	thinker;
     ceiling_e	type;
@@ -498,11 +498,11 @@ typedef struct
     boolean	crush;
 
     // 1 = up, 0 = waiting, -1 = down
-    int		direction;
+    int8_t		direction;
 
     // ID
-    int		tag;                   
-    int		olddirection;
+    short		tag;                   
+    short		olddirection;
     
 } ceiling_t;
 

@@ -945,18 +945,22 @@ void P_CheckMissileSpawn (mobj_t* th)
 // protection. This function substitutes NULL pointers for
 // pointers to a dummy mobj, to avoid a crash.
 
+// NRFD-TODO: This might crash if code tries to modify this object
+const mobj_t dummy_mobj;
+
 mobj_t *P_SubstNullMobj(mobj_t *mobj)
 {
     if (mobj == NULL)
     {
-        static mobj_t dummy_mobj;
+        return (mobj_t*)&dummy_mobj;
+        // static mobj_t dummy_mobj;
 
-        dummy_mobj.x = 0;
-        dummy_mobj.y = 0;
-        dummy_mobj.z = 0;
-        dummy_mobj.flags = 0;
+        // dummy_mobj.x = 0;
+        // dummy_mobj.y = 0;
+        // dummy_mobj.z = 0;
+        // dummy_mobj.flags = 0;
 
-        mobj = &dummy_mobj;
+        // mobj = &dummy_mobj;
     }
 
     return mobj;

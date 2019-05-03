@@ -27,6 +27,8 @@
 #include "i_system.h"
 #include "doomtype.h"
 
+#include "n_mem.h"
+
 #define ZONEID	0x1d4a11
 
 typedef struct memblock_s memblock_t;
@@ -136,6 +138,7 @@ void Z_Init (void)
 //
 void Z_Free (void* ptr)
 {
+    printf("Z_Free\n");
     memblock_t*		block;
 
     block = (memblock_t *) ((byte *)ptr - sizeof(memblock_t));
@@ -169,6 +172,8 @@ static boolean ClearCache(int size)
     memblock_t *block;
     memblock_t *next_block;
     int remaining;
+
+    printf("ClearCache\n");
 
     block = allocated_blocks[PU_CACHE];
 
@@ -251,7 +256,7 @@ void *Z_Malloc(int size, int tag, void *user)
 
     while (newblock == NULL)
     {
-        newblock = (memblock_t *) malloc(sizeof(memblock_t) + size);
+        newblock = (memblock_t *) N_malloc(sizeof(memblock_t) + size);
 
         if (newblock == NULL)
         {
@@ -331,39 +336,7 @@ void Z_FreeTags(int lowtag, int hightag)
 //
 void Z_DumpHeap(int lowtag, int	hightag)
 {
-    // broken
-
-#if 0
-    memblock_t*	block;
-	
-    printf ("zone size: %i  location: %p\n",
-	    mainzone->size,mainzone);
-    
-    printf ("tag range: %i to %i\n",
-	    lowtag, hightag);
-	
-    for (block = mainzone->blocklist.next ; ; block = block->next)
-    {
-	if (block->tag >= lowtag && block->tag <= hightag)
-	    printf ("block:%p    size:%7i    user:%p    tag:%3i\n",
-		    block, block->size, block->user, block->tag);
-		
-	if (block->next == &mainzone->blocklist)
-	{
-	    // all blocks have been hit
-	    break;
-	}
-	
-	if ( (byte *)block + block->size != (byte *)block->next)
-	    printf ("ERROR: block size does not touch the next block\n");
-
-	if ( block->next->prev != block)
-	    printf ("ERROR: next block doesn't have proper back link\n");
-
-	if (block->tag == PU_FREE && block->next->tag == PU_FREE)
-	    printf ("ERROR: two consecutive free blocks\n");
-    }
-#endif
+    // NRFD-EXCLUDE
 }
 
 
@@ -372,33 +345,7 @@ void Z_DumpHeap(int lowtag, int	hightag)
 //
 void Z_FileDumpHeap(FILE *f)
 {
-    // broken
-#if 0
-    memblock_t*	block;
-	
-    fprintf (f,"zone size: %i  location: %p\n",mainzone->size,mainzone);
-	
-    for (block = mainzone->blocklist.next ; ; block = block->next)
-    {
-	fprintf (f,"block:%p    size:%7i    user:%p    tag:%3i\n",
-		 block, block->size, block->user, block->tag);
-		
-	if (block->next == &mainzone->blocklist)
-	{
-	    // all blocks have been hit
-	    break;
-	}
-	
-	if ( (byte *)block + block->size != (byte *)block->next)
-	    fprintf (f,"ERROR: block size does not touch the next block\n");
-
-	if ( block->next->prev != block)
-	    fprintf (f,"ERROR: next block doesn't have proper back link\n");
-
-	if (block->tag == PU_FREE && block->next->tag == PU_FREE)
-	    fprintf (f,"ERROR: two consecutive free blocks\n");
-    }
-#endif
+    // NRFD-EXCLUDE
 }
 
 

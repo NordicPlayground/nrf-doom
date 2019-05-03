@@ -32,18 +32,18 @@
 #define MAX_CHEAT_LEN 25
 #define MAX_CHEAT_PARAMS 5
 
-typedef struct
+typedef struct __attribute__((packed))
 {
     // settings for this cheat
 
     char sequence[MAX_CHEAT_LEN];
-    size_t sequence_len;
-    int parameter_chars;
+    uint8_t sequence_len;
+    uint8_t parameter_chars;
 
     // state used during the game
 
-    size_t chars_read;
-    int param_chars_read;
+    uint8_t chars_read;
+    uint8_t param_chars_read;
     char parameter_buf[MAX_CHEAT_PARAMS];
 } cheatseq_t;
 

@@ -42,7 +42,8 @@
 
 // Networking and tick handling related.
 
-#define BACKUPTICS 128
+/* NRFD-TODO !! BACKUPTICS 128 */ 
+#define BACKUPTICS 4
 
 typedef struct _net_module_s net_module_t;
 typedef struct _net_packet_s net_packet_t;

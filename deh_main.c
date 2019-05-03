@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 
 #include "doomtype.h"
@@ -93,7 +94,7 @@ static void DEH_Init(void)
 
     if (M_CheckParm("-nocheats") > 0) 
     {
-	deh_apply_cheats = false;
+        deh_apply_cheats = false;
     }
 
     // Call init functions for all the section definitions.

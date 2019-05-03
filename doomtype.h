@@ -21,7 +21,7 @@
 #ifndef __DOOMTYPE__
 #define __DOOMTYPE__
 
-#include "config.h"
+#include "doom_config.h"
 
 #if defined(_MSC_VER) && !defined(__cplusplus)
 #define inline __inline
@@ -30,7 +30,7 @@
 // #define macros to provide functions missing in Windows.
 // Outside Windows, we use strings.h for str[n]casecmp.
 
-
+/*
 #if !HAVE_DECL_STRCASECMP || !HAVE_DECL_STRNCASECMP
 
 #include <string.h>
@@ -46,6 +46,7 @@
 #include <strings.h>
 
 #endif
+*/
 
 
 //
@@ -91,7 +92,7 @@
 
 // Use builtin bool type with C++.
 
-typedef bool boolean;
+typedef uint8_t boolean;
 
 #else
 

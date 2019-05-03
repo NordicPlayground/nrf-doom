@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
+#include "doom_config.h"
 
 #include "doomtype.h"
 #include "d_mode.h"
@@ -36,7 +36,7 @@
 #include "net_packet.h"
 #include "net_query.h"
 #include "net_server.h"
-#include "net_sdl.h"
+// #include "net_sdl.h"
 #include "net_structrw.h"
 
 // How often to refresh our registration with the master server.
@@ -169,10 +169,12 @@ static net_client_recv_t recvwindow[BACKUPTICS][NET_MAXPLAYERS];
 
 static void NET_SV_DisconnectClient(net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_DisconnectClient \n"); /*
     if (client->active)
     {
         NET_Conn_Disconnect(&client->connection);
     }
+    */
 }
 
 static boolean ClientConnected(net_client_t *client)
@@ -188,6 +190,7 @@ static boolean ClientConnected(net_client_t *client)
 
 static void NET_SV_SendConsoleMessage(net_client_t *client, char *s, ...)
 {
+    printf("NRFD-TODO: NET_SV_SendConsoleMessage \n"); /*
     char buf[1024];
     va_list args;
     net_packet_t *packet;
@@ -200,12 +203,14 @@ static void NET_SV_SendConsoleMessage(net_client_t *client, char *s, ...)
                                   NET_PACKET_TYPE_CONSOLE_MESSAGE);
 
     NET_WriteString(packet, buf);
+    */
 }
 
 // Send a message to all clients
 
 static void NET_SV_BroadcastMessage(char *s, ...)
 {
+    printf("NRFD-TODO: NET_SV_BroadcastMessage \n"); /*
     char buf[1024];
     va_list args;
     int i;
@@ -223,6 +228,7 @@ static void NET_SV_BroadcastMessage(char *s, ...)
     }
 
     printf("%s\n", buf);
+    */
 }
 
 
@@ -230,6 +236,7 @@ static void NET_SV_BroadcastMessage(char *s, ...)
 
 static void NET_SV_AssignPlayers(void)
 {
+    printf("NRFD-TODO: NET_SV_AssignPlayers \n"); /*
     int i;
     int pl;
 
@@ -256,6 +263,7 @@ static void NET_SV_AssignPlayers(void)
     {
         sv_players[pl] = NULL;
     }
+    */
 }
 
 // Returns the number of players currently connected.
@@ -385,6 +393,7 @@ static net_client_t *NET_SV_Controller(void)
 
 static void NET_SV_SendWaitingData(net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_SendWaitingData \n"); /*
     net_waitdata_t wait_data;
     net_packet_t *packet;
     net_client_t *controller;
@@ -438,6 +447,7 @@ static void NET_SV_SendWaitingData(net_client_t *client)
 
     NET_Conn_SendPacket(&client->connection, packet);
     NET_FreePacket(packet);
+    */
 }
 
 // Find the latest tic which has been acknowledged as received by
@@ -468,6 +478,7 @@ static unsigned int NET_SV_LatestAcknowledged(void)
 
 static void NET_SV_AdvanceWindow(void)
 {
+    printf("NRFD-TODO: NET_SV_AdvanceWindow \n"); /*
     unsigned int lowtic;
     int i;
 
@@ -521,6 +532,7 @@ static void NET_SV_AdvanceWindow(void)
 
         //printf("SV: advanced to %i\n", recvwindow_start);
     }
+    */
 }
 
 // Given an address, find the corresponding client
@@ -546,6 +558,7 @@ static net_client_t *NET_SV_FindClient(net_addr_t *addr)
 
 static void NET_SV_SendReject(net_addr_t *addr, char *msg)
 {
+    printf("NRFD-TODO: NET_SV_SendReject \n"); /*
     net_packet_t *packet;
 
     packet = NET_NewPacket(10);
@@ -553,11 +566,13 @@ static void NET_SV_SendReject(net_addr_t *addr, char *msg)
     NET_WriteString(packet, msg);
     NET_SendPacket(addr, packet);
     NET_FreePacket(packet);
+    */
 }
 
 static void NET_SV_InitNewClient(net_client_t *client, net_addr_t *addr,
                                  net_protocol_t protocol)
 {
+    printf("NRFD-TODO: NET_SV_InitNewClient \n"); /*
     client->active = true;
     client->connect_time = I_GetTimeMS();
     NET_Conn_InitServer(&client->connection, addr, protocol);
@@ -574,6 +589,7 @@ static void NET_SV_InitNewClient(net_client_t *client, net_addr_t *addr,
     client->last_gamedata_time = 0;
 
     memset(client->sendqueue, 0xff, sizeof(client->sendqueue));
+    */
 }
 
 // parse a SYN from a client(initiating a connection)
@@ -581,6 +597,8 @@ static void NET_SV_InitNewClient(net_client_t *client, net_addr_t *addr,
 static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
                             net_addr_t *addr)
 {
+
+    printf("NRFD-TODO: NET_SV_ParseSYN \n"); /*
     unsigned int magic;
     net_connect_data_t data;
     net_packet_t *reply;
@@ -746,6 +764,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
     reply = NET_Conn_NewReliable(&client->connection, NET_PACKET_TYPE_SYN);
     NET_WriteString(reply, PACKAGE_STRING);
     NET_WriteProtocol(reply, protocol);
+    */
 }
 
 // Parse a launch packet. This is sent by the key player when the "start"
@@ -753,6 +772,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
 
 static void NET_SV_ParseLaunch(net_packet_t *packet, net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_ParseLaunch \n"); /*
     net_packet_t *launchpacket;
     int num_players;
     unsigned int i;
@@ -789,6 +809,7 @@ static void NET_SV_ParseLaunch(net_packet_t *packet, net_client_t *client)
     // Now in launch state.
 
     server_state = SERVER_WAITING_START;
+    */
 }
 
 // Transition to the in-game state and send all players the start game
@@ -797,6 +818,7 @@ static void NET_SV_ParseLaunch(net_packet_t *packet, net_client_t *client)
 
 static void StartGame(void)
 {
+    printf("NRFD-TODO: StartGame \n"); /*
     net_packet_t *startpacket;
     unsigned int i;
     int nowtime;
@@ -858,6 +880,7 @@ static void StartGame(void)
 
     memset(recvwindow, 0, sizeof(recvwindow));
     recvwindow_start = 0;
+    */
 }
 
 // Returns true when all nodes have indicated readiness to start the game.
@@ -881,10 +904,12 @@ static boolean AllNodesReady(void)
 
 static void CheckStartGame(void)
 {
+    printf("NRFD-TODO: CheckStartGame \n"); /*
     if (AllNodesReady())
     {
         StartGame();
     }
+    */
 }
 
 // Send waiting data with current status to all nodes that are ready to
@@ -892,6 +917,7 @@ static void CheckStartGame(void)
 
 static void SendAllWaitingData(void)
 {
+    printf("NRFD-TODO: SendAllWaitingData \n"); /*
     unsigned int i;
 
     for (i = 0; i < MAXNETNODES; ++i)
@@ -901,12 +927,14 @@ static void SendAllWaitingData(void)
             NET_SV_SendWaitingData(&clients[i]);
         }
     }
+    */
 }
 
 // Parse a game start packet
 
 static void NET_SV_ParseGameStart(net_packet_t *packet, net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_ParseGameStart \n"); /*
     net_gamesettings_t settings;
 
     // Can only start a game if we are in the waiting start state.
@@ -944,12 +972,14 @@ static void NET_SV_ParseGameStart(net_packet_t *packet, net_client_t *client)
     // (eg. Hexen's spinal loading)
 
     SendAllWaitingData();
+    */
 }
 
 // Send a resend request to a client
 
 static void NET_SV_SendResendRequest(net_client_t *client, int start, int end)
 {
+    printf("NRFD-TODO: NET_SV_SendResendRequest \n"); /*
     net_packet_t *packet;
     net_client_recv_t *recvobj;
     int i;
@@ -986,12 +1016,14 @@ static void NET_SV_SendResendRequest(net_client_t *client, int start, int end)
 
         recvobj->resend_time = nowtime;
     }
+*/
 }
 
 // Check for expired resend requests
 
 static void NET_SV_CheckResends(net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_CheckResends \n"); /*
     int i;
     int player;
     int resend_start, resend_end;
@@ -1050,12 +1082,14 @@ static void NET_SV_CheckResends(net_client_t *client)
                                  recvwindow_start + resend_start,
                                  recvwindow_start + resend_end);
     }
+    */
 }
 
 // Process game data from a client
 
 static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_ParseGameData \n"); /*
     net_client_recv_t *recvobj;
     unsigned int seq;
     unsigned int ackseq;
@@ -1177,20 +1211,18 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
 
     if (resend_start < resend_end)
     {
-            /*
-        printf("missed %i-%i before %i, send resend\n",
-                        recvwindow_start + resend_start,
-                        recvwindow_start + resend_end - 1,
-                        seq);
-                        */
+
         NET_SV_SendResendRequest(client, 
                                  recvwindow_start + resend_start, 
                                  recvwindow_start + resend_end - 1);
     }
+
+    */
 }
 
 static void NET_SV_ParseGameDataACK(net_packet_t *packet, net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_ParseGameDataACK \n"); /*
     unsigned int ackseq;
 
     if (server_state != SERVER_IN_GAME)
@@ -1215,11 +1247,13 @@ static void NET_SV_ParseGameDataACK(net_packet_t *packet, net_client_t *client)
     {
         client->acknowledged = ackseq;
     }
+    */
 }
 
 static void NET_SV_SendTics(net_client_t *client, 
                             unsigned int start, unsigned int end)
 {
+    printf("NRFD-TODO: NET_SV_SendTics \n"); /*
     net_packet_t *packet;
     unsigned int i;
 
@@ -1255,12 +1289,14 @@ static void NET_SV_SendTics(net_client_t *client,
     NET_Conn_SendPacket(&client->connection, packet);
     
     NET_FreePacket(packet);
+    */
 }
 
 // Parse a retransmission request from a client
 
 static void NET_SV_ParseResendRequest(net_packet_t *packet, net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_ParseResendRequest \n"); /*
     unsigned int start, last;
     unsigned int num_tics;
     unsigned int i;
@@ -1299,12 +1335,14 @@ static void NET_SV_ParseResendRequest(net_packet_t *packet, net_client_t *client
     // Resend those tics
 
     NET_SV_SendTics(client, start, last);
+    */
 }
 
 // Send a response back to the client
 
 void NET_SV_SendQueryResponse(net_addr_t *addr)
 {
+    printf("NRFD-TODO: NET_SV_SendQueryResponse\n");/*
     net_packet_t *reply;
     net_querydata_t querydata;
     int p;
@@ -1352,12 +1390,14 @@ void NET_SV_SendQueryResponse(net_addr_t *addr)
     NET_WriteQueryData(reply, &querydata);
     NET_SendPacket(addr, reply);
     NET_FreePacket(reply);
+    */
 }
 
 // Process a packet received by the server
 
 static void NET_SV_Packet(net_packet_t *packet, net_addr_t *addr)
 {
+    printf("NRFD-TODO: NET_SV_Packet \n"); /*
     net_client_t *client;
     unsigned int packet_type;
 
@@ -1433,11 +1473,13 @@ static void NET_SV_Packet(net_packet_t *packet, net_addr_t *addr)
     {
         NET_FreeAddress(addr);
     }
+    */
 }
 
 
 static void NET_SV_PumpSendQueue(net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_PumpSendQueue \n"); /*
     net_full_ticcmd_t cmd;
     int recv_index;
     int num_players;
@@ -1557,6 +1599,7 @@ static void NET_SV_PumpSendQueue(net_client_t *client)
     NET_SV_SendTics(client, starttic, endtic);
 
     ++client->sendseq;
+    */
 }
 
 // Prevent against deadlock: resend requests are usually only
@@ -1568,6 +1611,7 @@ static void NET_SV_PumpSendQueue(net_client_t *client)
 
 void NET_SV_CheckDeadlock(net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_CheckDeadlock\n");/*
     int nowtime;
     int i;
 
@@ -1604,6 +1648,7 @@ void NET_SV_CheckDeadlock(net_client_t *client)
             }
         }
     }
+    */
 }
 
 // Called when all players have disconnected.  Return to listening for 
@@ -1611,6 +1656,7 @@ void NET_SV_CheckDeadlock(net_client_t *client)
 
 static void NET_SV_GameEnded(void)
 {
+    printf("NRFD-TODO: NET_SV_GameEnded \n"); /*
     int i;
 
     server_state = SERVER_WAITING_LAUNCH;
@@ -1623,12 +1669,14 @@ static void NET_SV_GameEnded(void)
             NET_SV_DisconnectClient(&clients[i]);
         }
     }
+    */
 }
 
 // Perform any needed action on a client
 
 static void NET_SV_RunClient(net_client_t *client)
 {
+    printf("NRFD-TODO: NET_SV_RunClient \n"); /*
     // Run common code
 
     NET_Conn_Run(&client->connection);
@@ -1697,6 +1745,7 @@ static void NET_SV_RunClient(net_client_t *client)
         NET_SV_PumpSendQueue(client);
         NET_SV_CheckDeadlock(client);
     }
+    */
 }
 
 // Add a network module to the server context
@@ -1711,6 +1760,7 @@ void NET_SV_AddModule(net_module_t *module)
 
 void NET_SV_Init(void)
 {
+    printf("NRFD-TODO: NET_SV_Init\n");/*
     int i;
 
     // initialize send/receive context
@@ -1728,11 +1778,12 @@ void NET_SV_Init(void)
 
     server_state = SERVER_WAITING_LAUNCH;
     sv_gamemode = indetermined;
-    server_initialized = true;
+    server_initialized = true;*/
 }
 
 static void UpdateMasterServer(void)
 {
+    printf("NRFD-TODO: UpdateMasterServer \n"); /*
     unsigned int now;
 
     now = I_GetTimeMS();
@@ -1764,10 +1815,12 @@ static void UpdateMasterServer(void)
         NET_Query_AddToMaster(master_server);
         master_refresh_time = now;
     }
+    */
 }
 
 void NET_SV_RegisterWithMaster(void)
 {
+    printf("NRFD-TODO: NET_SV_RegisterWithMaster\n"); /*
     //!
     // @category net
     //
@@ -1792,6 +1845,7 @@ void NET_SV_RegisterWithMaster(void)
         master_refresh_time = I_GetTimeMS();
         master_resolve_time = master_refresh_time;
     }
+    */
 }
 
 // Run server code to check for new packets/send packets as the server
@@ -1799,6 +1853,7 @@ void NET_SV_RegisterWithMaster(void)
 
 void NET_SV_Run(void)
 {
+    N_ldbg("NRFD-TODO: NET_SV_Run\n"); /*
     net_addr_t *addr;
     net_packet_t *packet;
     int i;
@@ -1851,10 +1906,12 @@ void NET_SV_Run(void)
             }
             break;
     }
+    */
 }
 
 void NET_SV_Shutdown(void)
 {
+    printf("NRFD-TODO: NET_SV_Shutdown\n"); /*
     int i;
     boolean running;
     int start_time;
@@ -1912,4 +1969,5 @@ void NET_SV_Shutdown(void)
 
         I_Sleep(1);
     }
+    */
 }

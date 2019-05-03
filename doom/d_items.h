@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	Items: key cards, artifacts, weapon, ammunition.
+//  Items: key cards, artifacts, weapon, ammunition.
 //
 
 
@@ -25,14 +25,15 @@
 
 
 // Weapon info: sprite frames, ammunition use.
-typedef struct
+// NRFD-NOTE: short changed to int
+typedef struct  __attribute__((packed))
 {
-    ammotype_t	ammo;
-    int		upstate;
-    int		downstate;
-    int		readystate;
-    int		atkstate;
-    int		flashstate;
+    ammotype_t  ammo;
+    short       upstate;
+    short       downstate;
+    short       readystate;
+    short       atkstate;
+    short       flashstate;
 
 } weaponinfo_t;
 

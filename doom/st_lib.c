@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	The status bar widget code.
+//      The status bar widget code.
 //
 
 
@@ -37,7 +37,7 @@
 
 
 // in AM_map.c
-extern boolean		automapactive; 
+extern boolean          automapactive; 
 
 
 
@@ -46,7 +46,7 @@ extern boolean		automapactive;
 // Hack display negative frags.
 //  Loads and store the stminus lump.
 //
-patch_t*		sttminus;
+patch_t*                sttminus;
 
 void STlib_init(void)
 {
@@ -57,21 +57,21 @@ void STlib_init(void)
 // ?
 void
 STlib_initNum
-( st_number_t*		n,
-  int			x,
-  int			y,
-  patch_t**		pl,
-  int*			num,
-  boolean*		on,
-  int			width )
+( st_number_t*          n,
+  short                 x,
+  short                 y,
+  patch_t**             pl,
+  short*                        num,
+  boolean*              on,
+  short                 width )
 {
-    n->x	= x;
-    n->y	= y;
-    n->oldnum	= 0;
-    n->width	= width;
-    n->num	= num;
-    n->on	= on;
-    n->p	= pl;
+    n->x        = x;
+    n->y        = y;
+    n->oldnum   = 0;
+    n->width    = width;
+    n->num      = num;
+    n->on       = on;
+    n->p        = pl;
 }
 
 
@@ -80,20 +80,21 @@ STlib_initNum
 //  based on differences from the old number.
 // Note: worth the trouble?
 //
+// NRFD-NOTE: int changed to short
 void
 STlib_drawNum
-( st_number_t*	n,
-  boolean	refresh )
+( st_number_t*  n,
+  boolean       refresh )
 {
 
-    int		numdigits = n->width;
-    int		num = *n->num;
+    short               numdigits = n->width;
+    short               num = *n->num;
     
-    int		w = SHORT(n->p[0]->width);
-    int		h = SHORT(n->p[0]->height);
-    int		x = n->x;
+    short               w = SHORT(n->p[0]->width);
+    short               h = SHORT(n->p[0]->height);
+    short               x = n->x;
     
-    int		neg;
+    int         neg;
 
     n->oldnum = *n->num;
 
@@ -101,66 +102,66 @@ STlib_drawNum
 
     if (neg)
     {
-	if (numdigits == 2 && num < -9)
-	    num = -9;
-	else if (numdigits == 3 && num < -99)
-	    num = -99;
-	
-	num = -num;
+        if (numdigits == 2 && num < -9)
+            num = -9;
+        else if (numdigits == 3 && num < -99)
+            num = -99;
+        
+        num = -num;
     }
 
     // clear the area
     x = n->x - numdigits*w;
 
     if (n->y - ST_Y < 0)
-	I_Error("drawNum: n->y - ST_Y < 0");
+        I_Error("drawNum: n->y - ST_Y < 0");
 
     V_CopyRect(x, n->y - ST_Y, st_backing_screen, w*numdigits, h, x, n->y);
 
     // if non-number, do not draw it
     if (num == 1994)
-	return;
+        return;
 
     x = n->x;
 
     // in the special case of 0, you draw 0
     if (!num)
-	V_DrawPatch(x - w, n->y, n->p[ 0 ]);
+        V_DrawPatch(x - w, n->y, n->p[ 0 ]);
 
     // draw the new number
     while (num && numdigits--)
     {
-	x -= w;
-	V_DrawPatch(x, n->y, n->p[ num % 10 ]);
-	num /= 10;
+        x -= w;
+        V_DrawPatch(x, n->y, n->p[ num % 10 ]);
+        num /= 10;
     }
 
     // draw a minus sign if necessary
     if (neg)
-	V_DrawPatch(x - 8, n->y, sttminus);
+        V_DrawPatch(x - 8, n->y, sttminus);
 }
 
 
 //
 void
 STlib_updateNum
-( st_number_t*		n,
-  boolean		refresh )
+( st_number_t*          n,
+  boolean               refresh )
 {
     if (*n->on) STlib_drawNum(n, refresh);
 }
 
 
-//
+// NRFD-NOTE: int changed to short
 void
 STlib_initPercent
-( st_percent_t*		p,
-  int			x,
-  int			y,
-  patch_t**		pl,
-  int*			num,
-  boolean*		on,
-  patch_t*		percent )
+( st_percent_t*         p,
+  short                 x,
+  short                 y,
+  patch_t**             pl,
+  short*                 num,
+  boolean*              on,
+  patch_t*              percent )
 {
     STlib_initNum(&p->n, x, y, pl, num, on, 3);
     p->p = percent;
@@ -171,115 +172,115 @@ STlib_initPercent
 
 void
 STlib_updatePercent
-( st_percent_t*		per,
-  int			refresh )
+( st_percent_t*         per,
+  int                   refresh )
 {
     if (refresh && *per->n.on)
-	V_DrawPatch(per->n.x, per->n.y, per->p);
+        V_DrawPatch(per->n.x, per->n.y, per->p);
     
     STlib_updateNum(&per->n, refresh);
 }
 
 
-
+// NRFD-NOTE: int changed to short
 void
 STlib_initMultIcon
-( st_multicon_t*	i,
-  int			x,
-  int			y,
-  patch_t**		il,
-  int*			inum,
-  boolean*		on )
+( st_multicon_t*        i,
+  short                 x,
+  short                 y,
+  patch_t**             il,
+  short*                inum,
+  boolean*              on )
 {
-    i->x	= x;
-    i->y	= y;
-    i->oldinum 	= -1;
-    i->inum	= inum;
-    i->on	= on;
-    i->p	= il;
+    i->x        = x;
+    i->y        = y;
+    i->oldinum  = -1;
+    i->inum     = inum;
+    i->on       = on;
+    i->p        = il;
 }
 
 
-
+// NRFD-NOTE: int changed to short
 void
 STlib_updateMultIcon
-( st_multicon_t*	mi,
-  boolean		refresh )
+( st_multicon_t*        mi,
+  boolean               refresh )
 {
-    int			w;
-    int			h;
-    int			x;
-    int			y;
+    short                 w;
+    short                 h;
+    short                 x;
+    short                 y;
 
     if (*mi->on
-	&& (mi->oldinum != *mi->inum || refresh)
-	&& (*mi->inum!=-1))
+        && (mi->oldinum != *mi->inum || refresh)
+        && (*mi->inum!=-1))
     {
-	if (mi->oldinum != -1)
-	{
-	    x = mi->x - SHORT(mi->p[mi->oldinum]->leftoffset);
-	    y = mi->y - SHORT(mi->p[mi->oldinum]->topoffset);
-	    w = SHORT(mi->p[mi->oldinum]->width);
-	    h = SHORT(mi->p[mi->oldinum]->height);
+        if (mi->oldinum != -1)
+        {
+            x = mi->x - SHORT(mi->p[mi->oldinum]->leftoffset);
+            y = mi->y - SHORT(mi->p[mi->oldinum]->topoffset);
+            w = SHORT(mi->p[mi->oldinum]->width);
+            h = SHORT(mi->p[mi->oldinum]->height);
 
-	    if (y - ST_Y < 0)
-		I_Error("updateMultIcon: y - ST_Y < 0");
+            if (y - ST_Y < 0)
+                I_Error("updateMultIcon: y - ST_Y < 0");
 
-	    V_CopyRect(x, y-ST_Y, st_backing_screen, w, h, x, y);
-	}
-	V_DrawPatch(mi->x, mi->y, mi->p[*mi->inum]);
-	mi->oldinum = *mi->inum;
+            V_CopyRect(x, y-ST_Y, st_backing_screen, w, h, x, y);
+        }
+        V_DrawPatch(mi->x, mi->y, mi->p[*mi->inum]);
+        mi->oldinum = *mi->inum;
     }
 }
 
 
-
+// NRFD-NOTE: int changed to short
 void
 STlib_initBinIcon
-( st_binicon_t*		b,
-  int			x,
-  int			y,
-  patch_t*		i,
-  boolean*		val,
-  boolean*		on )
+( st_binicon_t*         b,
+  short                 x,
+  short                 y,
+  patch_t*              i,
+  boolean*              val,
+  boolean*              on )
 {
-    b->x	= x;
-    b->y	= y;
-    b->oldval	= false;
-    b->val	= val;
-    b->on	= on;
-    b->p	= i;
+    b->x        = x;
+    b->y        = y;
+    b->oldval   = false;
+    b->val      = val;
+    b->on       = on;
+    b->p        = i;
 }
 
 
-
+// NRFD-NOTE: int changed to short
 void
 STlib_updateBinIcon
-( st_binicon_t*		bi,
-  boolean		refresh )
+( st_binicon_t*         bi,
+  boolean               refresh )
 {
-    int			x;
-    int			y;
-    int			w;
-    int			h;
+    short                 x;
+    short                 y;
+    short                 w;
+    short                 h;
 
     if (*bi->on
      && (bi->oldval != *bi->val || refresh))
     {
-	x = bi->x - SHORT(bi->p->leftoffset);
-	y = bi->y - SHORT(bi->p->topoffset);
-	w = SHORT(bi->p->width);
-	h = SHORT(bi->p->height);
+        x = bi->x - SHORT(bi->p->leftoffset);
+        y = bi->y - SHORT(bi->p->topoffset);
+        w = SHORT(bi->p->width);
+        h = SHORT(bi->p->height);
 
-	if (y - ST_Y < 0)
-	    I_Error("updateBinIcon: y - ST_Y < 0");
+        if (y - ST_Y < 0)
+            I_Error("updateBinIcon: y - ST_Y < 0");
 
-	if (*bi->val)
-	    V_DrawPatch(bi->x, bi->y, bi->p);
-	else
-	    V_CopyRect(x, y-ST_Y, st_backing_screen, w, h, x, y);
+        if (*bi->val)
+            V_DrawPatch(bi->x, bi->y, bi->p);
+        else
+            V_CopyRect(x, y-ST_Y, st_backing_screen, w, h, x, y);
 
-	bi->oldval = *bi->val;
+        bi->oldval = *bi->val;
     }
 
 }

@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	Handles WAD file header, directory, lump I/O.
+//      Handles WAD file header, directory, lump I/O.
 //
 
 
@@ -23,9 +23,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "doomtype.h"
 
+#include "i_timer.h"
 #include "i_swap.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -35,40 +37,47 @@
 
 #include "w_wad.h"
 
+#include "n_mem.h"
+
 typedef PACKED_STRUCT (
 {
     // Should be "IWAD" or "PWAD".
-    char		identification[4];
-    int			numlumps;
-    int			infotableofs;
+    char                identification[4];
+    int                 numlumps;
+    int                 infotableofs;
 }) wadinfo_t;
 
 
 typedef PACKED_STRUCT (
 {
-    int			filepos;
-    int			size;
-    char		name[8];
+    int                 filepos;
+    int                 size;
+    char                name[8];
 }) filelump_t;
 
 //
 // GLOBALS
 //
 
+wad_file_t *wad_file = NULL; // NRFD
+
 // Location of each lump on disk.
-lumpinfo_t **lumpinfo;
-unsigned int numlumps = 0;
+#define MAX_NUMLUMPS 1300
+lumpinfo_t lumpinfo[MAX_NUMLUMPS];
+unsigned short numlumps = 0;
 
 // Hash table for fast lookups
-static lumpindex_t *lumphash;
+static lumpindex_t *lumphash = NULL;
 
 // Variables for the reload hack: filename of the PWAD to reload, and the
 // lumps from WADs before the reload file, so we can resent numlumps and
 // load the file again.
+/* NRFD-EXCLUDE
 static wad_file_t *reloadhandle = NULL;
 static lumpinfo_t *reloadlumps = NULL;
 static char *reloadname = NULL;
 static int reloadlump = -1;
+*/
 
 // Hash function used for lump names.
 unsigned int W_LumpNameHash(const char *s)
@@ -104,14 +113,14 @@ wad_file_t *W_AddFile (char *filename)
 {
     wadinfo_t header;
     lumpindex_t i;
-    wad_file_t *wad_file;
+    // wad_file_t *wad_file;
     int length;
     int startlump;
     filelump_t *fileinfo;
     filelump_t *filerover;
     lumpinfo_t *filelumps;
-    int numfilelumps;
 
+    /* NRFD-EXCLUDE:
     // If the filename begins with a ~, it indicates that we should use the
     // reload hack.
     if (filename[0] == '~')
@@ -130,54 +139,60 @@ wad_file_t *W_AddFile (char *filename)
         reloadlump = numlumps;
         ++filename;
     }
+    */
 
+    if (wad_file != NULL) {
+        I_Error("Only one wad file supported\n");
+    }
     // Open the file and add to directory
     wad_file = W_OpenFile(filename);
 
     if (wad_file == NULL)
     {
-	printf (" couldn't open %s\n", filename);
-	return NULL;
+        printf (" couldn't open %s\n", filename);
+        return NULL;
     }
 
     if (strcasecmp(filename+strlen(filename)-3 , "wad" ) )
     {
-	// single lump file
+        I_Error("NRFD-TODO: W_AddFile\n");
+        /*
+        // single lump file
 
         // fraggle: Swap the filepos and size here.  The WAD directory
         // parsing code expects a little-endian directory, so will swap
         // them back.  Effectively we're constructing a "fake WAD directory"
         // here, as it would appear on disk.
 
-	fileinfo = Z_Malloc(sizeof(filelump_t), PU_STATIC, 0);
-	fileinfo->filepos = LONG(0);
-	fileinfo->size = LONG(wad_file->length);
+        fileinfo = Z_N_Malloc(sizeof(filelump_t), PU_STATIC, 0);
+        fileinfo->filepos = LONG(0);
+        fileinfo->size = LONG(wad_file->length);
 
         // Name the lump after the base of the filename (without the
         // extension).
 
-	M_ExtractFileBase (filename, fileinfo->name);
-	numfilelumps = 1;
+        M_ExtractFileBase (filename, fileinfo->name);
+        numfilelumps = 1;
+        */
     }
     else
     {
-	// WAD file
+        // WAD file
         W_Read(wad_file, 0, &header, sizeof(header));
+        if (strncmp(header.identification,"IWAD",4))
+        {
+            // Homebrew levels?
+            if (strncmp(header.identification,"PWAD",4))
+            {
+                W_CloseFile(wad_file);
+                I_Error ("Wad file %s doesn't have IWAD "
+                    "or PWAD id\n", filename);
+            }
 
-	if (strncmp(header.identification,"IWAD",4))
-	{
-	    // Homebrew levels?
-	    if (strncmp(header.identification,"PWAD",4))
-	    {
-		W_CloseFile(wad_file);
-		I_Error ("Wad file %s doesn't have IWAD "
-			 "or PWAD id\n", filename);
-	    }
+            // ???modifiedgame = true;
+        }
 
-	    // ???modifiedgame = true;
-	}
-
-	header.numlumps = LONG(header.numlumps);
+        header.numlumps = LONG(header.numlumps);
 
          // Vanilla Doom doesn't like WADs with more than 4046 lumps
          // https://www.doomworld.com/vb/post/1010985
@@ -188,41 +203,38 @@ wad_file_t *W_AddFile (char *filename)
                           "PWAD %s has %d", filename, header.numlumps);
          }
 
-	header.infotableofs = LONG(header.infotableofs);
-	length = header.numlumps*sizeof(filelump_t);
-	fileinfo = Z_Malloc(length, PU_STATIC, 0);
+        header.infotableofs = LONG(header.infotableofs);
+        // length = header.numlumps*sizeof(filelump_t);
+        // fileinfo = Z_Malloc(length, PU_STATIC, 0);
 
-        W_Read(wad_file, header.infotableofs, fileinfo, length);
-	numfilelumps = header.numlumps;
+        printf("WAD header\n");
+        printf("ID: %.4s\n", header.identification);
+        printf("Num lumps: %d\n", header.numlumps);
+        printf("Info table: %d\n", header.infotableofs);
+        I_Sleep(10); // NRFD-TODO
+
+        if (numlumps != 0) { 
+            I_Error("NRFD-TODO: Multiple WADs not supported\n");
+        }
+
+        for (i = 0; i < header.numlumps; i++)
+        {
+            filelump_t filelump;
+            int lump_pos = header.infotableofs+sizeof(filelump_t)*i;
+            W_Read(wad_file, lump_pos, &filelump, sizeof(filelump_t));
+            lumpinfo_t *lump_p = &lumpinfo[numlumps];
+            // lump_p->wad_file = wad_file; // NRFD-TODO: Support multiple files
+            lump_p->position = LONG(filelump.filepos);
+            lump_p->size = LONG(filelump.size);
+            lump_p->cache = NULL;
+            strncpy(lump_p->name, filelump.name, 8);
+            numlumps += 1;
+        }
+
+        if (numlumps > MAX_NUMLUMPS) {
+            I_Error("W_AddFile: MAX_NUMLUMPS reached\n");
+        }
     }
-
-    // Increase size of numlumps array to accomodate the new file.
-    filelumps = calloc(numfilelumps, sizeof(lumpinfo_t));
-    if (filelumps == NULL)
-    {
-        W_CloseFile(wad_file);
-        I_Error("Failed to allocate array for lumps from new file.");
-    }
-
-    startlump = numlumps;
-    numlumps += numfilelumps;
-    lumpinfo = I_Realloc(lumpinfo, numlumps * sizeof(lumpinfo_t *));
-    filerover = fileinfo;
-
-    for (i = startlump; i < numlumps; ++i)
-    {
-        lumpinfo_t *lump_p = &filelumps[i - startlump];
-        lump_p->wad_file = wad_file;
-        lump_p->position = LONG(filerover->filepos);
-        lump_p->size = LONG(filerover->size);
-        lump_p->cache = NULL;
-        strncpy(lump_p->name, filerover->name, 8);
-        lumpinfo[i] = lump_p;
-
-        ++filerover;
-    }
-
-    Z_Free(fileinfo);
 
     if (lumphash != NULL)
     {
@@ -230,6 +242,7 @@ wad_file_t *W_AddFile (char *filename)
         lumphash = NULL;
     }
 
+    /* NRFD-EXCLUDE
     // If this is the reload file, we need to save some details about the
     // file so that we can close it later on when we do a reload.
     if (reloadname)
@@ -237,6 +250,7 @@ wad_file_t *W_AddFile (char *filename)
         reloadhandle = wad_file;
         reloadlumps = filelumps;
     }
+    */
 
     return wad_file;
 }
@@ -264,6 +278,8 @@ lumpindex_t W_CheckNumForName(char* name)
 
     // Do we have a hash table yet?
 
+    /* NRFD-TODO: lump hash table */
+    /*
     if (lumphash != NULL)
     {
         int hash;
@@ -280,7 +296,7 @@ lumpindex_t W_CheckNumForName(char* name)
             }
         }
     }
-    else
+    else*/
     {
         // We don't have a hash table generate yet. Linear search :-(
         //
@@ -288,7 +304,7 @@ lumpindex_t W_CheckNumForName(char* name)
 
         for (i = numlumps - 1; i >= 0; --i)
         {
-            if (!strncasecmp(lumpinfo[i]->name, name, 8))
+            if (!strncasecmp(lumpinfo[i].name, name, 8))
             {
                 return i;
             }
@@ -330,10 +346,10 @@ int W_LumpLength(lumpindex_t lump)
 {
     if (lump >= numlumps)
     {
-	I_Error ("W_LumpLength: %i >= numlumps", lump);
+        I_Error ("W_LumpLength: %i >= numlumps", lump);
     }
 
-    return lumpinfo[lump]->size;
+    return lumpinfo[lump].size;
 }
 
 
@@ -353,12 +369,14 @@ void W_ReadLump(lumpindex_t lump, void *dest)
         I_Error ("W_ReadLump: %i >= numlumps", lump);
     }
 
-    l = lumpinfo[lump];
-
+    l = &lumpinfo[lump];
+    printf("ReadLump: %.8s\n", l->name);
     V_BeginRead(l->size);
 
-    c = W_Read(l->wad_file, l->position, dest, l->size);
-
+    // printf("Read lump at %d with size %d to %X\n", l->position, l->size, (unsigned int)(dest));
+    // c = W_Read(l->wad_file, l->position, dest, l->size);
+    c = W_Read(wad_file, l->position, dest, l->size);
+    // printf("Read done\n");
     if (c < l->size)
     {
         I_Error("W_ReadLump: only read %i of %i on lump %i",
@@ -388,23 +406,24 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
 
     if ((unsigned)lumpnum >= numlumps)
     {
-	I_Error ("W_CacheLumpNum: %i >= numlumps", lumpnum);
+        I_Error ("W_CacheLumpNum: %i >= numlumps", lumpnum);
     }
 
-    lump = lumpinfo[lumpnum];
+    lump = &lumpinfo[lumpnum];
 
     // Get the pointer to return.  If the lump is in a memory-mapped
     // file, we can just return a pointer to within the memory-mapped
     // region.  If the lump is in an ordinary file, we may already
     // have it cached; otherwise, load it into memory.
 
+    /* NRFD-TODO: mem mapping
     if (lump->wad_file->mapped != NULL)
     {
         // Memory mapped file, return from the mmapped region.
 
         result = lump->wad_file->mapped + lump->position;
     }
-    else if (lump->cache != NULL)
+    else */ if (lump->cache != NULL)
     {
         // Already cached, so just switch the zone tag.
 
@@ -414,12 +433,11 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
     else
     {
         // Not yet loaded, so load it now
-
         lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
-	W_ReadLump (lumpnum, lump->cache);
+        W_ReadLump (lumpnum, lump->cache);
         result = lump->cache;
     }
-	
+
     return result;
 }
 
@@ -449,16 +467,17 @@ void W_ReleaseLumpNum(lumpindex_t lumpnum)
 
     if ((unsigned)lumpnum >= numlumps)
     {
-	I_Error ("W_ReleaseLumpNum: %i >= numlumps", lumpnum);
+        I_Error ("W_ReleaseLumpNum: %i >= numlumps", lumpnum);
     }
 
-    lump = lumpinfo[lumpnum];
+    lump = &lumpinfo[lumpnum];
 
+    /* NRFD-TODO: mem mapping
     if (lump->wad_file->mapped != NULL)
     {
         // Memory-mapped file, so nothing needs to be done here.
     }
-    else
+    else*/
     {
         Z_ChangeTag(lump->cache, PU_CACHE);
     }
@@ -474,60 +493,60 @@ void W_ReleaseLumpName(char *name)
 //
 // W_Profile
 //
-int		info[2500][10];
-int		profilecount;
+int             info[2500][10];
+int             profilecount;
 
 void W_Profile (void)
 {
-    int		i;
-    memblock_t*	block;
-    void*	ptr;
-    char	ch;
-    FILE*	f;
-    int		j;
-    char	name[9];
-	
-	
+    int         i;
+    memblock_t* block;
+    void*       ptr;
+    char        ch;
+    FILE*       f;
+    int         j;
+    char        name[9];
+        
+        
     for (i=0 ; i<numlumps ; i++)
-    {	
-	ptr = lumpinfo[i].cache;
-	if (!ptr)
-	{
-	    ch = ' ';
-	    continue;
-	}
-	else
-	{
-	    block = (memblock_t *) ( (byte *)ptr - sizeof(memblock_t));
-	    if (block->tag < PU_PURGELEVEL)
-		ch = 'S';
-	    else
-		ch = 'P';
-	}
-	info[i][profilecount] = ch;
+    {   
+        ptr = lumpinfo[i].cache;
+        if (!ptr)
+        {
+            ch = ' ';
+            continue;
+        }
+        else
+        {
+            block = (memblock_t *) ( (byte *)ptr - sizeof(memblock_t));
+            if (block->tag < PU_PURGELEVEL)
+                ch = 'S';
+            else
+                ch = 'P';
+        }
+        info[i][profilecount] = ch;
     }
     profilecount++;
-	
+        
     f = fopen ("waddump.txt","w");
     name[8] = 0;
 
     for (i=0 ; i<numlumps ; i++)
     {
-	memcpy (name,lumpinfo[i].name,8);
+        memcpy (name,lumpinfo[i].name,8);
 
-	for (j=0 ; j<8 ; j++)
-	    if (!name[j])
-		break;
+        for (j=0 ; j<8 ; j++)
+            if (!name[j])
+                break;
 
-	for ( ; j<8 ; j++)
-	    name[j] = ' ';
+        for ( ; j<8 ; j++)
+            name[j] = ' ';
 
-	fprintf (f,"%s ",name);
+        fprintf (f,"%s ",name);
 
-	for (j=0 ; j<profilecount ; j++)
-	    fprintf (f,"    %c",info[i][j]);
+        for (j=0 ; j<profilecount ; j++)
+            fprintf (f,"    %c",info[i][j]);
 
-	fprintf (f,"\n");
+        fprintf (f,"\n");
     }
     fclose (f);
 }
@@ -540,7 +559,9 @@ void W_Profile (void)
 void W_GenerateHashTable(void)
 {
     lumpindex_t i;
+    printf("NRDF-TODO? W_GenerateHashTable\n");
 
+    /*
     // Free the old hash table, if there is one:
     if (lumphash != NULL)
     {
@@ -569,6 +590,7 @@ void W_GenerateHashTable(void)
             lumphash[hash] = i;
         }
     }
+    */
 
     // All done!
 }
@@ -581,6 +603,7 @@ void W_GenerateHashTable(void)
 // But: the reload feature is a fragile hack...
 void W_Reload(void)
 {
+    /* NRFD-EXCLUDE
     char *filename;
     lumpindex_t i;
 
@@ -616,5 +639,6 @@ void W_Reload(void)
     // The WAD directory has changed, so we have to regenerate the
     // fast lookup hashtable:
     W_GenerateHashTable();
+    */
 }
 

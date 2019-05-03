@@ -113,6 +113,8 @@ int snd_channels = 8;
 
 void S_Init(int sfxVolume, int musicVolume)
 {
+    printf("NRFD-TODO: S_Init\n");
+    /*
     int i;
 
     if (gameversion == exe_doom_1_666)
@@ -163,16 +165,22 @@ void S_Init(int sfxVolume, int musicVolume)
     }
 
     I_AtExit(S_Shutdown, true);
+    */
 }
 
 void S_Shutdown(void)
 {
+    printf("NRFD-TODO: S_Shutdown\n");
+    /*
     I_ShutdownSound();
     I_ShutdownMusic();
+    */
 }
 
 static void S_StopChannel(int cnum)
 {
+    printf("NRFD-TODO: S_StopChannel\n");
+    /*
     int i;
     channel_t *c;
 
@@ -203,6 +211,7 @@ static void S_StopChannel(int cnum)
         c->sfxinfo = NULL;
         c->origin = NULL;
     }
+    */
 }
 
 //
@@ -213,6 +222,8 @@ static void S_StopChannel(int cnum)
 
 void S_Start(void)
 {
+     printf("NRFD-TODO: S_Start\n");
+    /*
     int cnum;
     int mnum;
 
@@ -261,10 +272,13 @@ void S_Start(void)
     }
 
     S_ChangeMusic(mnum, true);
+    */
 }
 
 void S_StopSound(mobj_t *origin)
 {
+    printf("NRFD-TODO: S_StopSound\n");
+    /*
     int cnum;
 
     for (cnum=0 ; cnum<snd_channels ; cnum++)
@@ -275,6 +289,7 @@ void S_StopSound(mobj_t *origin)
             break;
         }
     }
+    */
 }
 
 //
@@ -284,6 +299,8 @@ void S_StopSound(mobj_t *origin)
 
 static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
 {
+    printf("NRFD-TODO: S_GetChannel\n"); return 0;
+    /*
     // channel number to use
     int                cnum;
 
@@ -334,6 +351,7 @@ static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
     c->origin = origin;
 
     return cnum;
+    */
 }
 
 //
@@ -346,6 +364,8 @@ static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
 static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
                                int *vol, int *sep)
 {
+    printf("NRFD-TODO: S_AdjustSoundParams\n"); return 0;
+    /*
     fixed_t        approx_dist;
     fixed_t        adx;
     fixed_t        ady;
@@ -409,6 +429,7 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     }
 
     return (*vol > 0);
+    */
 }
 
 // clamp supplied integer to the range 0 <= x <= 255.
@@ -428,6 +449,8 @@ static int Clamp(int x)
 
 void S_StartSound(void *origin_p, int sfx_id)
 {
+    printf("NRFD-TODO: S_StartSound\n");
+    /*
     sfxinfo_t *sfx;
     mobj_t *origin;
     int rc;
@@ -526,6 +549,7 @@ void S_StartSound(void *origin_p, int sfx_id)
 
     channels[cnum].pitch = pitch;
     channels[cnum].handle = I_StartSound(sfx, cnum, volume, sep, channels[cnum].pitch);
+    */
 }
 
 //
@@ -534,20 +558,26 @@ void S_StartSound(void *origin_p, int sfx_id)
 
 void S_PauseSound(void)
 {
+    printf("NRFD-TODO: S_PauseSound\n");
+    /*
     if (mus_playing && !mus_paused)
     {
         I_PauseSong();
         mus_paused = true;
     }
+    */
 }
 
 void S_ResumeSound(void)
 {
+    printf("NRFD-TODO: S_ResumeSound\n");
+    /*
     if (mus_playing && mus_paused)
     {
         I_ResumeSong();
         mus_paused = false;
     }
+    */
 }
 
 //
@@ -556,6 +586,8 @@ void S_ResumeSound(void)
 
 void S_UpdateSounds(mobj_t *listener)
 {
+    N_ldbg("NRFD-TODO: S_UpdateSounds\n");
+    /*
     int                audible;
     int                cnum;
     int                volume;
@@ -619,6 +651,7 @@ void S_UpdateSounds(mobj_t *listener)
             }
         }
     }
+    */
 }
 
 void S_SetMusicVolume(int volume)
@@ -653,6 +686,8 @@ void S_StartMusic(int m_id)
 
 void S_ChangeMusic(int musicnum, int looping)
 {
+    printf("NRFD-TODO: S_ChangeMusic\n");
+    /*
     musicinfo_t *music = NULL;
     char namebuf[9];
     void *handle;
@@ -697,6 +732,7 @@ void S_ChangeMusic(int musicnum, int looping)
     I_PlaySong(handle, looping);
 
     mus_playing = music;
+    */
 }
 
 boolean S_MusicPlaying(void)

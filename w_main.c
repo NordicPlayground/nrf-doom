@@ -16,7 +16,7 @@
 //     Common code to parse command line, identifying WAD files to load.
 //
 
-#include "config.h"
+#include "doom_config.h"
 #include "d_iwad.h"
 #include "i_system.h"
 #include "m_argv.h"
@@ -224,9 +224,9 @@ void W_CheckCorrectIWAD(GameMission_t mission)
                         "You probably want to use the %s%s binary.",
                         D_SuggestGameName(unique_lumps[i].mission,
                                           indetermined),
-                        PROGRAM_PREFIX,
+                        DOOM_PROGRAM_PREFIX,
                         D_GameMissionString(mission),
-                        PROGRAM_PREFIX,
+                        DOOM_PROGRAM_PREFIX,
                         D_GameMissionString(unique_lumps[i].mission));
             }
         }

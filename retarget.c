@@ -3,10 +3,12 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "app_uart.h"
-#include "nrf_error.h"
-#include "nrf_log.h"
 
+void uart_putc(char ch) {
+    NRF_UART0->EVENTS_TXDRDY = 0;
+    NRF_UART0->TXD = ch;
+    while (!NRF_UART0->EVENTS_TXDRDY) {}
+}
 
 
 #if defined(__CC_ARM)
@@ -24,18 +26,18 @@ FILE __stdin;
 int fgetc(FILE * p_file)
 {
     uint8_t input;
-    while (app_uart_get(&input) == NRF_ERROR_NOT_FOUND)
-    {
-        // No implementation needed.
-    }
+    // NRFD_TODO?
+    // while (app_uart_get(&input) == NRF_ERROR_NOT_FOUND)
+    // {
+    //     // No implementation needed.
+    // }
     return input;
 }
 
 int fputc(int ch, FILE * p_file)
 {
     UNUSED_PARAMETER(p_file);
-
-    UNUSED_VARIABLE(app_uart_put((uint8_t)ch));
+    uart_putc(ch);
     return ch;
 }
 
@@ -44,10 +46,11 @@ int fputc(int ch, FILE * p_file)
 int __getchar(FILE * p_file)
 {
     uint8_t input;
-    while (app_uart_get(&input) == NRF_ERROR_NOT_FOUND)
-    {
-        // No implementation needed.
-    }
+    // NRFD-TODO?
+    // while (app_uart_get(&input) == NRF_ERROR_NOT_FOUND)
+    // {
+    //     // No implementation needed.
+    // }
     return input;
 }
 
@@ -55,14 +58,14 @@ int __getchar(FILE * p_file)
 int __putchar(int ch, __printf_tag_ptr tag_ptr)
 {
     UNUSED_PARAMETER(tag_ptr);
-    UNUSED_VARIABLE(app_uart_put((uint8_t)ch));
+    uart_putc(ch);
     return ch;
 }
 #else
 int __putchar(int ch, FILE * p_file)
 {
     UNUSED_PARAMETER(p_file);
-    UNUSED_VARIABLE(app_uart_put((uint8_t)ch));
+    uart_putc(ch);
     return ch;
 }
 #endif
@@ -76,7 +79,7 @@ int _write(int file, const char * p_char, int len)
     UNUSED_PARAMETER(file);
     for (i = 0; i < len; i++)
     {
-        UNUSED_VARIABLE(app_uart_put(*p_char++));
+        uart_putc(*p_char++);
     }
     return len;
 }
@@ -84,10 +87,11 @@ int _write(int file, const char * p_char, int len)
 int _read(int file, char * p_char, int len)
 {
     UNUSED_PARAMETER(file);
-    while (app_uart_get((uint8_t *)p_char) == NRF_ERROR_NOT_FOUND)
-    {
-        // No implementation needed.
-    }
+    // NRFD-TODO?
+    // while (app_uart_get((uint8_t *)p_char) == NRF_ERROR_NOT_FOUND)
+    // {
+    //     // No implementation needed.
+    // }
     return 1;
 }
 #elif defined(__ICCARM__)
@@ -98,7 +102,7 @@ size_t __write(int handle, const unsigned char * buffer, size_t size)
     UNUSED_PARAMETER(handle);
     for (i = 0; i < size; i++)
     {
-        UNUSED_VARIABLE(app_uart_put(*buffer++));
+        uart_putc(*buffer++);
     }
     return size;
 }
@@ -107,10 +111,11 @@ size_t __read(int handle, unsigned char * buffer, size_t size)
 {
     UNUSED_PARAMETER(handle);
     UNUSED_PARAMETER(size);
-    while (app_uart_get((uint8_t *)buffer) == NRF_ERROR_NOT_FOUND)
-    {
-        // No implementation needed.
-    }
+    // NRFD-TODO?
+    // while (app_uart_get((uint8_t *)buffer) == NRF_ERROR_NOT_FOUND)
+    // {
+    //     // No implementation needed.
+    // }
     return 1;
 }
 

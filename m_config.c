@@ -25,9 +25,7 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "SDL_filesystem.h"
-
-#include "config.h"
+#include "doom_config.h"
 
 #include "doomtype.h"
 #include "doomkeys.h"
@@ -44,12 +42,12 @@
 // Location where all configuration data is stored - 
 // default.cfg, savegames, etc.
 
-char *configdir;
+const char *configdir = "";
 
 // Default filenames for configuration files.
 
-static char *default_main_config;
-static char *default_extra_config;
+const char *default_main_config = "default.cfg";
+const char *default_extra_config = "nrf-doom.cfg";
 
 typedef enum 
 {
@@ -78,13 +76,13 @@ typedef struct
     // If this is a key value, the original integer scancode we read from
     // the config file before translating it to the internal key value.
     // If zero, we didn't read this value from a config file.
-    int untranslated;
+    // int untranslated;
 
     // The value we translated the scancode into when we read the 
     // config file on startup.  If the variable value is different from
     // this, it has been changed and needs to be converted; otherwise,
     // use the 'untranslated' value.
-    int original_translated;
+    // int original_translated;
 
     // If true, this config variable has been bound to a variable
     // and is being used.
@@ -98,8 +96,12 @@ typedef struct
     char *filename;
 } default_collection_t;
 
+
+
 #define CONFIG_VARIABLE_GENERIC(name, type) \
-    { #name, {NULL}, type, 0, 0, false }
+    { #name, {NULL}, type, false }
+// NRFD-TODO? key translate
+//     { #name, {NULL}, type, 0, 0, false }
 
 #define CONFIG_VARIABLE_KEY(name) \
     CONFIG_VARIABLE_GENERIC(name, DEFAULT_KEY)
@@ -114,7 +116,8 @@ typedef struct
 
 //! @begin_config_file default
 
-static default_t	doom_defaults_list[] =
+// NRFD-TODO: Add back some configs?
+static default_t        doom_defaults_list[] =
 {
     //!
     // Mouse sensitivity.  This value is used to multiply input mouse
@@ -146,7 +149,7 @@ static default_t	doom_defaults_list[] =
     // when engaging actors who have voices.
     //
 
-    CONFIG_VARIABLE_INT(show_talk),
+    // CONFIG_VARIABLE_INT(show_talk),
 
     //!
     // @game strife
@@ -165,6 +168,8 @@ static default_t	doom_defaults_list[] =
     //
 
     CONFIG_VARIABLE_INT(show_messages),
+
+    /* NRFD-TODO: Configurable controls
 
     //!
     // Keyboard key to turn right.
@@ -452,43 +457,44 @@ static default_t	doom_defaults_list[] =
 
     CONFIG_VARIABLE_INT(use_joystick),
 
-    //!
-    // Joystick virtual button that fires the current weapon.
-    //
 
-    CONFIG_VARIABLE_INT(joyb_fire),
+    // //!
+    // // Joystick virtual button that fires the current weapon.
+    // //
 
-    //!
-    // Joystick virtual button that makes the player strafe while
-    // held down.
-    //
+    // CONFIG_VARIABLE_INT(joyb_fire),
 
-    CONFIG_VARIABLE_INT(joyb_strafe),
+    // //!
+    // // Joystick virtual button that makes the player strafe while
+    // // held down.
+    // //
 
-    //!
-    // Joystick virtual button to "use" an object, eg. a door or switch.
-    //
+    // CONFIG_VARIABLE_INT(joyb_strafe),
 
-    CONFIG_VARIABLE_INT(joyb_use),
+    // //!
+    // // Joystick virtual button to "use" an object, eg. a door or switch.
+    // //
 
-    //!
-    // Joystick virtual button that makes the player run while held
-    // down.
-    //
-    // If this has a value of 20 or greater, the player will always run,
-    // even if use_joystick is 0.
-    //
+    // CONFIG_VARIABLE_INT(joyb_use),
 
-    CONFIG_VARIABLE_INT(joyb_speed),
+    // //!
+    // // Joystick virtual button that makes the player run while held
+    // // down.
+    // //
+    // // If this has a value of 20 or greater, the player will always run,
+    // // even if use_joystick is 0.
+    // //
 
-    //!
-    // @game hexen strife
-    //
-    // Joystick virtual button that makes the player jump.
-    //
+    // CONFIG_VARIABLE_INT(joyb_speed),
 
-    CONFIG_VARIABLE_INT(joyb_jump),
+    // //!
+    // // @game hexen strife
+    // //
+    // // Joystick virtual button that makes the player jump.
+    // //
 
+    // CONFIG_VARIABLE_INT(joyb_jump),
+    */
     //!
     // @game doom heretic hexen
     //
@@ -526,14 +532,14 @@ static default_t	doom_defaults_list[] =
     // Number of sounds that will be played simultaneously.
     //
 
-    CONFIG_VARIABLE_INT(snd_channels),
+    // CONFIG_VARIABLE_INT(snd_channels),
 
     //!
     // Music output device.  A non-zero value gives MIDI sound output,
     // while a value of zero disables music.
     //
 
-    CONFIG_VARIABLE_INT(snd_musicdevice),
+    // CONFIG_VARIABLE_INT(snd_musicdevice),
 
     //!
     // Sound effects device.  A value of zero disables in-game sound
@@ -542,31 +548,31 @@ static default_t	doom_defaults_list[] =
     // effects.
     //
 
-    CONFIG_VARIABLE_INT(snd_sfxdevice),
+    // CONFIG_VARIABLE_INT(snd_sfxdevice),
 
-    //!
-    // SoundBlaster I/O port. Unused.
-    //
+    // //!
+    // // SoundBlaster I/O port. Unused.
+    // //
 
-    CONFIG_VARIABLE_INT(snd_sbport),
+    // CONFIG_VARIABLE_INT(snd_sbport),
 
-    //!
-    // SoundBlaster IRQ.  Unused.
-    //
+    // //!
+    // // SoundBlaster IRQ.  Unused.
+    // //
 
-    CONFIG_VARIABLE_INT(snd_sbirq),
+    // CONFIG_VARIABLE_INT(snd_sbirq),
 
-    //!
-    // SoundBlaster DMA channel.  Unused.
-    //
+    // //!
+    // // SoundBlaster DMA channel.  Unused.
+    // //
 
-    CONFIG_VARIABLE_INT(snd_sbdma),
+    // CONFIG_VARIABLE_INT(snd_sbdma),
 
-    //!
-    // Output port to use for OPL MIDI playback.  Unused.
-    //
+    // //!
+    // // Output port to use for OPL MIDI playback.  Unused.
+    // //
 
-    CONFIG_VARIABLE_INT(snd_mport),
+    // CONFIG_VARIABLE_INT(snd_mport),
 
     //!
     // Gamma correction level.  A value of zero disables gamma
@@ -582,7 +588,7 @@ static default_t	doom_defaults_list[] =
     // Directory in which to store savegames.
     //
 
-    CONFIG_VARIABLE_STRING(savedir),
+    // CONFIG_VARIABLE_STRING(savedir),
 
     //!
     // @game hexen
@@ -599,7 +605,7 @@ static default_t	doom_defaults_list[] =
     // Name of background flat used by view border.
     //
 
-    CONFIG_VARIABLE_STRING(back_flat),
+    // CONFIG_VARIABLE_STRING(back_flat),
 
     //!
     // @game strife
@@ -607,75 +613,75 @@ static default_t	doom_defaults_list[] =
     // Multiplayer nickname (?).
     //
 
-    CONFIG_VARIABLE_STRING(nickname),
+    // CONFIG_VARIABLE_STRING(nickname),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+0 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+0 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro0),
+    // CONFIG_VARIABLE_STRING(chatmacro0),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+1 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+1 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro1),
+    // CONFIG_VARIABLE_STRING(chatmacro1),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+2 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+2 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro2),
+    // CONFIG_VARIABLE_STRING(chatmacro2),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+3 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+3 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro3),
+    // CONFIG_VARIABLE_STRING(chatmacro3),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+4 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+4 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro4),
+    // CONFIG_VARIABLE_STRING(chatmacro4),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+5 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+5 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro5),
+    // CONFIG_VARIABLE_STRING(chatmacro5),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+6 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+6 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro6),
+    // CONFIG_VARIABLE_STRING(chatmacro6),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+7 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+7 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro7),
+    // CONFIG_VARIABLE_STRING(chatmacro7),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+8 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+8 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro8),
+    // CONFIG_VARIABLE_STRING(chatmacro8),
 
-    //!
-    // Multiplayer chat macro: message to send when alt+9 is pressed.
-    //
+    // //!
+    // // Multiplayer chat macro: message to send when alt+9 is pressed.
+    // //
 
-    CONFIG_VARIABLE_STRING(chatmacro9),
+    // CONFIG_VARIABLE_STRING(chatmacro9),
 
-    //!
-    // @game strife
-    //
-    // Serial port number to use for SERSETUP.EXE (unused).
-    //
+    // //!
+    // // @game strife
+    // //
+    // // Serial port number to use for SERSETUP.EXE (unused).
+    // //
 
-    CONFIG_VARIABLE_INT(comport),
+    // CONFIG_VARIABLE_INT(comport),
 };
 
 static default_collection_t doom_defaults =
@@ -694,7 +700,7 @@ static default_t extra_defaults_list[] =
     // the default video driver is used.
     //
 
-    CONFIG_VARIABLE_STRING(video_driver),
+    // CONFIG_VARIABLE_STRING(video_driver),
 
     //!
     // Position of the window on the screen when running in windowed
@@ -703,14 +709,14 @@ static default_t extra_defaults_list[] =
     // window at the specified coordinates.
     //
 
-    CONFIG_VARIABLE_STRING(window_position),
+    // CONFIG_VARIABLE_STRING(window_position),
 
     //!
     // If non-zero, the game will run in full screen mode.  If zero,
     // the game will run in a window.
     //
 
-    CONFIG_VARIABLE_INT(fullscreen),
+    // CONFIG_VARIABLE_INT(fullscreen),
 
     //!
     // Index of the display on which the game should run. This has no
@@ -718,38 +724,38 @@ static default_t extra_defaults_list[] =
     // window_position is not set to "center".
     //
 
-    CONFIG_VARIABLE_INT(video_display),
+    // CONFIG_VARIABLE_INT(video_display),
 
     //!
     // If non-zero, the screen will be stretched vertically to display
     // correctly on a square pixel video mode.
     //
 
-    CONFIG_VARIABLE_INT(aspect_ratio_correct),
+    // CONFIG_VARIABLE_INT(aspect_ratio_correct),
 
     //!
     // If non-zero, forces integer scales for resolution-independent rendering.
     //
 
-    CONFIG_VARIABLE_INT(integer_scaling),
+    // CONFIG_VARIABLE_INT(integer_scaling),
 
     // If non-zero, any pillar/letter boxes drawn around the game area
     // will "flash" when the game palette changes, simulating the VGA
     // "porch"
 
-    CONFIG_VARIABLE_INT(vga_porch_flash),
+    // CONFIG_VARIABLE_INT(vga_porch_flash),
 
     //!
     // Window width when running in windowed mode.
     //
 
-    CONFIG_VARIABLE_INT(window_width),
+    // CONFIG_VARIABLE_INT(window_width),
 
     //!
     // Window height when running in windowed mode.
     //
 
-    CONFIG_VARIABLE_INT(window_height),
+    // CONFIG_VARIABLE_INT(window_height),
 
     //!
     // Width for screen mode when running fullscreen.
@@ -759,21 +765,21 @@ static default_t extra_defaults_list[] =
     // be unnecessary to set this value.
     //
 
-    CONFIG_VARIABLE_INT(fullscreen_width),
+    // CONFIG_VARIABLE_INT(fullscreen_width),
 
     //!
     // Height for screen mode when running fullscreen.
     // See documentation for fullscreen_width.
     //
 
-    CONFIG_VARIABLE_INT(fullscreen_height),
+    // CONFIG_VARIABLE_INT(fullscreen_height),
 
     //!
     // If non-zero, force the use of a software renderer. For use on
     // systems lacking hardware acceleration.
     //
 
-    CONFIG_VARIABLE_INT(force_software_renderer),
+    // CONFIG_VARIABLE_INT(force_software_renderer),
 
     //!
     // Maximum number of pixels to use for intermediate scaling buffer.
@@ -781,7 +787,7 @@ static default_t extra_defaults_list[] =
     // but there are diminishing returns on quality. The default limits to
     // 16,000,000 pixels, which is enough to cover 4K monitor standards.
 
-    CONFIG_VARIABLE_INT(max_scaling_buffer_pixels),
+    // CONFIG_VARIABLE_INT(max_scaling_buffer_pixels),
 
     //!
     // Number of milliseconds to wait on startup after the video mode
@@ -790,7 +796,7 @@ static default_t extra_defaults_list[] =
     // for a brief interval after changing video modes.
     //
 
-    CONFIG_VARIABLE_INT(startup_delay),
+    // CONFIG_VARIABLE_INT(startup_delay),
 
     //!
     // @game heretic hexen strife
@@ -798,7 +804,7 @@ static default_t extra_defaults_list[] =
     // If non-zero, display the graphical startup screen.
     //
 
-    CONFIG_VARIABLE_INT(graphical_startup),
+    // CONFIG_VARIABLE_INT(graphical_startup),
 
     //!
     // @game doom heretic strife
@@ -823,21 +829,21 @@ static default_t extra_defaults_list[] =
     // saved in PCX format, as Vanilla Doom does.
     //
 
-    CONFIG_VARIABLE_INT(png_screenshots),
+    // CONFIG_VARIABLE_INT(png_screenshots),
 
     //!
     // Sound output sample rate, in Hz.  Typical values to use are
     // 11025, 22050, 44100 and 48000.
     //
 
-    CONFIG_VARIABLE_INT(snd_samplerate),
+    // CONFIG_VARIABLE_INT(snd_samplerate),
 
     //!
     // Maximum number of bytes to allocate for caching converted sound
     // effects in memory. If set to zero, there is no limit applied.
     //
 
-    CONFIG_VARIABLE_INT(snd_cachesize),
+    // CONFIG_VARIABLE_INT(snd_cachesize),
 
     //!
     // Maximum size of the output sound buffer size in milliseconds.
@@ -847,7 +853,7 @@ static default_t extra_defaults_list[] =
     // 35fps timer).
     //
 
-    CONFIG_VARIABLE_INT(snd_maxslicetime_ms),
+    // CONFIG_VARIABLE_INT(snd_maxslicetime_ms),
 
     //!
     // If non-zero, sound effects will have their pitch varied up or
@@ -855,7 +861,7 @@ static default_t extra_defaults_list[] =
     // play back at their default pitch.
     //
 
-    CONFIG_VARIABLE_INT(snd_pitchshift),
+    // CONFIG_VARIABLE_INT(snd_pitchshift),
 
     //!
     // External command to invoke to perform MIDI playback. If set to
@@ -864,7 +870,7 @@ static default_t extra_defaults_list[] =
     // MIDI output.
     //
 
-    CONFIG_VARIABLE_STRING(snd_musiccmd),
+    // CONFIG_VARIABLE_STRING(snd_musiccmd),
 
     //!
     // Value to set for the DMXOPTION environment variable. If this contains
@@ -872,14 +878,14 @@ static default_t extra_defaults_list[] =
     // playback mode.
     //
 
-    CONFIG_VARIABLE_STRING(snd_dmxoption),
+    // CONFIG_VARIABLE_STRING(snd_dmxoption),
 
     //!
     // The I/O port to use to access the OPL chip.  Only relevant when
     // using native OPL music playback.
     //
 
-    CONFIG_VARIABLE_INT_HEX(opl_io_port),
+    // CONFIG_VARIABLE_INT_HEX(opl_io_port),
 
     //!
     // Controls whether libsamplerate support is used for performing
@@ -894,7 +900,7 @@ static default_t extra_defaults_list[] =
     // Sinc filter = 4; High quality Sinc filter = 5.
     //
 
-    CONFIG_VARIABLE_INT(use_libsamplerate),
+    // CONFIG_VARIABLE_INT(use_libsamplerate),
 
     //!
     // Scaling factor used by libsamplerate. This is used when converting
@@ -906,7 +912,7 @@ static default_t extra_defaults_list[] =
     // quieter the sound effects become, so it should be set as high as is
     // possible without clipping occurring.
 
-    CONFIG_VARIABLE_FLOAT(libsamplerate_scale),
+    // CONFIG_VARIABLE_FLOAT(libsamplerate_scale),
 
     //!
     // Full path to a directory containing configuration files for
@@ -915,7 +921,7 @@ static default_t extra_defaults_list[] =
     // MIDI playback.
     //
 
-    CONFIG_VARIABLE_STRING(music_pack_path),
+    // CONFIG_VARIABLE_STRING(music_pack_path),
 
     //!
     // Full path to a Timidity configuration file to use for MIDI
@@ -924,21 +930,21 @@ static default_t extra_defaults_list[] =
     // into it.
     //
 
-    CONFIG_VARIABLE_STRING(timidity_cfg_path),
+    // CONFIG_VARIABLE_STRING(timidity_cfg_path),
 
     //!
     // Path to GUS patch files to use when operating in GUS emulation
     // mode.
     //
 
-    CONFIG_VARIABLE_STRING(gus_patch_path),
+    // CONFIG_VARIABLE_STRING(gus_patch_path),
 
     //!
     // Number of kilobytes of RAM to use in GUS emulation mode. Valid
     // values are 256, 512, 768 or 1024.
     //
 
-    CONFIG_VARIABLE_INT(gus_ram_kb),
+    // CONFIG_VARIABLE_INT(gus_ram_kb),
 
     //!
     // @game doom strife
@@ -949,7 +955,7 @@ static default_t extra_defaults_list[] =
     // the size of savegames.
     //
 
-    CONFIG_VARIABLE_INT(vanilla_savegame_limit),
+    // CONFIG_VARIABLE_INT(vanilla_savegame_limit),
 
     //!
     // @game doom strife
@@ -960,7 +966,7 @@ static default_t extra_defaults_list[] =
     // limit to the size of demos.
     //
 
-    CONFIG_VARIABLE_INT(vanilla_demo_limit),
+    // CONFIG_VARIABLE_INT(vanilla_demo_limit),
 
     //!
     // If non-zero, the game behaves like Vanilla Doom, always assuming
@@ -975,7 +981,7 @@ static default_t extra_defaults_list[] =
     // used on the "waiting" screen while waiting for the game to start.
     //
 
-    CONFIG_VARIABLE_STRING(player_name),
+    // CONFIG_VARIABLE_STRING(player_name),
 
     //!
     // If this is non-zero, the mouse will be "grabbed" when running
@@ -983,8 +989,9 @@ static default_t extra_defaults_list[] =
     // When running full screen, this has no effect.
     //
 
-    CONFIG_VARIABLE_INT(grabmouse),
+    // CONFIG_VARIABLE_INT(grabmouse),
 
+    /* NRFD-TODO: mouse
     //!
     // If non-zero, all vertical mouse movement is ignored.  This
     // emulates the behavior of the "novert" tool available under DOS
@@ -1051,13 +1058,14 @@ static default_t extra_defaults_list[] =
     //
 
     CONFIG_VARIABLE_INT(dclick_use),
+    */
 
     //!
     // SDL GUID string indicating the joystick to use. An empty string
     // indicates that no joystick is configured.
     //
 
-    CONFIG_VARIABLE_STRING(joystick_guid),
+    // CONFIG_VARIABLE_STRING(joystick_guid),
 
     //!
     // Index of SDL joystick to use; this is only used in the case where
@@ -1065,8 +1073,9 @@ static default_t extra_defaults_list[] =
     // same GUID, to distinguish between devices.
     //
 
-    CONFIG_VARIABLE_INT(joystick_index),
+    // CONFIG_VARIABLE_INT(joystick_index),
 
+    /* NRFD-TODO: joystick
     //!
     // Joystick axis to use to for horizontal (X) movement.
     //
@@ -1229,6 +1238,10 @@ static default_t extra_defaults_list[] =
     //
 
     CONFIG_VARIABLE_INT(joyb_nextweapon),
+
+    */
+
+    /* NRFD-TODO: configurable controls
 
     //!
     // Key to pause or unpause the game.
@@ -1511,7 +1524,9 @@ static default_t extra_defaults_list[] =
     //
 
     CONFIG_VARIABLE_KEY(key_nextweapon),
+    */
 
+    /*NRFD-EXCLUDE: Hexen
     //!
     // @game hexen
     //
@@ -1575,7 +1590,9 @@ static default_t extra_defaults_list[] =
     //
 
     CONFIG_VARIABLE_KEY(key_arti_invulnerability),
+    */
 
+    /* NRFD-TODO: Configurable controls
     //!
     // Key to re-display last message.
     //
@@ -1649,6 +1666,7 @@ static default_t extra_defaults_list[] =
     //
 
     CONFIG_VARIABLE_KEY(key_multi_msgplayer8),
+    */
 };
 
 static default_collection_t extra_defaults =
@@ -1690,7 +1708,7 @@ static const int scantokey[128] =
     0  ,    27,     '1',    '2',    '3',    '4',    '5',    '6',
     '7',    '8',    '9',    '0',    '-',    '=',    KEY_BACKSPACE, 9,
     'q',    'w',    'e',    'r',    't',    'y',    'u',    'i',
-    'o',    'p',    '[',    ']',    13,		KEY_RCTRL, 'a',    's',
+    'o',    'p',    '[',    ']',    13,         KEY_RCTRL, 'a',    's',
     'd',    'f',    'g',    'h',    'j',    'k',    'l',    ';',
     '\'',   '`',    KEY_RSHIFT,'\\',   'z',    'x',    'c',    'v',
     'b',    'n',    'm',    ',',    '.',    '/',    KEY_RSHIFT,KEYP_MULTIPLY,
@@ -1706,18 +1724,20 @@ static const int scantokey[128] =
 };
 
 
-static void SaveDefaultCollection(default_collection_t *collection)
+static void SaveDefaultCollection(default_collection_t *collection, const char *filename)
 {
+    printf("NRFD-TODO: SaveDefaultCollection\n");
+    /*
     default_t *defaults;
     int i, v;
     FILE *f;
-	
-    f = fopen (collection->filename, "w");
+        
+    f = fopen (filename, "w");
     if (!f)
-	return; // can't write the file, but don't complain
+        return; // can't write the file, but don't complain
 
     defaults = collection->defaults;
-		
+                
     for (i=0 ; i<collection->numdefaults ; i++)
     {
         int chars_written;
@@ -1783,15 +1803,15 @@ static void SaveDefaultCollection(default_collection_t *collection)
                     }
                 }
 
-	        fprintf(f, "%i", v);
+                fprintf(f, "%i", v);
                 break;
 
             case DEFAULT_INT:
-	        fprintf(f, "%i", *defaults[i].location.i);
+                fprintf(f, "%i", *defaults[i].location.i);
                 break;
 
             case DEFAULT_INT_HEX:
-	        fprintf(f, "0x%x", *defaults[i].location.i);
+                fprintf(f, "0x%x", *defaults[i].location.i);
                 break;
 
             case DEFAULT_FLOAT:
@@ -1799,7 +1819,7 @@ static void SaveDefaultCollection(default_collection_t *collection)
                 break;
 
             case DEFAULT_STRING:
-	        fprintf(f,"\"%s\"", *defaults[i].location.s);
+                fprintf(f,"\"%s\"", *defaults[i].location.s);
                 break;
         }
 
@@ -1807,6 +1827,7 @@ static void SaveDefaultCollection(default_collection_t *collection)
     }
 
     fclose (f);
+    */
 }
 
 // Parses integer values in the configuration file
@@ -1846,6 +1867,7 @@ static void SetVariable(default_t *def, char *value)
             // file (save the old value in untranslated)
 
             intparm = ParseIntParameter(value);
+            /* NRFD-TODO: translate?
             def->untranslated = intparm;
             if (intparm >= 0 && intparm < 128)
             {
@@ -1857,6 +1879,7 @@ static void SetVariable(default_t *def, char *value)
             }
 
             def->original_translated = intparm;
+            */
             *def->location.i = intparm;
             break;
 
@@ -1866,8 +1889,11 @@ static void SetVariable(default_t *def, char *value)
     }
 }
 
-static void LoadDefaultCollection(default_collection_t *collection)
+static void LoadDefaultCollection(default_collection_t *collection, const char *filename)
 {
+    printf("NRFD-TODO: LoadDefaultCollection\n");
+    // TODO: Use FatFS
+    /*
     FILE *f;
     default_t *def;
     char defname[80];
@@ -1925,14 +1951,17 @@ static void LoadDefaultCollection(default_collection_t *collection)
     }
 
     fclose (f);
+    */
 }
 
 // Set the default filenames to use for configuration files.
 
 void M_SetConfigFilenames(char *main_config, char *extra_config)
 {
+    /* NRFD-EXCLUDE
     default_main_config = main_config;
     default_extra_config = extra_config;
+    */
 }
 
 //
@@ -1941,8 +1970,8 @@ void M_SetConfigFilenames(char *main_config, char *extra_config)
 
 void M_SaveDefaults (void)
 {
-    SaveDefaultCollection(&doom_defaults);
-    SaveDefaultCollection(&extra_defaults);
+    SaveDefaultCollection(&doom_defaults, default_main_config);
+    SaveDefaultCollection(&extra_defaults, default_extra_config);
 }
 
 //
@@ -1951,6 +1980,7 @@ void M_SaveDefaults (void)
 
 void M_SaveDefaultsAlternate(char *main, char *extra)
 {
+    /* NRFD-EXCLUDE
     char *orig_main;
     char *orig_extra;
 
@@ -1968,6 +1998,7 @@ void M_SaveDefaultsAlternate(char *main, char *extra)
 
     doom_defaults.filename = orig_main;
     extra_defaults.filename = orig_extra;
+    */
 }
 
 //
@@ -1987,18 +2018,17 @@ void M_LoadDefaults (void)
     // Load main configuration from the specified file, instead of the
     // default.
     //
-
+/* NRFD_EXCLUDE
     i = M_CheckParmWithArgs("-config", 1);
 
     if (i)
     {
-	doom_defaults.filename = myargv[i+1];
-	printf ("	default file: %s\n",doom_defaults.filename);
+        doom_defaults.filename = myargv[i+1];
+        printf ("       default file: %s\n",doom_defaults.filename);
     }
     else
     {
-        doom_defaults.filename
-            = M_StringJoin(configdir, default_main_config, NULL);
+        doom_defaults.filename = M_StringJoin(configdir, default_main_config, NULL);
     }
 
     printf("saving config in %s\n", doom_defaults.filename);
@@ -2020,12 +2050,11 @@ void M_LoadDefaults (void)
     }
     else
     {
-        extra_defaults.filename
-            = M_StringJoin(configdir, default_extra_config, NULL);
+        extra_defaults.filename = M_StringJoin(configdir, default_extra_config, NULL);
     }
-
-    LoadDefaultCollection(&doom_defaults);
-    LoadDefaultCollection(&extra_defaults);
+*/
+    LoadDefaultCollection(&doom_defaults, default_main_config);
+    LoadDefaultCollection(&extra_defaults, default_extra_config);
 }
 
 // Get a configuration file variable by its name
@@ -2163,18 +2192,6 @@ float M_GetFloatVariable(char *name)
 
 static char *GetDefaultConfigDir(void)
 {
-#if !defined(_WIN32) || defined(_WIN32_WCE)
-
-    // Configuration settings are stored in an OS-appropriate path
-    // determined by SDL.  On typical Unix systems, this might be
-    // ~/.local/share/chocolate-doom.  On Windows, we behave like
-    // Vanilla Doom and save in the current directory.
-
-    char *result;
-
-    result = SDL_GetPrefPath("", PACKAGE_TARNAME);
-    return result;
-#endif /* #ifndef _WIN32 */
     return M_StringDuplicate("");
 }
 
@@ -2188,6 +2205,7 @@ static char *GetDefaultConfigDir(void)
 void M_SetConfigDir(char *dir)
 {
     // Use the directory that was passed, or find the default.
+    /* NRFD-EXCLUDE
 
     if (dir != NULL)
     {
@@ -2204,8 +2222,8 @@ void M_SetConfigDir(char *dir)
     }
 
     // Make the directory if it doesn't already exist:
-
     M_MakeDirectory(configdir);
+    */
 }
 
 //
@@ -2215,6 +2233,9 @@ void M_SetConfigDir(char *dir)
 
 char *M_GetSaveGameDir(char *iwadname)
 {
+    printf("NRFD-TODO: M_GetSaveGameDir\n");
+    return "/savegames";
+    /*
     char *savegamedir;
     char *topdir;
     int p;
@@ -2240,20 +2261,11 @@ char *M_GetSaveGameDir(char *iwadname)
 
         printf("Save directory changed to %s.\n", savegamedir);
     }
-#ifdef _WIN32
-    // In -cdrom mode, we write savegames to a specific directory
-    // in addition to configs.
-
-    else if (M_ParmExists("-cdrom"))
-    {
-        savegamedir = configdir;
-    }
-#endif
     // If not "doing" a configuration directory (Windows), don't "do"
     // a savegame directory, either.
     else if (!strcmp(configdir, ""))
     {
-	savegamedir = M_StringDuplicate("");
+        savegamedir = M_StringDuplicate("");
     }
     else
     {
@@ -2273,5 +2285,6 @@ char *M_GetSaveGameDir(char *iwadname)
     }
 
     return savegamedir;
+    */
 }
 

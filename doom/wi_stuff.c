@@ -223,7 +223,7 @@ static point_t lnodes[NUMEPISODES][NUMMAPS] =
    { (type), (period), (nanims), { (x), (y) }, (nexttic),    \
      0, { NULL, NULL, NULL }, 0, 0, 0, 0 }
 
-
+/* NRFD-TODO: anim
 static anim_t epsd0animinfo[] =
 {
     ANIM(ANIM_ALWAYS, TICRATE/3, 3, 224, 104, 0),
@@ -275,7 +275,7 @@ static anim_t *anims[NUMEPISODES] =
     epsd2animinfo
 };
 
-
+*/
 //
 // GENERAL DATA
 //
@@ -518,6 +518,7 @@ WI_drawOnLnode
 
 void WI_initAnimatedBack(void)
 {
+    printf("NRFD-TODO: WI_initAnimatedBack\n"); /*
     int		i;
     anim_t*	a;
 
@@ -542,11 +543,12 @@ void WI_initAnimatedBack(void)
 	else if (a->type == ANIM_LEVEL)
 	    a->nexttic = bcnt + 1;
     }
-
+*/
 }
 
 void WI_updateAnimatedBack(void)
 {
+    printf("NRFD-TODO: WI_updateAnimatedBack\n"); /*
     int		i;
     anim_t*	a;
 
@@ -593,11 +595,12 @@ void WI_updateAnimatedBack(void)
 	}
 
     }
-
+    */
 }
 
 void WI_drawAnimatedBack(void)
 {
+        printf("NRFD-TODO: WI_updateAnimatedBack\n"); /*
     int			i;
     anim_t*		a;
 
@@ -614,7 +617,7 @@ void WI_drawAnimatedBack(void)
 	if (a->ctr >= 0)
 	    V_DrawPatch(a->loc.x, a->loc.y, a->p[a->ctr]);
     }
-
+    */
 }
 
 //
@@ -1553,6 +1556,8 @@ typedef void (*load_callback_t)(char *lumpname, patch_t **variable);
 
 static void WI_loadUnloadData(load_callback_t callback)
 {
+        printf("NRFD-TODO: WI_loadUnloadData\n"); /*
+
     int i, j;
     char name[9];
     anim_t *a;
@@ -1699,6 +1704,7 @@ static void WI_loadUnloadData(load_callback_t callback)
     // Draw backdrop and save to a temporary buffer
 
     callback(name, &background);
+    */
 }
 
 static void WI_loadCallback(char *name, patch_t **variable)

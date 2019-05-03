@@ -21,20 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <errno.h>
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <io.h>
-#ifdef _MSC_VER
-#include <direct.h>
-#endif
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
 
 #include "doomtype.h"
 
@@ -48,38 +37,26 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+#include "n_mem.h"
+#include "n_fs.h"
+
 //
 // Create a directory
 //
 
 void M_MakeDirectory(char *path)
 {
-#ifdef _WIN32
-    mkdir(path);
-#else
-    mkdir(path, 0755);
-#endif
+    printf("NRFD-TODO M_MakeDirectory\n");
 }
 
 // Check if a file exists
 
 boolean M_FileExists(char *filename)
 {
-    FILE *fstream;
-
-    fstream = fopen(filename, "r");
-
-    if (fstream != NULL)
-    {
-        fclose(fstream);
+    if (N_fs_file_exists(filename)) {
         return true;
-    }
-    else
-    {
-        // If we can't open because the file is a directory, the 
-        // "file" exists at least!
-
-        return errno == EISDIR;
+    } else {
+        return false;
     }
 }
 
@@ -88,68 +65,11 @@ boolean M_FileExists(char *filename)
 
 char *M_FileCaseExists(char *path)
 {
-    char *path_dup, *filename, *ext;
-
-    path_dup = M_StringDuplicate(path);
-
-    // 0: actual path
-    if (M_FileExists(path_dup))
-    {
-        return path_dup;
+    // FatFs is case insensitive, so irrelevant for NRF-Doom
+    if (!M_FileExists(path)) {
+        return NULL;
     }
-
-    filename = strrchr(path_dup, DIR_SEPARATOR);
-    if (filename != NULL)
-    {
-        filename++;
-    }
-    else
-    {
-        filename = path_dup;
-    }
-
-    // 1: lowercase filename, e.g. doom2.wad
-    M_ForceLowercase(filename);
-
-    if (M_FileExists(path_dup))
-    {
-        return path_dup;
-    }
-
-    // 2: uppercase filename, e.g. DOOM2.WAD
-    M_ForceUppercase(filename);
-
-    if (M_FileExists(path_dup))
-    {
-        return path_dup;
-    }
-
-    // 3. uppercase basename with lowercase extension, e.g. DOOM2.wad
-    ext = strrchr(path_dup, '.');
-    if (ext != NULL && ext > filename)
-    {
-        M_ForceLowercase(ext + 1);
-
-        if (M_FileExists(path_dup))
-        {
-            return path_dup;
-        }
-    }
-
-    // 4. lowercase filename with uppercase first letter, e.g. Doom2.wad
-    if (strlen(filename) > 1)
-    {
-        M_ForceLowercase(filename + 1);
-
-        if (M_FileExists(path_dup))
-        {
-            return path_dup;
-        }
-    }
-
-    // 5. no luck
-    free(path_dup);
-    return NULL;
+    return path;
 }
 
 //
@@ -157,7 +77,9 @@ char *M_FileCaseExists(char *path)
 //
 
 long M_FileLength(FILE *handle)
-{ 
+{
+    printf("NRFD-TODO M_FileLength\n"); return 0;
+    /*
     long savedpos;
     long length;
 
@@ -172,6 +94,7 @@ long M_FileLength(FILE *handle)
     fseek(handle, savedpos, SEEK_SET);
 
     return length;
+    */
 }
 
 //
@@ -180,6 +103,8 @@ long M_FileLength(FILE *handle)
 
 boolean M_WriteFile(char *name, void *source, int length)
 {
+    printf("NRFD-TODO M_WriteFile\n"); return false;
+/*
     FILE *handle;
     int	count;
 	
@@ -195,6 +120,7 @@ boolean M_WriteFile(char *name, void *source, int length)
 	return false;
 		
     return true;
+    */
 }
 
 
@@ -204,6 +130,8 @@ boolean M_WriteFile(char *name, void *source, int length)
 
 int M_ReadFile(char *name, byte **buffer)
 {
+    printf("NRFD-TODO M_ReadFile\n"); return 0;
+    /*
     FILE *handle;
     int	count, length;
     byte *buf;
@@ -226,6 +154,7 @@ int M_ReadFile(char *name, byte **buffer)
 		
     *buffer = buf;
     return length;
+    */
 }
 
 // Returns the path to a temporary file of the given name, stored
@@ -237,21 +166,8 @@ char *M_TempFile(char *s)
 {
     char *tempdir;
 
-#ifdef _WIN32
-
-    // Check the TEMP environment variable to find the location.
-
-    tempdir = getenv("TEMP");
-
-    if (tempdir == NULL)
-    {
-        tempdir = ".";
-    }
-#else
-    // In Unix, just use /tmp.
-
+    printf("NRFD-TODO: M_Tempfile\n");
     tempdir = "/tmp";
-#endif
 
     return M_StringJoin(tempdir, DIR_SEPARATOR_S, s, NULL);
 }
@@ -380,8 +296,10 @@ char *M_StringDuplicate(const char *orig)
 {
     char *result;
 
-    result = strdup(orig);
-
+    //result = strdup(orig);
+    result = N_malloc(strlen(orig)+1);
+    if (result) strcpy(result, orig);
+    
     if (result == NULL)
     {
         I_Error("Failed to duplicate string (length %i)\n",
@@ -422,7 +340,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
 
     // Construct new string.
 
-    result = malloc(result_len);
+    result = N_malloc(result_len);
     if (result == NULL)
     {
         I_Error("M_StringReplace: Failed to allocate new string");
@@ -532,7 +450,7 @@ char *M_StringJoin(const char *s, ...)
     }
     va_end(args);
 
-    result = malloc(result_len);
+    result = N_malloc(result_len);
 
     if (result == NULL)
     {
@@ -557,13 +475,6 @@ char *M_StringJoin(const char *s, ...)
 
     return result;
 }
-
-// On Windows, vsnprintf() is _vsnprintf().
-#ifdef _WIN32
-#if _MSC_VER < 1400 /* not needed for Visual Studio 2008 */
-#define vsnprintf _vsnprintf
-#endif
-#endif
 
 // Safe, portable vsnprintf().
 int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
@@ -602,22 +513,4 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     return result;
 }
 
-#ifdef _WIN32
-
-char *M_OEMToUTF8(const char *oem)
-{
-    unsigned int len = strlen(oem) + 1;
-    wchar_t *tmp;
-    char *result;
-
-    tmp = malloc(len * sizeof(wchar_t));
-    MultiByteToWideChar(CP_OEMCP, 0, oem, len, tmp, len);
-    result = malloc(len * 4);
-    WideCharToMultiByte(CP_UTF8, 0, tmp, len, result, len * 4, NULL, NULL);
-    free(tmp);
-
-    return result;
-}
-
-#endif
 

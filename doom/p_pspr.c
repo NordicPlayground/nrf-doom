@@ -70,12 +70,15 @@ P_SetPsprite
 	psp->state = state;
 	psp->tics = state->tics;	// could be 0
 
+    // NRFD-TODO?
+    /*
 	if (state->misc1)
 	{
 	    // coordinate set
 	    psp->sx = state->misc1 << FRACBITS;
 	    psp->sy = state->misc2 << FRACBITS;
 	}
+    */
 	
 	// Call action routine.
 	// Modified handling.

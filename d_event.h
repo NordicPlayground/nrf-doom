@@ -68,12 +68,13 @@ typedef enum
 } evtype_t;
 
 // Event structure.
-typedef struct
+typedef struct __attribute__((packed))
 {
     evtype_t type;
 
     // Event-specific data; see the descriptions given above.
-    int data1, data2, data3, data4, data5;
+    // NRFD-NOTE: Changed from int to short
+    short data1, data2, data3, data4, data5;
 } event_t;
 
  
