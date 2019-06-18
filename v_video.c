@@ -31,6 +31,7 @@
 #include "i_input.h"
 #include "i_swap.h"
 #include "i_video.h"
+#include "i_timer.h"
 #include "m_bbox.h"
 #include "m_misc.h"
 #include "v_video.h"
@@ -44,7 +45,7 @@
 
 // TODO: There are separate RANGECHECK defines for different games, but this
 // is common code. Fix this.
-#define RANGECHECK
+#define RANGECHECK 1
 
 // Blending table used for fuzzpatch, etc.
 // Only used in Heretic/Hexen
@@ -140,14 +141,13 @@ void V_SetPatchClipCallback(vpatchclipfunc_t func)
 
 void V_DrawPatch(int x, int y, patch_t *patch)
 { 
-    N_ldbg("V_DrawPatch\n");
     int count;
     int col;
-    column_t *column;
+    volatile column_t *column;
     pixel_t *desttop;
     pixel_t *dest;
     byte *source;
-    int w;
+    int w, h;
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
@@ -159,26 +159,31 @@ void V_DrawPatch(int x, int y, patch_t *patch)
             return;
     }
 
+    w = SHORT(patch->width);
+    h = SHORT(patch->height);
+
+    N_ldbg("V_DrawPatch: %d x %d\n", w, h);
+
 #ifdef RANGECHECK
     if (x < 0
-     || x + SHORT(patch->width) > SCREENWIDTH
+     || x + w > SCREENWIDTH
      || y < 0
-     || y + SHORT(patch->height) > SCREENHEIGHT)
+     || y + h > SCREENHEIGHT)
     {
+        printf("%d, %d - %d x %d", x, y, w, h);
         I_Error("Bad V_DrawPatch");
     }
 #endif
 
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+    V_MarkRect(x, y, w, h);
 
     col = 0;
     desttop = dest_screen + y * SCREENWIDTH + x;
 
-    w = SHORT(patch->width);
-
     for ( ; col<w ; x++, col++, desttop++)
     {
-        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+        column = (volatile column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+        I_SleepUS(1);
 
         // step through the posts in a column
         while (column->topdelta != 0xff)
@@ -211,7 +216,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     pixel_t *desttop;
     pixel_t *dest;
     byte *source; 
-    int w; 
+    int w, h; 
  
     y -= SHORT(patch->topoffset); 
     x -= SHORT(patch->leftoffset); 
@@ -223,30 +228,37 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
             return;
     }
 
+
+    w = SHORT(patch->width);
+    h = SHORT(patch->height);
+
+    N_ldbg("V_DrawPatchFlipped: %d x %d\n", w, h);
+
 #ifdef RANGECHECK 
     if (x < 0
-     || x + SHORT(patch->width) > SCREENWIDTH
+     || x + w > SCREENWIDTH
      || y < 0
-     || y + SHORT(patch->height) > SCREENHEIGHT)
+     || y + h > SCREENHEIGHT)
     {
         I_Error("Bad V_DrawPatchFlipped");
     }
 #endif
 
-    V_MarkRect (x, y, SHORT(patch->width), SHORT(patch->height));
+
+    V_MarkRect (x, y, w, h);
 
     col = 0;
     desttop = dest_screen + y * SCREENWIDTH + x;
 
-    w = SHORT(patch->width);
-
     for ( ; col<w ; x++, col++, desttop++)
     {
+
         column = (column_t *)((byte *)patch + LONG(patch->columnofs[w-1-col]));
 
         // step through the posts in a column
         while (column->topdelta != 0xff )
         {
+
             source = (byte *)column + 3;
             dest = desttop + column->topdelta*SCREENWIDTH;
             count = column->length;
@@ -259,6 +271,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
             column = (column_t *)((byte *)column + column->length + 4);
         }
     }
+
 }
 
 
@@ -835,6 +848,7 @@ void WritePNGfile(char *filename, byte *data,
 
 void V_ScreenShot(char *format)
 {
+    printf("NRFD-TODO: V_ScreenShot\n");
 /* NRFD-TODO: Screenshot
 
     int i;

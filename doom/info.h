@@ -1144,9 +1144,8 @@ typedef enum
 typedef struct __attribute__((packed))
 {
     spritenum_t sprite;
-    /* NRFD-TODO: frame/tics should probably be int */
-    short frame;
-    short tics;
+    int   frame;
+    short tics; // NRFD-NOTE: Was int (could be int8_t?)
     // void (*action) ();
     actionf_t action;
     statenum_t nextstate;
@@ -1155,8 +1154,8 @@ typedef struct __attribute__((packed))
     // int misc2;
 } state_t;
 
-extern state_t  states[NUMSTATES];
-extern const char *sprnames[];
+extern const state_t  states[NUMSTATES];
+extern const char* const sprnames[];
 
 typedef enum {
     MT_PLAYER,
@@ -1296,7 +1295,9 @@ typedef enum {
     MT_MISC84,
     MT_MISC85,
     MT_MISC86,
-    NUMMOBJTYPES
+    NUMMOBJTYPES,
+    MT_ALLOC,
+    MT_FREE
 
 } mobjtype_t;
 
@@ -1329,6 +1330,6 @@ typedef struct __attribute__((packed))
 
 } mobjinfo_t;
 
-extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
+extern const mobjinfo_t mobjinfo[NUMMOBJTYPES];
 
 #endif

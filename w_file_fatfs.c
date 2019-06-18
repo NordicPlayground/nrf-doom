@@ -34,6 +34,7 @@ extern wad_file_class_t fatfs_wad_file;
 
 static wad_file_t *W_FatFS_OpenFile(char *path)
 {
+    return NULL; /*
     printf("FatFS: Opening: %s\n", path);
     fatfs_wad_file_t *result;
     FIL fstream;
@@ -56,10 +57,12 @@ static wad_file_t *W_FatFS_OpenFile(char *path)
 
     printf("FatFS: Open OK\n");
     return &result->wad;
+    */
 }
 
 static void W_FatFS_CloseFile(wad_file_t *wad)
 {
+    /*
     fatfs_wad_file_t *fatfs_wad;
 
     fatfs_wad = (fatfs_wad_file_t *) wad;
@@ -67,6 +70,7 @@ static void W_FatFS_CloseFile(wad_file_t *wad)
     (void) f_close(&fatfs_wad->fstream);
 
     Z_Free(fatfs_wad);
+    */
 }
 
 // Read data from the specified position in the file into the 
@@ -75,6 +79,8 @@ static void W_FatFS_CloseFile(wad_file_t *wad)
 size_t W_FatFS_Read(wad_file_t *wad, unsigned int offset,
                    void *buffer, size_t buffer_len)
 {
+    return 0;
+    /*
     fatfs_wad_file_t *fatfs_wad;
     size_t result;
     FRESULT ff_result;
@@ -99,6 +105,7 @@ size_t W_FatFS_Read(wad_file_t *wad, unsigned int offset,
     }
 
     return result;
+    */
 }
 
 

@@ -762,7 +762,7 @@ static void DumpSubstituteConfig(char *filename)
 
     for (lumpnum = 0; lumpnum < numlumps; ++lumpnum)
     {
-        strncpy(name, lumpinfo[lumpnum]->name, 8);
+        strncpy(name, W_LumpName(lumpnum), 8);
         name[8] = '\0';
 
         if (!IsMusicLump(lumpnum))

@@ -433,21 +433,25 @@ void HU_Start(void)
         HUlib_initIText(&w_inputbuffer[i], 0, 0, 0, 0, &always_off);
 
     headsupactive = true;
+*/
 
 }
 
+
 void HU_Drawer(void)
 {
-
+    N_ldbg("NRFD-TODO: HU_Drawer\n");
+    /*
     HUlib_drawSText(&w_message);
     HUlib_drawIText(&w_chat);
     if (automapactive)
         HUlib_drawTextLine(&w_title, false);
-*/
+        */
 }
 
 void HU_Erase(void)
 {
+    N_ldbg("NRFD_TODO: HU_Erase\n");
 /* NRFD-TODO: HU
     HUlib_eraseSText(&w_message);
     HUlib_eraseIText(&w_chat);
@@ -568,6 +572,7 @@ char HU_dequeueChatChar(void)
     return c;
     */
 }
+
 /* NRFD-TODO: HU
 static void StartChatInput(int dest)
 {

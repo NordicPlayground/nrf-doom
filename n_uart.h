@@ -1,0 +1,2 @@
+
+void N_ReadUart();

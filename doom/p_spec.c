@@ -53,13 +53,13 @@
 // Animating textures and planes
 // There is another anim_t used in wi_stuff, unrelated.
 //
-typedef struct __attribute__((packed))
+typedef struct
 {
     boolean     istexture;
-    short               picnum;
-    short               basepic;
-    short               numpics;
-    short               speed;
+    short       picnum;
+    short       basepic;
+    short       numpics;
+    uint8_t     speed; // NRFD-NOTE: Changed from short
     
 } anim_t;
 
@@ -71,15 +71,12 @@ typedef struct __attribute__((packed))
     short       istexture;      // if false, it is a flat
     char        endname[9];
     char        startname[9];
-    short       speed;
+    uint8_t     speed;
 } animdef_t;
 
 
 
-#define MAXANIMS                32
-
-extern anim_t   anims[MAXANIMS];
-extern anim_t*  lastanim;
+#define MAXANIMS                27
 
 //
 // P_InitPicAnims
@@ -125,9 +122,9 @@ const animdef_t         animdefs[] =
     {true,      "DBRAIN4",      "DBRAIN1",      8},
         
     {-1,        "",             "",             0},
-};
+};\
 
-anim_t          anims[MAXANIMS];
+anim_t          tex_anims[MAXANIMS];
 anim_t*         lastanim;
 
 
@@ -144,17 +141,23 @@ extern  line_t* linespeciallist[MAXLINEANIMS];
 void P_InitPicAnims (void)
 {
     int         i;
-
+    printf("P_InitPicAnims\n");
     
     //  Init animation
-    lastanim = anims;
+    lastanim = tex_anims;
     for (i=0 ; animdefs[i].istexture != -1 ; i++)
     {
         char *startname, *endname;
 
+        if (i >= MAXANIMS) {
+            I_Error("P_InitPicAnims: MAXANIMS too small");
+        }
+
         // NRFD-TODO? Casting away const, could be source of trouble
         startname = DEH_String((char*)(animdefs[i].startname));
         endname = DEH_String((char*)(animdefs[i].endname));
+
+        printf("  Anim #%d: %.8s\n", i, startname);
 
         if (animdefs[i].istexture)
         {
@@ -170,16 +173,19 @@ void P_InitPicAnims (void)
             if (W_CheckNumForName(startname) == -1)
                 continue;
 
-            lastanim->picnum = R_FlatNumForName(endname);
-            lastanim->basepic = R_FlatNumForName(startname);
+            int endnum = R_FlatNumForName(endname);
+            int startnum = R_FlatNumForName(startname);
+            lastanim->picnum = endnum;
+            lastanim->basepic = startnum;             
+
         }
 
         lastanim->istexture = animdefs[i].istexture;
         lastanim->numpics = lastanim->picnum - lastanim->basepic + 1;
 
         if (lastanim->numpics < 2)
-            I_Error ("P_InitPicAnims: bad cycle from %s to %s",
-                     startname, endname);
+            I_Error ("P_InitPicAnims: bad cycle from %s to %s - %d to %d",
+                     startname, endname, lastanim->basepic, lastanim->picnum);
         
         lastanim->speed = animdefs[i].speed;
         lastanim++;
@@ -506,6 +512,7 @@ P_CrossSpecialLine
   int           side,
   mobj_t*       thing )
 {
+    printf("P_CrossSpecialLine\n");
     line_t*     line;
     int         ok;
 
@@ -1109,7 +1116,7 @@ void P_UpdateSpecials (void)
     }
     
     //  ANIMATE FLATS AND TEXTURES GLOBALLY
-    for (anim = anims ; anim < lastanim ; anim++)
+    for (anim = tex_anims ; anim < lastanim ; anim++)
     {
         for (i=anim->basepic ; i<anim->basepic+anim->numpics ; i++)
         {
@@ -1375,6 +1382,7 @@ line_t*         linespeciallist[MAXLINEANIMS];
 // Parses command line parameters.
 void P_SpawnSpecials (void)
 {
+    printf("P_SpawnSpecials\n");
     sector_t*   sector;
     int         i;
 

@@ -77,6 +77,8 @@
 
 #include "d_main.h"
 
+#include "n_fs.h"
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -187,7 +189,7 @@ void D_Display (void)
     N_ldbg("NRFD_TODO: D_Display\n");
     if (nodrawers)
         return;                    // for comparative timing / profiling
-                
+
     redrawsbar = false;
     
     // change the view size if needed
@@ -207,9 +209,11 @@ void D_Display (void)
     else
         wipe = false;
 
+    I_ClearVideoBuffer();
+
     if (gamestate == GS_LEVEL && gametic)
         HU_Erase();
-    
+
     // do buffered drawing
     switch (gamestate)
     {
@@ -239,7 +243,6 @@ void D_Display (void)
         break;
     }
 
-    /* NRFD-TODO
     // draw buffered stuff to screen
     I_UpdateNoBlit ();
     
@@ -249,11 +252,11 @@ void D_Display (void)
 
     if (gamestate == GS_LEVEL && gametic)
         HU_Drawer ();
-    */
     
     // clean up border stuff
-    if (gamestate != oldgamestate && gamestate != GS_LEVEL)
+    if (gamestate != oldgamestate && gamestate != GS_LEVEL) {
         I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
+    }
 
     /*
     // see if the border needs to be initially drawn
@@ -282,6 +285,7 @@ void D_Display (void)
 
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
+    */
 
     menuactivestate = menuactive;
     viewactivestate = viewactive;
@@ -291,6 +295,7 @@ void D_Display (void)
     // draw pause pic
     if (paused)
     {
+        N_ldbg("D_Display: Print pause pic\n");
         if (automapactive)
             y = 4;
         else
@@ -299,7 +304,6 @@ void D_Display (void)
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
 
-    */
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
@@ -384,8 +388,8 @@ void D_BindVariables(void)
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
     M_BindIntVariable("show_messages",          &showMessages);
-    M_BindIntVariable("screenblocks",           &screenblocks);
-    M_BindIntVariable("detaillevel",            &detailLevel);
+    // M_BindIntVariable("screenblocks",           &screenblocks);
+    // M_BindIntVariable("detaillevel",            &detailLevel);
     // M_BindIntVariable("snd_channels",           &snd_channels);
     // M_BindIntVariable("vanilla_savegame_limit", &vanilla_savegame_limit);
     // M_BindIntVariable("vanilla_demo_limit",     &vanilla_demo_limit);
@@ -410,10 +414,9 @@ void D_BindVariables(void)
 //
 // Called to determine whether to grab the mouse pointer
 //
-
+/* NRFD-EXCLUDE
 boolean D_GrabMouseCallback(void)
 {
-    /* NRFD-TODO
     // Drone players don't need mouse focus
 
     if (drone)
@@ -427,9 +430,8 @@ boolean D_GrabMouseCallback(void)
     // only grab mouse when playing levels (but not demos)
 
     return (gamestate == GS_LEVEL) && !demoplayback && !advancedemo;
-    */
-	  return false;
 }
+*/
 
 //
 //  D_DoomLoop
@@ -454,12 +456,11 @@ void D_DoomLoop (void)
 
     I_SetWindowTitle(gamedescription);
     I_GraphicsCheckCommandLine();
-    I_SetGrabMouseCallback(D_GrabMouseCallback);
+    // I_SetGrabMouseCallback(D_GrabMouseCallback);
     I_InitGraphics();
     EnableLoadingDisk();
 
     TryRunTics();
-    printf("TryRunTics Done\n");
 
     V_RestoreBuffer();
     R_ExecuteSetViewSize();
@@ -778,12 +779,12 @@ void D_IdentifyVersion(void)
 
         for (i=0; i<numlumps; ++i)
         {
-            if (!strncasecmp(lumpinfo[i].name, "MAP01", 8))
+            if (!strncasecmp(W_LumpName(i), "MAP01", 8))
             {
                 gamemission = doom2;
                 break;
             } 
-            else if (!strncasecmp(lumpinfo[i].name, "E1M1", 8))
+            else if (!strncasecmp(W_LumpName(i), "E1M1", 8))
             {
                 gamemission = doom;
                 break;
@@ -1446,7 +1447,7 @@ void D_DoomMain (void)
                 "specifying one with the '-iwad' command line parameter.\n");
     }
     printf("WAD File: %s\n", iwadfile);
-    modifiedgame = false;
+    // modifiedgame = false; // NRFD-TODO: modified game / PWAD?
 
     DEH_printf("W_Init: Init WADfiles.\n");
     D_AddFile(iwadfile);
@@ -1706,6 +1707,7 @@ void D_DoomMain (void)
 
     I_InitTimer();
 
+    /*
     printf("Testing timer:\n");
     int t_ms, t1_ms;
     int t_tick, t1_tick;
@@ -1716,6 +1718,7 @@ void D_DoomMain (void)
     t1_tick = I_GetTime();
     printf("I_GetTimeMS: T0: %d T1: %d Delta: %d\n", t_ms, t1_ms, t1_ms-t_ms);
     printf("I_GetTime T0: %d T1: %d Delta: %d\n", t_tick, t1_tick, t1_tick-t_tick);
+    */
     
 
     I_InitJoystick();
@@ -1951,6 +1954,10 @@ void D_DoomMain (void)
         else
             D_StartTitle ();                // start up intro loop
     }
+
+    // All data should've been copied, we can shut down file system to release memory
+    // NRFD-TODO: Remove if save game is implemented
+    // N_fs_shutdown();
 
     D_DoomLoop ();  // never returns
 }

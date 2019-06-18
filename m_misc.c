@@ -78,23 +78,8 @@ char *M_FileCaseExists(char *path)
 
 long M_FileLength(FILE *handle)
 {
-    printf("NRFD-TODO M_FileLength\n"); return 0;
-    /*
-    long savedpos;
-    long length;
-
-    // save the current position in the file
-    savedpos = ftell(handle);
-    
-    // jump to the end and find the length
-    fseek(handle, 0, SEEK_END);
-    length = ftell(handle);
-
-    // go back to the old location
-    fseek(handle, savedpos, SEEK_SET);
-
-    return length;
-    */
+    //
+    return 0;
 }
 
 //

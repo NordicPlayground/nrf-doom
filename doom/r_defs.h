@@ -48,7 +48,7 @@
 #define SIL_TOP         2
 #define SIL_BOTH        3
 
-#define MAXDRAWSEGS     256
+#define MAXDRAWSEGS     128 //256 // NRFD-TODO
 
 
 
@@ -71,6 +71,13 @@ typedef struct
     
 } vertex_t;
 
+
+typedef struct
+{
+    fixed_t dx;
+    fixed_t dy;
+    
+} vector_t;
 
 // Forward of LineDefs, for Sectors.
 struct line_s;
@@ -179,8 +186,8 @@ typedef struct  __attribute__((packed)) line_s
     vertex_t*   v2;
 
     // Precalculated v2 - v1 for side checking.
-    fixed_t dx;
-    fixed_t dy;
+    // fixed_t dx;
+    // fixed_t dy;
 
     // Animation related.
     short   flags;
@@ -193,7 +200,7 @@ typedef struct  __attribute__((packed)) line_s
 
     // Neat. Another bounding box, for the extent
     //  of the LineDef.
-    fixed_t bbox[4];
+    // fixed_t bbox[4];
 
     // To aid move clipping.
     slopetype_t slopetype;
@@ -204,7 +211,7 @@ typedef struct  __attribute__((packed)) line_s
     sector_t*   backsector;
 
     // if == validcount, already checked
-    int     validcount;
+    int8_t     validcount; // NRFD-NOTE: Was int
 
     // thinker_t for reversable actions
     void*   specialdata;        
@@ -248,12 +255,13 @@ typedef struct  __attribute__((packed))
     // Sector references.
     // Could be retrieved from linedef, too.
     // backsector is NULL for one sided lines
-    sector_t*   frontsector;
+    // sector_t*   frontsector;
     sector_t*   backsector;
     
 } seg_t;
 
-
+sector_t *SegFrontSector(seg_t *seg);
+sector_t *SegBackSector(seg_t *seg); 
 
 //
 // BSP node.
@@ -306,15 +314,15 @@ typedef pixel_t     lighttable_t;
 typedef struct  __attribute__((packed)) drawseg_s
 {
     seg_t*      curline;
-    int         x1;
-    int         x2;
+    short       x1; // NRFD-NOTE: Was int
+    short       x2; // NRFD-NOTE: Was int
 
     fixed_t     scale1;
     fixed_t     scale2;
     fixed_t     scalestep;
 
     // 0=none, 1=bottom, 2=top, 3=both
-    int         silhouette;
+    uint8_t     silhouette; // NRFD-NOTE: was int
 
     // do not clip sprites above this
     fixed_t     bsilheight;
@@ -339,7 +347,7 @@ typedef struct  __attribute__((packed)) vissprite_s
 {
     // Doubly linked list.
     // NRFD-TODO: XOR linked list possible?
-    struct vissprite_s* prev;
+    // struct vissprite_s* prev;
     struct vissprite_s* next;
     
     short         x1; // NRFD-NOTE: Was int
@@ -368,7 +376,7 @@ typedef struct  __attribute__((packed)) vissprite_s
     //  maxbright frames as well
     lighttable_t*   colormap;
    
-    int         mobjflags;
+    // int         mobjflags; // NRFD-TODO?
     
 } vissprite_t;
 
@@ -399,10 +407,12 @@ typedef struct  __attribute__((packed))
     short   lump[8];
 
     // Flip bit (1 = flip) to use for view angles 0-7.
-    byte    flip[8];
+    byte    flip;
     
 } spriteframe_t;
 
+
+boolean R_SpriteGetFlip(spriteframe_t *sprite, int num);
 
 
 //
@@ -411,7 +421,7 @@ typedef struct  __attribute__((packed))
 //
 typedef struct  __attribute__((packed))
 {
-    int         numframes;
+    short         numframes;
     spriteframe_t*  spriteframes;
 
 } spritedef_t;
@@ -424,10 +434,12 @@ typedef struct  __attribute__((packed))
 typedef struct  __attribute__((packed))
 {
   fixed_t       height;
-  int           picnum;
-  int           lightlevel;
-  int           minx;
-  int           maxx;
+
+  // NRFD-NOTO: was int
+  short           picnum;
+  short           lightlevel;
+  short           minx;
+  short           maxx;
   
   // leave pads for [minx-1]/[maxx+1]
   

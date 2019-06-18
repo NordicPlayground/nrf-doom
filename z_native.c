@@ -355,6 +355,7 @@ void Z_FileDumpHeap(FILE *f)
 //
 void Z_CheckHeap (void)
 {
+    printf("Z_CheckHeap\n");
     memblock_t *block;
     memblock_t *prev;
     int i;

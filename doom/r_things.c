@@ -37,7 +37,8 @@
 
 #include "doomstat.h"
 
-
+#define MAX_SPRITEFRAMES 261
+#define MAX_SPRITES 138
 
 #define MINZ                            (FRACUNIT*4)
 #define BASEYCENTER                     (SCREENHEIGHT/2)
@@ -59,6 +60,12 @@ typedef struct
 } maskdraw_t;
 
 
+vissprite_t     vissprites[MAXVISSPRITES];
+vissprite_t*    vissprite_p;
+int             newvissprite;
+
+vissprite_t*    vsprsortedhead;
+
 
 //
 // Sprite rotation 0 is facing the viewer,
@@ -74,10 +81,49 @@ lighttable_t**  spritelights;
 
 // constant arrays
 //  used for psprite clipping and initializing clipping
-/* NRFD-TODO: draw
-short           negonearray[SCREENWIDTH];
-short           screenheightarray[SCREENWIDTH];
-*/
+const short           negonearray[SCREENWIDTH] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+const short           screenheightarray[SCREENWIDTH] = {
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+    168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168
+    };
 
 //
 // INITIALIZATION FUNCTIONS
@@ -85,11 +131,13 @@ short           screenheightarray[SCREENWIDTH];
 
 // variables used to look up
 //  and range check thing_t sprites patches
-spritedef_t*    sprites;
+spritedef_t     sprites[MAX_SPRITES];
 int             numsprites;
 
-spriteframe_t   sprtemp[29];
+spriteframe_t   spriteframes[MAX_SPRITEFRAMES];
+spriteframe_t   *sprtemp;
 int             maxframe;
+int             spriteframe_count = 0;
 char*           spritename;
 
 
@@ -127,10 +175,11 @@ R_InstallSpriteLump
                      "and a rot=0 lump", spritename, 'A'+frame);
                         
         sprtemp[frame].rotate = false;
+        sprtemp[frame].flip = 0;
         for (r=0 ; r<8 ; r++)
         {
             sprtemp[frame].lump[r] = lump - firstspritelump;
-            sprtemp[frame].flip[r] = (byte)flipped;
+            sprtemp[frame].flip |= (byte)(flipped<<r);
         }
         return;
     }
@@ -150,7 +199,8 @@ R_InstallSpriteLump
                  spritename, 'A'+frame, '1'+rotation);
                 
     sprtemp[frame].lump[rotation] = lump - firstspritelump;
-    sprtemp[frame].flip[rotation] = (byte)flipped;
+    sprtemp[frame].flip &= (1<<rotation);
+    sprtemp[frame].flip |= (byte)(1<<flipped);
 }
 
 
@@ -171,7 +221,7 @@ R_InstallSpriteLump
 //  letter/number appended.
 // The rotation character can be 0 to signify no rotations.
 //
-void R_InitSpriteDefs (char** namelist) 
+void R_InitSpriteDefs () 
 { 
     char**      check;
     int         i;
@@ -183,27 +233,47 @@ void R_InitSpriteDefs (char** namelist)
     int         patched;
                 
     // count the number of sprite names
-    check = namelist;
-    while (*check != NULL)
+    numsprites = 0;
+    check = (char**)sprnames;
+    while (*check != NULL) {
         check++;
-
-    numsprites = check-namelist;
+        numsprites++;
+    }
         
     if (!numsprites)
         return;
-                
-    sprites = Z_Malloc(numsprites *sizeof(*sprites), PU_STATIC, NULL);
+    printf("R_InitSpriteDefs");
+    printf("  numsprites = %d\n", numsprites);
+
+    if (numsprites > MAX_SPRITES) {
+        I_Error("R_InitSpriteDefs: %d > MAX_SPRITES", numsprites);
+    }
+    // sprites = Z_Malloc(numsprites *sizeof(*sprites), PU_STATIC, NULL);
         
     start = firstspritelump-1;
     end = lastspritelump+1;
+
+    memset (spriteframes, -1, sizeof(spriteframes));
+
         
     // scan all the lump names for each of the names,
     //  noting the highest frame letter.
     // Just compare 4 characters as ints
     for (i=0 ; i<numsprites ; i++)
     {
-        spritename = DEH_String(namelist[i]);
-        memset (sprtemp,-1, sizeof(sprtemp));
+        spritename = DEH_String((char*)sprnames[i]);
+        sprtemp = &spriteframes[spriteframe_count];
+
+        boolean copyFrames = false;
+
+        printf("  Sprite %d: %.4s\n", i, spritename);
+        if (!strncasecmp(spritename, "PISG", 4)) {
+            printf("    Pistol!\n");
+            copyFrames = true;
+        }
+
+        // NRFD-TODO: Should we do something like this?
+        // memset (sprtemp,-1, sizeof(sprtemp));
                 
         maxframe = -1;
         
@@ -211,23 +281,30 @@ void R_InitSpriteDefs (char** namelist)
         //  filling in the frames for whatever is found
         for (l=start+1 ; l<end ; l++)
         {
-            if (!strncasecmp(lumpinfo[l].name, spritename, 4))
+            char *lumpName = W_LumpName(l);
+            if (!strncasecmp(lumpName, spritename, 4))
             {
-                frame = lumpinfo[l].name[4] - 'A';
-                rotation = lumpinfo[l].name[5] - '0';
+                frame = lumpName[4] - 'A';
+                rotation = lumpName[5] - '0';
 
                 if (modifiedgame)
-                    patched = W_GetNumForName (lumpinfo[l].name);
+                    patched = W_GetNumForName (lumpName);
                 else
                     patched = l;
 
+                if (copyFrames) W_DebugLump(patched);
+
+                // printf("  Frame %d rot %d: %.8s - %d\n", frame, rotation, lumpName, patched);
                 R_InstallSpriteLump (patched, frame, rotation, false);
 
-                if (lumpinfo[l].name[6])
+                if (lumpName[6])
                 {
-                    frame = lumpinfo[l].name[6] - 'A';
-                    rotation = lumpinfo[l].name[7] - '0';
+                    frame = lumpName[6] - 'A';
+                    rotation = lumpName[7] - '0';
+                    // printf("  Frame %d rot %d: %.8s - %d\n", frame, rotation, lumpName, l);
                     R_InstallSpriteLump (l, frame, rotation, true);
+
+                    if (copyFrames) W_DebugLump(l);
                 }
             }
         }
@@ -267,12 +344,21 @@ void R_InitSpriteDefs (char** namelist)
         }
         
         // allocate space for the frames present and copy sprtemp to it
-        sprites[i].numframes = maxframe;
-        sprites[i].spriteframes = 
-            Z_Malloc (maxframe * sizeof(spriteframe_t), PU_STATIC, NULL);
-        memcpy (sprites[i].spriteframes, sprtemp, maxframe*sizeof(spriteframe_t));
-    }
+        if (maxframe > 256) {
+            I_Error("R_InitSpriteDefs: maxframe overflow");
+        }
 
+        spriteframe_count += maxframe;
+        if (spriteframe_count > MAX_SPRITEFRAMES) {
+            I_Error("R_InitSpriteDefs: %d > MAX_SPRITEFRAMES", spriteframe_count);
+        }
+
+        sprites[i].numframes = maxframe;
+        sprites[i].spriteframes = sprtemp;
+        //     Z_Malloc (maxframe * sizeof(spriteframe_t), PU_STATIC, NULL);
+        // memcpy (sprites[i].spriteframes, sprtemp, maxframe*sizeof(spriteframe_t));
+    }
+    printf("  spriteframe_count = %d\n", spriteframe_count);
 }
 
 
@@ -281,28 +367,23 @@ void R_InitSpriteDefs (char** namelist)
 //
 // GAME FUNCTIONS
 //
-vissprite_t     vissprites[MAXVISSPRITES];
-vissprite_t*    vissprite_p;
-int             newvissprite;
-
 
 
 //
 // R_InitSprites
 // Called at program start.
 //
-void R_InitSprites (char** namelist)
+void R_InitSprites ()
 {
+    /* NRFD-EXCLUDE
     int         i;
-        printf("NRFD-TODO: R_InitSprites\n");
-    /*
     for (i=0 ; i<SCREENWIDTH ; i++)
     {
         negonearray[i] = -1;
     }
-        
-    R_InitSpriteDefs (namelist);
     */
+        
+    R_InitSpriteDefs ();
 }
 
 
@@ -320,12 +401,14 @@ void R_ClearSprites (void)
 //
 // R_NewVisSprite
 //
-vissprite_t     overflowsprite;
+// vissprite_t     overflowsprite;
 
 vissprite_t* R_NewVisSprite (void)
 {
-    if (vissprite_p == &vissprites[MAXVISSPRITES])
-        return &overflowsprite;
+    if (vissprite_p == &vissprites[MAXVISSPRITES]) {
+        I_Error("R_NewVisSprite: overflow\n");
+        // return &overflowsprite;
+    }
     
     vissprite_p++;
     return vissprite_p-1;
@@ -396,13 +479,20 @@ R_DrawVisSprite
   int                   x1,
   int                   x2 )
 {
+    // N_ldbg("R_DrawVisSprite\n");
     column_t*           column;
     int                 texturecolumn;
     fixed_t             frac;
     patch_t*            patch;
         
-        
-    patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+    int lumpnum = vis->patch+firstspritelump;
+
+    if (lumpnum == 561) {
+        dc_debug = true;
+        // printf("R_DrawVisSprite: Pistol\n");
+    }
+
+    patch = W_CacheLumpNum (lumpnum, PU_CACHE);
 
     dc_colormap = vis->colormap;
     
@@ -419,6 +509,10 @@ R_DrawVisSprite
             ( (vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
     }
     */
+
+    //NRFD-TODO: Optimize
+    memcpy(dc_colormap_buf, dc_colormap, 256);
+    dc_colormap = dc_colormap_buf;
         
     dc_iscale = abs(vis->xiscale)>>detailshift;
     dc_texturemid = vis->texturemid;
@@ -437,7 +531,7 @@ R_DrawVisSprite
                                LONG(patch->columnofs[texturecolumn]));
         R_DrawMaskedColumn (column);
     }
-
+    dc_debug = false;
     colfunc = basecolfunc;
 }
 
@@ -507,13 +601,18 @@ void R_ProjectSprite (mobj_t* thing)
         I_Error ("R_ProjectSprite: invalid sprite number %i ",
                  thing->sprite);
 #endif
+
     sprdef = &sprites[thing->sprite];
+
+    int frame = thing->state->frame;
+
 #ifdef RANGECHECK
-    if ( (thing->frame&FF_FRAMEMASK) >= sprdef->numframes )
+    if ( (frame&FF_FRAMEMASK) >= sprdef->numframes )
         I_Error ("R_ProjectSprite: invalid sprite frame %i : %i ",
-                 thing->sprite, thing->frame);
+                 thing->sprite, frame);
 #endif
-    sprframe = &sprdef->spriteframes[ thing->frame & FF_FRAMEMASK];
+
+    sprframe = &sprdef->spriteframes[frame & FF_FRAMEMASK];
 
     if (sprframe->rotate)
     {
@@ -521,24 +620,24 @@ void R_ProjectSprite (mobj_t* thing)
         ang = R_PointToAngle (thing->x, thing->y);
         rot = (ang-thing->angle+(unsigned)(ANG45/2)*9)>>29;
         lump = sprframe->lump[rot];
-        flip = (boolean)sprframe->flip[rot];
+        flip = R_SpriteGetFlip(sprframe, rot);
     }
     else
     {
         // use single rotation for all views
         lump = sprframe->lump[0];
-        flip = (boolean)sprframe->flip[0];
+        flip = R_SpriteGetFlip(sprframe, 0);
     }
     
     // calculate edges of the shape
-    tx -= spriteoffset[lump];   
+    tx -= R_SpriteOffset(lump);   
     x1 = (centerxfrac + FixedMul (tx,xscale) ) >>FRACBITS;
 
     // off the right side?
     if (x1 > viewwidth)
         return;
     
-    tx +=  spritewidth[lump];
+    tx +=  R_SpriteWidth(lump);
     x2 = ((centerxfrac + FixedMul (tx,xscale) ) >>FRACBITS) - 1;
 
     // off the left side
@@ -547,12 +646,12 @@ void R_ProjectSprite (mobj_t* thing)
     
     // store information in a vissprite
     vis = R_NewVisSprite ();
-    vis->mobjflags = thing->flags;
+    // vis->mobjflags = thing->flags; // NRFD-TODO?
     vis->scale = xscale<<detailshift;
     vis->gx = thing->x;
     vis->gy = thing->y;
     vis->gz = thing->z;
-    vis->gzt = thing->z + spritetopoffset[lump];
+    vis->gzt = thing->z + R_SpriteTopOffset(lump);
     vis->texturemid = vis->gzt - viewz;
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;       
@@ -560,7 +659,7 @@ void R_ProjectSprite (mobj_t* thing)
 
     if (flip)
     {
-        vis->startfrac = spritewidth[lump]-1;
+        vis->startfrac = R_SpriteWidth(lump)-1;
         vis->xiscale = -iscale;
     }
     else
@@ -584,7 +683,7 @@ void R_ProjectSprite (mobj_t* thing)
         // fixed map
         vis->colormap = fixedcolormap;
     }
-    else if (thing->frame & FF_FULLBRIGHT)
+    else if (frame & FF_FULLBRIGHT)
     {
         // full bright
         vis->colormap = colormaps;
@@ -644,7 +743,9 @@ void R_AddSprites (sector_t* sec)
 //
 void R_DrawPSprite (pspdef_t* psp)
 {
+    // printf("R_DrawPSprite\n");
     fixed_t             tx;
+    fixed_t             width;
     int                 x1;
     int                 x2;
     spritedef_t*        sprdef;
@@ -669,19 +770,26 @@ void R_DrawPSprite (pspdef_t* psp)
     sprframe = &sprdef->spriteframes[ psp->state->frame & FF_FRAMEMASK ];
 
     lump = sprframe->lump[0];
-    flip = (boolean)sprframe->flip[0];
+
+    // printf("Frame: %d\n", psp->state->frame);
+    // printf("Lump: %d %.8s\n", lump, lumpinfo[firstspritelump+lump].name);
+    // patch_t     *patch;
+    // patch = W_CacheLumpNum (lump, PU_CACHE);
+
+    flip = R_SpriteGetFlip(sprframe, 0);
     
     // calculate edges of the shape
     tx = psp->sx-(SCREENWIDTH/2)*FRACUNIT;
         
-    tx -= spriteoffset[lump];   
+    tx -= R_SpriteOffset(lump);   
     x1 = (centerxfrac + FixedMul (tx,pspritescale) ) >>FRACBITS;
 
     // off the right side
     if (x1 > viewwidth)
         return;         
 
-    tx +=  spritewidth[lump];
+    width = R_SpriteWidth(lump);
+    tx += width;
     x2 = ((centerxfrac + FixedMul (tx, pspritescale) ) >>FRACBITS) - 1;
 
     // off the left side
@@ -690,8 +798,8 @@ void R_DrawPSprite (pspdef_t* psp)
     
     // store information in a vissprite
     vis = &avis;
-    vis->mobjflags = 0;
-    vis->texturemid = (BASEYCENTER<<FRACBITS)+FRACUNIT/2-(psp->sy-spritetopoffset[lump]);
+    // vis->mobjflags = 0; // NRFD-TODO?
+    vis->texturemid = (BASEYCENTER<<FRACBITS)+FRACUNIT/2-(psp->sy-R_SpriteTopOffset(lump));
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;       
     vis->scale = pspritescale<<detailshift;
@@ -699,7 +807,7 @@ void R_DrawPSprite (pspdef_t* psp)
     if (flip)
     {
         vis->xiscale = -pspriteiscale;
-        vis->startfrac = spritewidth[lump]-1;
+        vis->startfrac = R_SpriteWidth(lump)-1;
     }
     else
     {
@@ -744,8 +852,7 @@ void R_DrawPSprite (pspdef_t* psp)
 //
 void R_DrawPlayerSprites (void)
 {
-    printf("NRFD-TODO: R_DrawPlayerSprites\n");
-    /*
+    // N_ldbg("R_DrawPlayerSprites\n");
     int         i;
     int         lightnum;
     pspdef_t*   psp;
@@ -763,8 +870,8 @@ void R_DrawPlayerSprites (void)
         spritelights = scalelight[lightnum];
     
     // clip to screen bounds
-    mfloorclip = screenheightarray;
-    mceilingclip = negonearray;
+    mfloorclip = (short*)screenheightarray;
+    mceilingclip = (short*)negonearray;
     
     // add all active psprites
     for (i=0, psp=viewplayer->psprites;
@@ -774,7 +881,6 @@ void R_DrawPlayerSprites (void)
         if (psp->state)
             R_DrawPSprite (psp);
     }
-    */
 }
 
 
@@ -783,58 +889,88 @@ void R_DrawPlayerSprites (void)
 //
 // R_SortVisSprites
 //
-vissprite_t     vsprsortedhead;
 
 
 void R_SortVisSprites (void)
 {
-    int                 i;
-    int                 count;
-    vissprite_t*        ds;
-    vissprite_t*        best;
-    vissprite_t         unsorted;
-    fixed_t             bestscale;
+    int count = vissprite_p - vissprites;
 
-    count = vissprite_p - vissprites;
-        
-    unsorted.next = unsorted.prev = &unsorted;
+    // NRFD-NOTE: Completely rewritten for singly-linked list
+    // printf("R_SortVisSprites: %d\n", count);
 
-    if (!count)
-        return;
-                
-    for (ds=vissprites ; ds<vissprite_p ; ds++)
+    // Initialize sorted list
+    vsprsortedhead = &vissprites[0];
+    vsprsortedhead->next = NULL;
+
+    if (count < 2) return;
+
+    // Insert items into list in semi-sorted order
+    for (int i=1 ; i<count ; i++)
     {
-        ds->next = ds+1;
-        ds->prev = ds-1;
-    }
-    
-    vissprites[0].prev = &unsorted;
-    unsorted.next = &vissprites[0];
-    (vissprite_p-1)->next = &unsorted;
-    unsorted.prev = vissprite_p-1;
-    
-    // pull the vissprites out by scale
+        vissprite_t*   ds = &vissprites[i];
+        vissprite_t*   comp = vsprsortedhead;
 
-    vsprsortedhead.next = vsprsortedhead.prev = &vsprsortedhead;
-    for (i=0 ; i<count ; i++)
-    {
-        bestscale = INT_MAX;
-        best = unsorted.next;
-        for (ds=unsorted.next ; ds!= &unsorted ; ds=ds->next)
-        {
-            if (ds->scale < bestscale)
-            {
-                bestscale = ds->scale;
-                best = ds;
+        while (comp != NULL) {
+            vissprite_t*   next = comp->next;
+            if ((ds->scale > comp->scale) || (next == NULL)) {
+                // Insert after comp
+                ds->next = comp->next;
+                comp->next = ds;
+                break;
             }
+            comp = next;
         }
-        best->next->prev = best->prev;
-        best->prev->next = best->next;
-        best->next = &vsprsortedhead;
-        best->prev = vsprsortedhead.prev;
-        vsprsortedhead.prev->next = best;
-        vsprsortedhead.prev = best;
     }
+
+    if (count < 3) return;
+
+    // Bubble sort
+    boolean sorted = false;
+    while (!sorted) {
+        sorted = true;
+
+        vissprite_t    dummy_head;
+        vissprite_t*   prev = &dummy_head;
+        vissprite_t*   ds = vsprsortedhead;
+
+        dummy_head.next = vsprsortedhead;
+
+        while (ds->next != NULL) {
+            vissprite_t*   next = ds->next;
+            if (ds->scale > next->scale) {
+                // Swap
+                prev->next = next;
+                ds->next = next->next;
+                next->next = ds;
+                sorted = false;
+            }
+            else {
+                ds = next;
+            }
+            prev = prev->next;
+        }
+        vsprsortedhead = dummy_head.next;
+    }
+
+    // printf("  ");
+    vissprite_t*        spr;
+    int count2 = 0;
+    for (spr = vsprsortedhead ;
+         spr != NULL ;
+         spr=spr->next)
+    {
+        count2++;
+        // printf("%d ", spr->scale);
+        if (spr->next && (spr->next->scale < spr->scale)) {
+            printf("\n%d %d\n", spr->scale, spr->next->scale);
+            I_Error("R_SortVisSprites: sort failed order");
+        }
+    }
+    // printf("\n");
+    if (count != count2) {
+        I_Error("R_SortVisSprites: sort failed count");
+    }
+
 }
 
 
@@ -968,8 +1104,14 @@ void R_DrawMasked (void)
     if (vissprite_p > vissprites)
     {
         // draw all vissprites back to front
-        for (spr = vsprsortedhead.next ;
-             spr != &vsprsortedhead ;
+        N_ldbg("R_DrawMasked\n");
+
+        // for (spr=vissprites ; spr<vissprite_p ; spr++)
+        // {
+        //     R_DrawSprite (spr);
+        // }
+        for (spr = vsprsortedhead ;
+             spr != NULL ;
              spr=spr->next)
         {
             
@@ -990,3 +1132,7 @@ void R_DrawMasked (void)
 
 
 
+boolean R_SpriteGetFlip(spriteframe_t *sprite, int num) 
+{
+    return (sprite->flip >> num)&1;
+}

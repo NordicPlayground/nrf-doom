@@ -35,13 +35,12 @@
 //
 
 // needed for texture pegging
-extern fixed_t*         textureheight;
+// extern fixed_t          textureheight[]; // NRFD-NOTE: Replaced with R_TextureHeight
 
 // needed for pre rendering (fracs)
-extern fixed_t*         spritewidth;
-
-extern fixed_t*         spriteoffset;
-extern fixed_t*         spritetopoffset;
+// extern fixed_t*         spritewidth;
+// extern fixed_t*         spriteoffset;
+// extern fixed_t*         spritetopoffset;
 
 extern lighttable_t*    colormaps;
 
@@ -52,8 +51,8 @@ extern int              viewheight;
 extern int              firstflat;
 
 // for global animation
-extern int*             flattranslation;        
-extern int*             texturetranslation;     
+extern short*             flattranslation;        
+extern short*             texturetranslation;     
 
 
 // Sprite....
@@ -67,7 +66,7 @@ extern int              numspritelumps;
 // Lookup tables for map data.
 //
 extern int              numsprites;
-extern spritedef_t*     sprites;
+extern spritedef_t      sprites[];
 
 extern int              numvertexes;
 extern vertex_t*        vertexes;
@@ -105,8 +104,8 @@ extern player_t*        viewplayer;
 // ?
 extern angle_t          clipangle;
 
-extern int8_t           viewangletox[FINEANGLES/2];
-extern angle_t          xtoviewangle[SCREENWIDTH+1];
+extern const int        viewangletox[FINEANGLES/2];
+extern const angle_t    xtoviewangle[SCREENWIDTH+1];
 //extern fixed_t                finetangent[FINEANGLES/2];
 
 extern fixed_t          rw_distance;

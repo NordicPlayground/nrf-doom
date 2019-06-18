@@ -38,6 +38,7 @@
 // Data.
 #include "sounds.h"
 
+#include "z_zone.h"
 
 
 
@@ -1159,7 +1160,7 @@ void A_VileChase (mobj_t* actor)
     int                 bx;
     int                 by;
 
-    mobjinfo_t*         info;
+    const mobjinfo_t*         info;
     mobj_t*             temp;
         
     if (actor->movedir != DI_NODIR)
@@ -1804,7 +1805,7 @@ A_CloseShotgun2
 
 
 
-mobj_t*         braintargets[32];
+mobj_t**        braintargets = NULL;
 int             numbraintargets;
 int             braintargeton = 0;
 
@@ -1812,7 +1813,12 @@ void A_BrainAwake (mobj_t* mo)
 {
     thinker_t*  thinker;
     mobj_t*     m;
-        
+
+    if (!braintargets) {
+        // NRFD-TODO: Free braintargets when unloading level
+        braintargets = Z_Malloc (sizeof(*braintargets)*32, PU_STATIC, NULL);
+    }
+
     // find all the target spots
     numbraintargets = 0;
     braintargeton = 0;
@@ -1906,6 +1912,8 @@ void A_BrainSpit (mobj_t*       mo)
     easy ^= 1;
     if (gameskill <= sk_easy && (!easy))
         return;
+
+    if (!braintargets) return;
                 
     // shoot a cube at current target
     targ = braintargets[braintargeton];

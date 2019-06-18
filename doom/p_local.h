@@ -70,6 +70,7 @@ extern  thinker_t   thinkercap;
 void P_InitThinkers (void);
 void P_AddThinker (thinker_t* thinker);
 void P_RemoveThinker (thinker_t* thinker);
+void P_RemoveThinkerMobj (thinker_t* thinker);
 
 
 //
@@ -93,7 +94,7 @@ void    P_PlayerThink (player_t* player);
 #define ONCEILINGZ      INT_MAX
 
 // Time interval for item respawning.
-#define ITEMQUESIZE     128
+#define ITEMQUESIZE     16  // NRFD-TODO: 128
 
 extern mapthing_t   itemrespawnque[ITEMQUESIZE];
 extern int      itemrespawntime[ITEMQUESIZE];
@@ -115,11 +116,12 @@ mobj_t* P_SubstNullMobj (mobj_t* th);
 boolean P_SetMobjState (mobj_t* mobj, statenum_t state);
 void    P_MobjThinker (mobj_t* mobj);
 
+void    P_InitMobjs (void);
+
 void    P_SpawnPuff (fixed_t x, fixed_t y, fixed_t z);
 void    P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, int damage);
 mobj_t* P_SpawnMissile (mobj_t* source, mobj_t* dest, mobjtype_t type);
 void    P_SpawnPlayerMissile (mobj_t* source, mobjtype_t type);
-
 
 //
 // P_ENEMY
@@ -163,6 +165,8 @@ extern intercept_t* intercept_p;
 
 typedef boolean (*traverser_t) (intercept_t *in);
 
+vector_t P_LineVector(line_t* line);
+fixed_t*   P_LineBBox(line_t* line);
 fixed_t P_AproxDistance (fixed_t dx, fixed_t dy);
 int     P_PointOnLineSide (fixed_t x, fixed_t y, line_t* line);
 int     P_PointOnDivlineSide (fixed_t x, fixed_t y, divline_t* line);
@@ -258,19 +262,20 @@ P_RadiusAttack
   int       damage );
 
 
-
 //
 // P_SETUP
 //
+// NRFD-TODO: Optimize
+#define BLOCKLINKS_SIZE 16
+
 extern byte*        rejectmatrix;   // for fast sight rejection
 extern short*       blockmaplump;   // offsets in blockmap are from here
 extern short*       blockmap;
-extern int      bmapwidth;
-extern int      bmapheight; // in mapblocks
+extern int          bmapwidth;
+extern int          bmapheight; // in mapblocks
 extern fixed_t      bmaporgx;
 extern fixed_t      bmaporgy;   // origin of block map
-extern mobj_t**     blocklinks; // for thing chains
-
+extern mobj_t*      blocklinks[]; // for thing chains
 
 
 //

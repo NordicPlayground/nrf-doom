@@ -44,7 +44,7 @@ extern fixed_t		centerxfrac;
 extern fixed_t		centeryfrac;
 extern fixed_t		projection;
 
-extern int		validcount;
+extern short		validcount;
 
 extern int		linecount;
 extern int		loopcount;
@@ -63,8 +63,8 @@ extern int		loopcount;
 
 #define MAXLIGHTSCALE		48
 #define LIGHTSCALESHIFT		12
-/* NRFD-TODO !! MAXLIGHTZ        128 */
-#define MAXLIGHTZ	       32
+// NRFD-TODO: Optimize MAXLIGHTZ?
+#define MAXLIGHTZ	       128
 #define LIGHTZSHIFT		20
 
 extern lighttable_t*	scalelight[LIGHTLEVELS][MAXLIGHTSCALE];

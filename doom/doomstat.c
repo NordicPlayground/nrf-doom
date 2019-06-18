@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	Put all global tate variables here.
+//      Put all global tate variables here.
 //
 
 #include <stdio.h>
@@ -23,13 +23,13 @@
 
 // Game Mode - identify IWAD as shareware, retail etc.
 GameMode_t gamemode = indetermined;
-GameMission_t	gamemission = doom;
+GameMission_t   gamemission = doom;
 GameVersion_t   gameversion = exe_final2;
 GameVariant_t   gamevariant = vanilla;
 char *gamedescription;
 
 // Set if homebrew PWAD stuff has been added.
-boolean	modifiedgame;
+const boolean   modifiedgame = false;
 
 
 

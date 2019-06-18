@@ -76,8 +76,8 @@ int                     showMessages = 1;
         
 
 // Blocky mode, has default, 0 = high, 1 = normal
-int                     detailLevel = 0;
-int                     screenblocks = 9;
+const int                     detailLevel = 0;
+const int                     screenblocks = 10;
 
 // temp for screenblocks (0-9)
 int                     screenSize;
@@ -160,8 +160,8 @@ typedef struct __attribute__((packed)) menu_s
     const struct menu_s*      prevMenu;       // previous menu
     const menuitem_t*         menuitems;      // menu items
     void                (*routine)();   // draw routine
-    int8_t               x;               // NRFD: Was short
-    int8_t               y;              // x,y of menu // NRFD: Was short
+    short               x;              
+    short               y;              // x,y of menu
     int8_t               lastOn;         // last item user was on in menu // NRFD: Was short
 } menu_t;
 
@@ -187,7 +187,7 @@ void M_SaveGame(int choice);
 void M_Options(int choice);
 void M_EndGame(int choice);
 void M_ReadThis(int choice);
-void M_ReadThis2(int choice);
+void M_ReadThis_Next(int choice);
 void M_QuitDOOM(int choice);
 
 void M_ChangeMessages(int choice);
@@ -207,8 +207,8 @@ void M_QuickSave(void);
 void M_QuickLoad(void);
 
 void M_DrawMainMenu(void);
-void M_DrawReadThis1(void);
-void M_DrawReadThis2(void);
+void M_DrawReadThis(void);
+// void M_DrawReadThis2(void);
 void M_DrawNewGame(void);
 void M_DrawEpisode(void);
 void M_DrawOptions(void);
@@ -245,7 +245,9 @@ enum
     main_end
 } main_e;
 
-const menuitem_t MainMenu[]=
+// NRFD-TODO: Could make these const again to save some memory
+
+menuitem_t MainMenu[]=
 {
     {1,"M_NGAME",M_NewGame,'n'},
     {1,"M_OPTION",M_Options,'o'},
@@ -256,7 +258,7 @@ const menuitem_t MainMenu[]=
     {1,"M_QUITG",M_QuitDOOM,'q'}
 };
 
-const menu_t  MainDef =
+menu_t  MainDef =
 {
     main_end,
     NULL,
@@ -284,10 +286,10 @@ const menuitem_t EpisodeMenu[]=
     {1,"M_EPI1", M_Episode,'k'},
     {1,"M_EPI2", M_Episode,'t'},
     {1,"M_EPI3", M_Episode,'i'},
-    // {1,"M_EPI4", M_Episode,'t'} // NRFD-TODO: menu
+    {1,"M_EPI4", M_Episode,'t'}
 };
 
-const menu_t  EpiDef =
+menu_t  EpiDef =
 {
     ep_end,             // # of menu items
     &MainDef,           // previous menu
@@ -319,7 +321,7 @@ const menuitem_t NewGameMenu[]=
     {1, "M_NMARE",    M_ChooseSkill, 'n'}
 };
 
-const menu_t  NewDef =
+menu_t  NewDef =
 {
     newg_end,           // # of menu items
     &EpiDef,            // previous menu
@@ -378,39 +380,21 @@ enum
     read1_end
 } read_e;
 
-const menuitem_t ReadMenu1[] =
+const menuitem_t ReadMenu[] =
 {
-    {1,"",M_ReadThis2,0}
+    {1,"",M_ReadThis_Next,0}
 };
 
-const menu_t  ReadDef1 =
+int read_this_start = 1;
+int read_this_num = 1;
+
+const menu_t  ReadDef =
 {
     read1_end,
     &MainDef,
-    ReadMenu1,
-    M_DrawReadThis1,
-    0,0, // NRFD-TODO: //    280,185,
-    0
-};
-
-enum
-{
-    rdthsempty2,
-    read2_end
-} read_e2;
-
-const menuitem_t ReadMenu2[]=
-{
-    {1,"",M_FinishReadThis,0}
-};
-
-const menu_t  ReadDef2 =
-{
-    read2_end,
-    &ReadDef1,
-    ReadMenu2,
-    M_DrawReadThis2,
-    0,0, // NRFD-TODO: 330,175,
+    ReadMenu,
+    M_DrawReadThis,
+    0,0,
     0
 };
 
@@ -500,6 +484,9 @@ const menu_t  SaveDef =
     80,54,
     0
 };
+
+short skull_offset_x = 0;
+short skull_offset_y = 0;
 
 
 //
@@ -789,35 +776,29 @@ void M_QuickLoad(void)
 // Read This Menus
 // Had a "quick hack to fix romero bug"
 //
-void M_DrawReadThis1(void)
+void M_DrawReadThis(void)
 {
     inhelpscreens = true;
 
-    V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP2"), PU_CACHE));
+    printf("M_DrawReadThis %d\n", read_this_num);
+
+    if (read_this_num == 0) {
+        // commercial
+        skull_offset_x = 330;
+        skull_offset_y = 165;
+        V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP"), PU_CACHE));
+    }
+    if (read_this_num == 1) {
+        skull_offset_x = 280;
+        skull_offset_y = 185;
+        V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP2"), PU_CACHE));
+    }
+    if (read_this_num == 2) {
+        skull_offset_x = 330;
+        skull_offset_y = 175;
+        V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP1"), PU_CACHE));
+    }
 }
-
-
-
-//
-// Read This Menus - optional second page.
-//
-void M_DrawReadThis2(void)
-{
-    inhelpscreens = true;
-
-    // We only ever draw the second page if this is 
-    // gameversion == exe_doom_1_9 and gamemode == registered
-
-    V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP1"), PU_CACHE));
-}
-
-void M_DrawReadThisCommercial(void)
-{
-    inhelpscreens = true;
-
-    V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP"), PU_CACHE));
-}
-
 
 //
 // Change Sfx & Music volumes
@@ -950,7 +931,8 @@ void M_Episode(int choice)
          && choice)
     {
         M_StartMessage(DEH_String(SWSTRING),NULL,false);
-        M_SetupNextMenu(&ReadDef1);
+        read_this_num = 1;
+        M_SetupNextMenu(&ReadDef);
         return;
     }
 
@@ -1050,26 +1032,25 @@ void M_EndGame(int choice)
 //
 // M_ReadThis
 //
+// NRFD-TODO: These aren't quite right for all versions
 void M_ReadThis(int choice)
 {
-    choice = 0;
-    M_SetupNextMenu(&ReadDef1);
+    read_this_num = read_this_start-1;
+    M_ReadThis_Next(choice);
 }
 
-void M_ReadThis2(int choice)
+void M_ReadThis_Next(int choice)
 {
     choice = 0;
-    M_SetupNextMenu(&ReadDef2);
+    read_this_num++;
+    if (read_this_num < 3) {
+        M_SetupNextMenu(&ReadDef);
+    }
+    else {
+        M_SetupNextMenu(&MainDef);
+        read_this_num = read_this_start;
+    }
 }
-
-void M_FinishReadThis(int choice)
-{
-    choice = 0;
-    M_SetupNextMenu(&MainDef);
-}
-
-
-
 
 //
 // M_QuitDOOM
@@ -1171,6 +1152,8 @@ void M_ChangeSensitivity(int choice)
 
 void M_ChangeDetail(int choice)
 {
+    printf("NRFD-TODO: Detail level\n");
+    /*
     choice = 0;
     detailLevel = 1 - detailLevel;
 
@@ -1180,6 +1163,7 @@ void M_ChangeDetail(int choice)
         players[consoleplayer].message = DEH_String(DETAILHI);
     else
         players[consoleplayer].message = DEH_String(DETAILLO);
+    */
 }
 
 
@@ -1187,6 +1171,7 @@ void M_ChangeDetail(int choice)
 
 void M_SizeDisplay(int choice)
 {
+    printf("NRFD-TODO: M_SizeDisplay\n");/*
     switch(choice)
     {
       case 0:
@@ -1207,6 +1192,7 @@ void M_SizeDisplay(int choice)
         
 
     R_SetViewSize (screenblocks, detailLevel);
+    */
 }
 
 
@@ -1391,7 +1377,7 @@ boolean M_Responder (event_t* ev)
     static  int     mousex = 0;
     static  int     lastx = 0;
 
-    printf("NRFD-TODO: M_Responder\n");
+    // printf("NRFD-TODO: M_Responder\n");
     // In testcontrols mode, none of the function keys should do anything
     // - the only key is escape to quit.
 
@@ -1695,10 +1681,14 @@ boolean M_Responder (event_t* ev)
         {
             M_StartControlPanel ();
 
-            if (gameversion >= exe_ultimate)
-              currentMenu = &ReadDef2;
-            else
-              currentMenu = &ReadDef1;
+            if (gameversion >= exe_ultimate) {
+                read_this_num = 2;
+                currentMenu = &ReadDef;
+            }
+            else {
+                read_this_num = 1;
+                currentMenu = &ReadDef;
+            }
 
             itemOn = 0;
             S_StartSound(NULL,sfx_swtchn);
@@ -1984,6 +1974,11 @@ void M_Drawer (void)
     char               *name;
     int                 start;
 
+    N_ldbg("M_Drawer\n");
+
+    skull_offset_x = 0;
+    skull_offset_y = 0;
+
     inhelpscreens = false;
     
     // Horiz. & Vertically center string and print it.
@@ -2056,7 +2051,7 @@ void M_Drawer (void)
 
     
     // DRAW SKULL
-    V_DrawPatchDirect(x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT,
+    V_DrawPatchDirect(x + SKULLXOFF + skull_offset_x, currentMenu->y - 5 + itemOn*LINEHEIGHT + skull_offset_y,
                       W_CacheLumpName(DEH_String(skullName[whichSkull]),
                                       PU_CACHE));
 }
@@ -2118,7 +2113,7 @@ void M_Init (void)
 
     // The same hacks were used in the original Doom EXEs.
 
-    /* NRFD-TODO?
+    /* NRFD-TODO: Move logic to ReadDef functions
     if (gameversion >= exe_ultimate)
     {
         MainMenu[readthis].routine = M_ReadThis2;
@@ -2130,22 +2125,20 @@ void M_Init (void)
         ReadDef2.routine = M_DrawReadThisCommercial;
     }
     */
-
-    /* NRFD-TODO?
     if (gamemode == commercial)
     {
         MainMenu[readthis] = MainMenu[quitdoom];
         MainDef.numitems--;
         MainDef.y += 8;
         NewDef.prevMenu = &MainDef;
+        /*
         ReadDef1.routine = M_DrawReadThisCommercial;
         ReadDef1.x = 330;
         ReadDef1.y = 165;
         ReadMenu1[rdthsempty1].routine = M_FinishReadThis;
+        */
     }
-    */
 
-    /* NRFD-TODO?
     // Versions of doom.exe before the Ultimate Doom release only had
     // three episodes; if we're emulating one of those then don't try
     // to show episode four. If we are, then do show episode four
@@ -2159,7 +2152,6 @@ void M_Init (void)
     {
         EpiDef.numitems = 1;
     }
-    */
 
     // NRFD-TODO?
     // opldev = M_CheckParm("-opldev") > 0;

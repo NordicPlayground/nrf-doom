@@ -69,7 +69,7 @@ extern char            *gamedescription;
      gamemission == pack_hacx ? doom2 : gamemission)
 
 // Set if homebrew PWAD stuff has been added.
-extern  boolean modifiedgame;
+extern const boolean modifiedgame;
 
 
 // -------------------------------------------
@@ -239,7 +239,7 @@ extern  char *          savegamedir;
 extern  char        basedefault[1024];
 
 // if true, load all graphics at level load
-extern  boolean         precache;
+extern const  boolean         precache;
 
 
 // wipegamestate can be set to -1

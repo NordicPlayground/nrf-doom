@@ -13,8 +13,8 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	Archiving: SaveGame I/O.
-//	Thinker, Ticker.
+//      Archiving: SaveGame I/O.
+//      Thinker, Ticker.
 //
 
 
@@ -24,7 +24,7 @@
 #include "doomstat.h"
 
 
-int	leveltime;
+int     leveltime;
 
 //
 // THINKERS
@@ -37,7 +37,7 @@ int	leveltime;
 
 
 // Both the head and tail of the thinker list.
-thinker_t	thinkercap;
+thinker_t       thinkercap;
 
 
 //
@@ -45,11 +45,13 @@ thinker_t	thinkercap;
 //
 void P_InitThinkers (void)
 {
+    printf("P_InitThinkers\n");
     thinkercap.prev = thinkercap.next  = &thinkercap;
 }
 
 
 
+#include "compiler_abstraction.h"
 
 //
 // P_AddThinker
@@ -58,8 +60,11 @@ void P_InitThinkers (void)
 void P_AddThinker (thinker_t* thinker)
 {
     thinkercap.prev->next = thinker;
+    __ASM volatile("": : :"memory");
     thinker->next = &thinkercap;
+    __ASM volatile("": : :"memory");
     thinker->prev = thinkercap.prev;
+    __ASM volatile("": : :"memory");
     thinkercap.prev = thinker;
 }
 
@@ -76,17 +81,22 @@ void P_RemoveThinker (thinker_t* thinker)
   thinker->function.acv = (actionf_v)(-1);
 }
 
+void P_RemoveThinkerMobj (thinker_t* thinker)
+{
+  thinker->function.acv = (actionf_v)(-2);
+}
+
 
 
 //
 // P_AllocateThinker
 // Allocates memory and adds a new thinker at the end of the list.
 //
-void P_AllocateThinker (thinker_t*	thinker)
+void P_AllocateThinker (thinker_t*      thinker)
 {
 }
 
-
+void P_FreeMobj (mobj_t* mobj);
 
 //
 // P_RunThinkers
@@ -98,21 +108,31 @@ void P_RunThinkers (void)
     currentthinker = thinkercap.next;
     while (currentthinker != &thinkercap)
     {
-	if ( currentthinker->function.acv == (actionf_v)(-1) )
-	{
-	    // time to remove it
+        if ( currentthinker->function.acv == (actionf_v)(-1) )
+        {
+            // time to remove it
+            printf("Free thinker\n");
             nextthinker = currentthinker->next;
-	    currentthinker->next->prev = currentthinker->prev;
-	    currentthinker->prev->next = currentthinker->next;
-	    Z_Free(currentthinker);
-	}
-	else
-	{
-	    if (currentthinker->function.acp1)
-		currentthinker->function.acp1 (currentthinker);
+            currentthinker->next->prev = currentthinker->prev;
+            currentthinker->prev->next = currentthinker->next;
+            Z_Free(currentthinker);
+        }
+        else if ( currentthinker->function.acv == (actionf_v)(-2) )
+        {
+            // time to remove it
+            printf("Free mobj\n");
             nextthinker = currentthinker->next;
-	}
-	currentthinker = nextthinker;
+            currentthinker->next->prev = currentthinker->prev;
+            currentthinker->prev->next = currentthinker->next;
+            P_FreeMobj((mobj_t*)currentthinker);
+        }
+        else
+        {
+            if (currentthinker->function.acp1)
+                currentthinker->function.acp1 (currentthinker);
+            nextthinker = currentthinker->next;
+        }
+        currentthinker = nextthinker;
     }
 }
 
@@ -124,30 +144,30 @@ void P_RunThinkers (void)
 
 void P_Ticker (void)
 {
-    int		i;
+    int         i;
     
     // run the tic
     if (paused)
-	return;
-		
+        return;
+                
     // pause if in menu and at least one tic has been run
     if ( !netgame
-	 && menuactive
-	 && !demoplayback
-	 && players[consoleplayer].viewz != 1)
+         && menuactive
+         && !demoplayback
+         && players[consoleplayer].viewz != 1)
     {
-	return;
+        return;
     }
     
-		
+                
     for (i=0 ; i<MAXPLAYERS ; i++)
-	if (playeringame[i])
-	    P_PlayerThink (&players[i]);
-			
+        if (playeringame[i])
+            P_PlayerThink (&players[i]);
+                        
     P_RunThinkers ();
     P_UpdateSpecials ();
     P_RespawnSpecials ();
 
     // for par times
-    leveltime++;	
+    leveltime++;        
 }

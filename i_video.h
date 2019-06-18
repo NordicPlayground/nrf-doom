@@ -31,7 +31,24 @@
 
 #define SCREENHEIGHT_4_3 240
 
-typedef boolean (*grabmouse_callback_t)(void);
+// extern char *video_driver;
+extern const boolean screenvisible;
+
+extern const boolean vanilla_keyboard_mapping;
+// extern const boolean screensaver_mode;
+extern const int usegamma;
+extern pixel_t I_VideoBuffer[];
+
+// extern int screen_width;
+// extern int screen_height;
+// extern int fullscreen;
+// extern int aspect_ratio_correct;
+// extern int integer_scaling;
+// extern int vga_porch_flash;
+// extern int force_software_renderer;
+
+// Joystic/gamepad hysteresis
+extern unsigned int joywait;
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -55,9 +72,6 @@ void I_BeginRead (void);
 
 void I_SetWindowTitle(char *title);
 
-void I_CheckIsScreensaver(void);
-void I_SetGrabMouseCallback(grabmouse_callback_t func);
-
 void I_DisplayFPSDots(boolean dots_on);
 void I_BindVideoVariables(void);
 
@@ -78,26 +92,6 @@ void I_StartTic (void);
 
 void I_EnableLoadingDisk(int xoffs, int yoffs);
 
-// extern char *video_driver;
-extern const boolean screenvisible;
-
-extern int vanilla_keyboard_mapping;
-// extern const boolean screensaver_mode;
-extern int usegamma;
-extern pixel_t I_VideoBuffer[];
-
-// extern int screen_width;
-// extern int screen_height;
-// extern int fullscreen;
-// extern int aspect_ratio_correct;
-// extern int integer_scaling;
-// extern int vga_porch_flash;
-// extern int force_software_renderer;
-
-extern char *window_position;
-void I_GetWindowPosition(int *x, int *y, int w, int h);
-
-// Joystic/gamepad hysteresis
-extern unsigned int joywait;
+void I_ClearVideoBuffer(void);
 
 #endif

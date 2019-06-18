@@ -6,7 +6,7 @@
 
 #include "FT810.h"
 
-#define BUF_MAXCNT 256
+#define BUF_MAXCNT 8
 
 volatile uint8_t display_spi_txd_buf[BUF_MAXCNT];
 volatile uint8_t display_spi_rxd_buf[BUF_MAXCNT];

@@ -41,13 +41,14 @@ typedef struct
 
 struct _wad_file_s
 {
+    /*
     // Class of this file.
     wad_file_class_t *file_class;
 
     // If this is NULL, the file cannot be mapped into memory.  If this
     // is non-NULL, it is a pointer to the mapped file.
     byte *mapped;
-
+    */
     // Length of the file, in bytes.
     unsigned int length;
 
@@ -55,6 +56,7 @@ struct _wad_file_s
     const char *path;
 };
 
+/*
 // Open the specified file. Returns a pointer to a new wad_file_t 
 // handle for the WAD file, or NULL if it could not be opened.
 
@@ -70,5 +72,7 @@ void W_CloseFile(wad_file_t *wad);
 
 size_t W_Read(wad_file_t *wad, unsigned int offset,
               void *buffer, size_t buffer_len);
+
+*/
 
 #endif /* #ifndef __W_FILE__ */

@@ -41,6 +41,7 @@
 
 #include "n_buttons.h"
 #include "n_display.h"
+#include "n_uart.h"
 
 #include "FT810.h"
 
@@ -56,8 +57,8 @@ static boolean initialized = false;
 
 // disable mouse?
 
-static boolean nomouse = false;
-int usemouse = 1;
+const boolean nomouse = true;
+const int usemouse = 1;
 
 // Save screenshots in PNG format.
 
@@ -123,7 +124,7 @@ int usemouse = 1;
 
 // The screen buffer; this is modified to draw things to the screen
 
-pixel_t I_VideoBuffer[320*200];
+pixel_t I_VideoBuffer[64*1024]; //[320*200];
 
 static uint32_t display_vbuffer_loc;
 
@@ -144,26 +145,11 @@ const boolean screenvisible = true;
 // If this is true, the screen is rendered but not blitted to the
 // video buffer.
 
-static boolean noblit;
-
-// Callback function to invoke to determine whether to grab the 
-// mouse pointer.
-
-// static grabmouse_callback_t grabmouse_callback = NULL;
-
-// Does the window currently have focus?
-
-// static boolean window_focused = true;
-
-// Window resize state.
-
-// static boolean need_resize = false;
-// static unsigned int last_resize_time;
-// #define RESIZE_DELAY 500
+const boolean noblit = false;
 
 // Gamma correction level to use
 
-int usegamma = 0;
+const int usegamma = 0;
 
 // Joystick/gamepad hysteresis
 unsigned int joywait = 0;
@@ -179,11 +165,6 @@ void PrintVBuffer(void)
         vb[1*SCREENWIDTH+4], vb[1*SCREENWIDTH+5], vb[1*SCREENWIDTH+6], vb[1*SCREENWIDTH+7]); 
 }
 
-
-void I_SetGrabMouseCallback(grabmouse_callback_t func)
-{
-    // grabmouse_callback = func;
-}
 
 // Set the variable controlling FPS dots.
 
@@ -233,6 +214,7 @@ void I_StartTic (void)
         return;
     }
     N_ReadButtons();
+    N_ReadUart();
 /*
     I_GetEvent();
 
@@ -434,7 +416,8 @@ void I_GraphicsCheckCommandLine(void)
     // Disable blitting the screen.
     //
 
-    noblit = M_CheckParm ("-noblit");
+    // NRFD-TODO?
+    // noblit = M_CheckParm ("-noblit");
 
     // //!
     // // @category video 
@@ -449,8 +432,8 @@ void I_GraphicsCheckCommandLine(void)
     //
     // Disable the mouse.
     //
-
-    nomouse = M_CheckParm("-nomouse") > 0;
+    // NRFD-EXCLUDE
+    // nomouse = M_CheckParm("-nomouse") > 0;
 }
 
 
@@ -486,6 +469,13 @@ void I_BindVideoVariables(void)
     // M_BindIntVariable("grabmouse",                 &grabmouse);
     // M_BindStringVariable("video_driver",           &video_driver);
     // M_BindStringVariable("window_position",        &window_position);
-    M_BindIntVariable("usegamma",                  &usegamma);
+    // M_BindIntVariable("usegamma",                  &usegamma);
     // M_BindIntVariable("png_screenshots",           &png_screenshots);
+}
+
+void I_ClearVideoBuffer(void)
+{
+    for (int i=0; i<SCREENHEIGHT*SCREENWIDTH; i++) {
+        I_VideoBuffer[i] = 251; // pink
+    }
 }

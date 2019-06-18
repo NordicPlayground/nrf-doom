@@ -27,6 +27,7 @@
 // State.
 #include "doomstat.h"
 #include "r_state.h"
+#include "r_data.h"
 // Data.
 #include "sounds.h"
 
@@ -374,16 +375,16 @@ EV_DoFloor
 		  {
 		      side = getSide(secnum,i,0);
 		      if (side->bottomtexture >= 0)
-			  if (textureheight[side->bottomtexture] < 
+			  if (R_TextureHeightFixed(side->bottomtexture) < 
 			      minsize)
 			      minsize = 
-				  textureheight[side->bottomtexture];
+				  R_TextureHeightFixed(side->bottomtexture);
 		      side = getSide(secnum,i,1);
 		      if (side->bottomtexture >= 0)
-			  if (textureheight[side->bottomtexture] < 
+			  if (R_TextureHeightFixed(side->bottomtexture) < 
 			      minsize)
 			      minsize = 
-				  textureheight[side->bottomtexture];
+				  R_TextureHeightFixed(side->bottomtexture);
 		  }
 	      }
 	      floor->floordestheight =

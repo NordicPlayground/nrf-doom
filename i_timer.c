@@ -57,6 +57,12 @@ void I_Sleep(int ms)
     nrf_delay_ms(ms);
 }
 
+
+void I_SleepUS(int us)
+{
+    nrf_delay_us(us);
+}
+
 void I_WaitVBL(int count)
 {
     I_Sleep((count * 1000) / 70);

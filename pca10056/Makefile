@@ -23,6 +23,7 @@ INC_FOLDERS =
 SRC_FILES += \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/retarget.c \
+  $(PROJ_DIR)/hardfault_handler_gcc.c \
   $(PROJ_DIR)/deh_main.c \
   $(PROJ_DIR)/d_event.c \
   $(PROJ_DIR)/d_iwad.c \
@@ -45,6 +46,8 @@ SRC_FILES += \
   $(PROJ_DIR)/n_mem.c \
   $(PROJ_DIR)/n_buttons.c \
   $(PROJ_DIR)/n_display.c \
+  $(PROJ_DIR)/n_qspi.c \
+  $(PROJ_DIR)/n_uart.c \
   $(PROJ_DIR)/net_client.c \
   $(PROJ_DIR)/net_server.c \
   $(PROJ_DIR)/tables.c \
@@ -89,6 +92,7 @@ SRC_FILES += \
   $(PROJ_DIR)/doom/p_switch.c \
   $(PROJ_DIR)/doom/p_pspr.c \
   $(PROJ_DIR)/doom/p_user.c \
+  $(PROJ_DIR)/doom/r_bsp.c \
   $(PROJ_DIR)/doom/r_main.c \
   $(PROJ_DIR)/doom/r_data.c \
   $(PROJ_DIR)/doom/r_draw.c \
@@ -123,6 +127,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_qspi.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -139,6 +144,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/modules/nrfx/mdk \
   $(SDK_ROOT)/external/fatfs/port \
+  $(SDK_ROOT)/components/libraries/hardfault \
   $(SDK_ROOT)/components/libraries/fifo \
   $(SDK_ROOT)/components/libraries/strerror \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
@@ -219,10 +225,10 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 
-nrf52840_xxaa: CFLAGS += -D__HEAP_SIZE=106000
-nrf52840_xxaa: CFLAGS += -D__STACK_SIZE=8192
-nrf52840_xxaa: ASMFLAGS += -D__HEAP_SIZE=106000
-nrf52840_xxaa: ASMFLAGS += -D__STACK_SIZE=8192
+nrf52840_xxaa: CFLAGS += -D__HEAP_SIZE=90000
+nrf52840_xxaa: CFLAGS += -D__STACK_SIZE=2048
+nrf52840_xxaa: ASMFLAGS += -D__HEAP_SIZE=90000
+nrf52840_xxaa: ASMFLAGS += -D__STACK_SIZE=2048
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
@@ -258,6 +264,12 @@ flash: default
 
 erase:
 	nrfjprog -f nrf52 --eraseall
+
+
+.PHONY: debug
+
+debug:
+	arm-none-eabi-gdb -x debug.gdb _build/nrf52840_xxaa.out
 
 SDK_CONFIG_FILE := ../config/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar

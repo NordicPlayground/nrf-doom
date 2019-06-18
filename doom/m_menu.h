@@ -53,8 +53,8 @@ void M_StartControlPanel (void);
 
 
 
-extern int detailLevel;
-extern int screenblocks;
+extern const int detailLevel;
+extern const int screenblocks;
 
 
 

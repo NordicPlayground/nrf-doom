@@ -130,11 +130,12 @@ int             totalkills, totalitems, totalsecret;    // for intermission
  
 const boolean         demoplayback = false;
 const boolean         demorecording = false;
+const boolean         netdemo; 
+
 /* NRFD-TODO: demo
 char           *demoname;
 boolean         longtics;               // cph's doom 1.91 longtics hack
 boolean         lowres_turn;            // low resolution turning for longtics
-boolean         netdemo; 
 byte*           demobuffer;
 byte*           demo_p;
 byte*           demoend; 
@@ -142,7 +143,7 @@ byte*           demoend;
 // NRFD-EXCLUDE
 const boolean         singledemo = false;               // quit after playing a demo from cmdline 
 
-boolean         precache = true;        // if true, load all graphics at start 
+const boolean         precache = false;        // if true, load all graphics at start  // NRFD-TODO: Set to true?
 
 /* NRFD-EXCLUDE
 boolean         testcontrols = false;    // Invoked by setup to test controls
@@ -204,7 +205,7 @@ static const struct
 static uint32_t gamekeydown_bitmap[8]; // Assume NUMKEYS==256
 static int      turnheld;               // for accelerative turning 
 
-
+/*
 static boolean  mousearray[MAX_MOUSE_BUTTONS + 1];
 static boolean *mousebuttons = &mousearray[1];  // allow [-1]
 
@@ -218,14 +219,17 @@ static int      dclicks;
 static int      dclicktime2;
 static boolean  dclickstate2;
 static int      dclicks2;
+*/
 
+/*
 // joystick values are repeated 
 static int      joyxmove;
 static int      joyymove;
 static int      joystrafemove;
 static boolean  joyarray[MAX_JOY_BUTTONS + 1]; 
 static boolean *joybuttons = &joyarray[1];              // allow [-1] 
- 
+ */
+
  /* NRFD-TODO: save game
 static int      savegameslot; 
 static char     savedescription[32]; 
@@ -335,7 +339,12 @@ void gamekeydown_set(int key, boolean val)
 {
     int word_idx = key >> 5;
     uint32_t word_mask = 1<<(key&0x1F);
-    gamekeydown_bitmap[word_idx] |= word_mask;
+    if (val) {
+        gamekeydown_bitmap[word_idx] |= word_mask;
+    }
+    else {
+        gamekeydown_bitmap[word_idx] &= ~word_mask;
+    }
 }
 void gamekeydown_clear()
 {
@@ -364,24 +373,28 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     cmd->consistancy = 
         consistancy[consoleplayer][maketic%BACKUPTICS]; 
  
-    strafe = gamekeydown(key_strafe) || mousebuttons[mousebstrafe] 
-        || joybuttons[joybstrafe]; 
+    strafe = gamekeydown(key_strafe);
+    // strafe = strafe || mousebuttons[mousebstrafe] ; // NRFD-TODO: mouse
+    // strafe = strafe || joybuttons[joybstrafe]; // NRFD-TODO: joy 
 
     // fraggle: support the old "joyb_speed = 31" hack which
     // allowed an autorun effect
 
-    speed = key_speed >= NUMKEYS
-         || joybspeed >= MAX_JOY_BUTTONS
-         || gamekeydown(key_speed) 
-         || joybuttons[joybspeed];
+    speed = key_speed >= NUMKEYS;
+    speed = speed || gamekeydown(key_speed);
+    // speed = speed || joybspeed >= MAX_JOY_BUTTONS; // NRFD-TODO: joy 
+    // speed = speed || joybuttons[joybspeed];; // NRFD-TODO: joy
+
+    // NRFD-TODO: joy (lots of stuff below)
+    // NRFD-TODO: mouse (lots of stuff below)
  
     forward = side = 0;
     
     // use two stage accelerative turning
     // on the keyboard and joystick
-    if (joyxmove < 0
+    if (/*joyxmove < 0
         || joyxmove > 0  
-        || gamekeydown(key_right)
+        || */gamekeydown(key_right)
         || gamekeydown(key_left)) 
         turnheld += ticdup; 
     else 
@@ -405,10 +418,12 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
             //  fprintf(stderr, "strafe left\n");
             side -= sidemove[speed]; 
         }
+        /*
         if (joyxmove > 0) 
             side += sidemove[speed]; 
         if (joyxmove < 0) 
             side -= sidemove[speed]; 
+        */
  
     } 
     else 
@@ -417,10 +432,12 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
             cmd->angleturn -= angleturn[tspeed]; 
         if (gamekeydown(key_left)) 
             cmd->angleturn += angleturn[tspeed]; 
+        /*
         if (joyxmove > 0) 
             cmd->angleturn -= angleturn[tspeed]; 
         if (joyxmove < 0) 
             cmd->angleturn += angleturn[tspeed]; 
+        */
     } 
  
     if (gamekeydown(key_up)) 
@@ -434,23 +451,29 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         forward -= forwardmove[speed]; 
     }
 
+    /* 
     if (joyymove < 0) 
         forward += forwardmove[speed]; 
     if (joyymove > 0) 
         forward -= forwardmove[speed]; 
+    */
 
     if (gamekeydown(key_strafeleft)
+        /*
      || joybuttons[joybstrafeleft]
-     || mousebuttons[mousebstrafeleft]
-     || joystrafemove < 0)
+     || mousebuttons[mousebstrafeleft] 
+     || joystrafemove < 0 
+     */)
     {
         side -= sidemove[speed];
     }
 
     if (gamekeydown(key_straferight)
+        /*
      || joybuttons[joybstraferight]
      || mousebuttons[mousebstraferight]
-     || joystrafemove > 0)
+     || joystrafemove > 0*/ 
+     )
     {
         side += sidemove[speed]; 
     }
@@ -458,17 +481,18 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     // buttons
     cmd->chatchar = HU_dequeueChatChar(); 
  
-    if (gamekeydown(key_fire) || mousebuttons[mousebfire] 
-        || joybuttons[joybfire]) 
+    if (gamekeydown(key_fire) 
+        /*|| mousebuttons[mousebfire] 
+        || joybuttons[joybfire]*/) 
         cmd->buttons |= BT_ATTACK; 
  
     if (gamekeydown(key_use)
-     || joybuttons[joybuse]
-     || mousebuttons[mousebuse])
+    /* || joybuttons[joybuse]
+     || mousebuttons[mousebuse]*/)
     { 
         cmd->buttons |= BT_USE;
         // clear double clicks if hit use button 
-        dclicks = 0;                   
+        // dclicks = 0;
     } 
 
     // If the previous or next weapon button is pressed, the
@@ -500,6 +524,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 
     next_weapon = 0;
 
+/*
     // mouse
     if (mousebuttons[mousebforward]) 
     {
@@ -571,16 +596,15 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     else 
         cmd->angleturn -= mousex*0x8; 
 
-    /*NRFD-EXCLUDE
     if (mousex == 0)
     {
         // No movement in the previous frame
 
         testcontrols_mousespeed = 0;
     }
-    */
     
     mousex = mousey = 0; 
+    */
          
     if (forward > MAXPLMOVE) 
         forward = MAXPLMOVE; 
@@ -646,6 +670,8 @@ void G_DoLoadLevel (void)
     //  we look for an actual index, instead of simply
     //  setting one.
 
+    printf("sky flat num\n");
+
     skyflatnum = R_FlatNumForName(DEH_String(SKYFLATNAME));
 
     // The "Sky never changes in Doom II" bug was fixed in
@@ -680,6 +706,8 @@ void G_DoLoadLevel (void)
 
     gamestate = GS_LEVEL; 
 
+    printf("clear player frags\n");
+
     for (i=0 ; i<MAXPLAYERS ; i++) 
     { 
         turbodetected[i] = false;
@@ -687,7 +715,8 @@ void G_DoLoadLevel (void)
             players[i].playerstate = PST_REBORN; 
         memset (players[i].frags,0,sizeof(players[i].frags)); 
     } 
-                 
+               
+
     P_SetupLevel (gameepisode, gamemap, 0, gameskill);    
     displayplayer = consoleplayer;              // view the guy you are playing    
     gameaction = ga_nothing; 
@@ -695,13 +724,19 @@ void G_DoLoadLevel (void)
     
     // clear cmd building stuff
 
+    printf("clear IO\n");
     // memset (gamekeydown, 0, sizeof(gamekeydown));
     gamekeydown_clear();
+
+    // NRFD-TODO: joy
+    // NRFD-TODO: mouse
+    /*
     joyxmove = joyymove = joystrafemove = 0;
     mousex = mousey = 0;
     sendpause = sendsave = paused = false;
     memset(mousearray, 0, sizeof(mousearray));
     memset(joyarray, 0, sizeof(joyarray));
+    */
 
 /* NRFD-EXCLUDE
     if (testcontrols)
@@ -713,6 +748,7 @@ void G_DoLoadLevel (void)
 
 static void SetJoyButtons(unsigned int buttons_mask)
 {
+    /* NRFD-TODO: joy
     int i;
 
     for (i=0; i<MAX_JOY_BUTTONS; ++i)
@@ -737,10 +773,12 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
         joybuttons[i] = button_on;
     }
+    */
 }
 
 static void SetMouseButtons(unsigned int buttons_mask)
 {
+    /* NRD-TODO: mouse
     int i;
 
     for (i=0; i<MAX_MOUSE_BUTTONS; ++i)
@@ -763,6 +801,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         mousebuttons[i] = button_on;
     }
+    */
 }
 
 //
@@ -771,8 +810,6 @@ static void SetMouseButtons(unsigned int buttons_mask)
 // 
 boolean G_Responder (event_t* ev) 
 { 
-    printf("NRFD-TODO: G_Responder\n"); 
-
     /* NRFD-EXCLUDE: spy mode
     // allow spy mode changes even during the demo
     if (gamestate == GS_LEVEL && ev->type == ev_keydown 
@@ -863,19 +900,21 @@ boolean G_Responder (event_t* ev)
             gamekeydown_set(ev->data1, false); 
         return false;   // always let key up events filter down 
              
+    /* NRFD-TODO: mouse
       case ev_mouse: 
         SetMouseButtons(ev->data1);
         mousex = ev->data2*(mouseSensitivity+5)/10; 
         mousey = ev->data3*(mouseSensitivity+5)/10; 
         return true;    // eat events 
- 
+ */
+        /* NRFD-TODO: joy
       case ev_joystick: 
         SetJoyButtons(ev->data1);
         joyxmove = ev->data2; 
         joyymove = ev->data3; 
         joystrafemove = ev->data4;
         return true;    // eat events 
- 
+ */
       default: 
         break; 
     } 
@@ -890,9 +929,6 @@ boolean G_Responder (event_t* ev)
 //
 void G_Ticker (void) 
 { 
-    N_ldbg("NRFD-TODO: G_Ticker\n");
-    /*
-
     int         i;
     int         buf; 
     ticcmd_t*   cmd;
@@ -965,6 +1001,7 @@ void G_Ticker (void)
             // over the past 4 seconds.  offset the checking period
             // for each player so messages are not displayed at the
             // same time.
+            /* NRFD-TODO: multiplayer
 
             if (cmd->forwardmove > TURBOTHRESHOLD)
             {
@@ -982,7 +1019,11 @@ void G_Ticker (void)
                 players[consoleplayer].message = turbomessage;
                 turbodetected[i] = false;
             }
+            */
 
+
+            // NRFD-TODO: multiplayer
+            /*
             if (netgame && !netdemo && !(gametic%ticdup) ) 
             { 
                 if (gametic > BACKUPTICS 
@@ -996,6 +1037,7 @@ void G_Ticker (void)
                 else 
                     consistancy[i][buf] = rndindex; 
             } 
+            */
         }
     }
     
@@ -1015,7 +1057,8 @@ void G_Ticker (void)
                     else 
                         S_ResumeSound (); 
                     break; 
-                                         
+                  // NRFD-TODO: save game
+                    /*
                   case BTS_SAVEGAME: 
                     if (!savedescription[0]) 
                     {
@@ -1027,6 +1070,8 @@ void G_Ticker (void)
                         (players[i].cmd.buttons & BTS_SAVEMASK)>>BTS_SAVESHIFT; 
                     gameaction = ga_savegame; 
                     break; 
+                */
+
                 } 
             } 
         }
@@ -1063,7 +1108,6 @@ void G_Ticker (void)
         D_PageTicker (); 
         break;
     }       
-    */ 
 } 
  
  
@@ -1297,6 +1341,8 @@ void G_DoReborn (int playernum)
         // reload the level from scratch
         gameaction = ga_loadlevel;  
     }
+    printf("NRFD-TODO: G_DoReborn\n");
+    /*
     else 
     {
         // respawn at the start
@@ -1330,7 +1376,8 @@ void G_DoReborn (int playernum)
             // he's going to be inside something.  Too bad.
         }
         P_SpawnPlayer (&playerstarts[playernum]); 
-    } 
+    }
+    */ 
 } 
  
  
@@ -1585,6 +1632,8 @@ void G_LoadGame (char* name)
 
 void G_DoLoadGame (void) 
 { 
+    printf("NRFD-TODO: G_DoLoadGame\n");
+    /*
     int savedleveltime;
          
     gameaction = ga_nothing; 
@@ -1626,7 +1675,8 @@ void G_DoLoadGame (void)
         R_ExecuteSetViewSize ();
     
     // draw the pattern into the back screen
-    R_FillBackScreen ();   
+    R_FillBackScreen ();  
+    */ 
 } 
  
 
@@ -1778,35 +1828,6 @@ G_InitNew
         S_ResumeSound ();
     }
 
-    /*
-    // Note: This commented-out block of code was added at some point
-    // between the DOS version(s) and the Doom source release. It isn't
-    // found in disassemblies of the DOS version and causes IDCLEV and
-    // the -warp command line parameter to behave differently.
-    // This is left here for posterity.
-
-    // This was quite messy with SPECIAL and commented parts.
-    // Supposedly hacks to make the latest edition work.
-    // It might not work properly.
-    if (episode < 1)
-      episode = 1;
-
-    if ( gamemode == retail )
-    {
-      if (episode > 4)
-        episode = 4;
-    }
-    else if ( gamemode == shareware )
-    {
-      if (episode > 1)
-           episode = 1; // only start episode 1 on shareware
-    }
-    else
-    {
-      if (episode > 3)
-        episode = 3;
-    }
-    */
 
     if (skill > sk_nightmare)
         skill = sk_nightmare;
@@ -1842,6 +1863,7 @@ G_InitNew
          && ( gamemode != commercial) )
       map = 9;
 
+    printf("M_ClearRandom\n");
     M_ClearRandom ();
 
     if (skill == sk_nightmare || respawnparm )
@@ -1849,6 +1871,9 @@ G_InitNew
     else
         respawnmonsters = false;
 
+    printf("NRFD-TODO: Skill adjustemnts\n");
+
+    /*
     if (fastparm || (skill == sk_nightmare && gameskill != sk_nightmare) )
     {
         for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
@@ -1865,6 +1890,9 @@ G_InitNew
         mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
         mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
     }
+    */
+    
+    printf("Init players\n");
 
     // force players to be initialized upon first level load
     for (i=0 ; i<MAXPLAYERS ; i++)
@@ -1890,6 +1918,7 @@ G_InitNew
     // start of a level, the sky texture never changes unless we
     // restore from a saved game.  This was fixed before the Doom
     // source release, but this IS the way Vanilla DOS Doom behaves.
+    printf("Set sky\n");
 
     if (gamemode == commercial)
     {
@@ -1920,10 +1949,13 @@ G_InitNew
         }
     }
 
+        printf("Get sky texture\n");
+
     skytexturename = DEH_String(skytexturename);
 
     skytexture = R_TextureNumForName(skytexturename);
 
+    printf("Load level\n");
 
     G_DoLoadLevel ();
 }

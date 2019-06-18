@@ -138,8 +138,8 @@ boolean P_CrossSubsector (int num)
     fixed_t		opentop;
     fixed_t		openbottom;
     divline_t		divl;
-    vertex_t*		v1;
-    vertex_t*		v2;
+    vertex_t		v1;
+    vertex_t		v2;
     fixed_t		frac;
     fixed_t		slope;
 	
@@ -166,19 +166,19 @@ boolean P_CrossSubsector (int num)
 	
 	line->validcount = validcount;
 
-	v1 = line->v1;
-	v2 = line->v2;
-	s1 = P_DivlineSide (v1->x,v1->y, &strace);
-	s2 = P_DivlineSide (v2->x, v2->y, &strace);
+	v1 = *line->v1;
+	v2 = *line->v2;
+	s1 = P_DivlineSide (v1.x,v1.y, &strace);
+	s2 = P_DivlineSide (v2.x, v2.y, &strace);
 
 	// line isn't crossed?
 	if (s1 == s2)
 	    continue;
 	
-	divl.x = v1->x;
-	divl.y = v1->y;
-	divl.dx = v2->x - v1->x;
-	divl.dy = v2->y - v1->y;
+	divl.x = v1.x;
+	divl.y = v1.y;
+	divl.dx = v2.x - v1.x;
+	divl.dy = v2.y - v1.y;
 	s1 = P_DivlineSide (strace.x, strace.y, &divl);
 	s2 = P_DivlineSide (t2x, t2y, &divl);
 
@@ -200,8 +200,8 @@ boolean P_CrossSubsector (int num)
 	    return false;
 	
 	// crosses a two sided line
-	front = seg->frontsector;
-	back = seg->backsector;
+    front = SegFrontSector(seg);
+    back = SegBackSector(seg);
 
 	// no wall to block sight with?
 	if (front->floorheight == back->floorheight

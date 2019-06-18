@@ -1159,6 +1159,8 @@ void AM_drawGrid(int color)
 //
 void AM_drawWalls(void)
 {
+    printf("NRFD-TODO: AM_drawWalls\n");
+    /*
     int i;
     static mline_t l;
 
@@ -1205,6 +1207,7 @@ void AM_drawWalls(void)
             if (!(lines[i].flags & LINE_NEVERSEE)) AM_drawMline(&l, GRAYS+3);
         }
     }
+    */
 }
 
 
@@ -1330,6 +1333,8 @@ AM_drawThings
 ( int   colors,
   int   colorrange)
 {
+    printf("NRFD-TODO: AM_drawThings\n");
+    /*
     int         i;
     mobj_t*     t;
 
@@ -1344,10 +1349,12 @@ AM_drawThings
             t = t->snext;
         }
     }
+    */
 }
 
 void AM_drawMarks(void)
 {
+    printf("NRFD-TODO: AM_drawMarks\n");
     /* NRFD-TODO: mark points
     int i, fx, fy, w, h;
 
@@ -1376,6 +1383,7 @@ void AM_drawCrosshair(int color)
 
 void AM_Drawer (void)
 {
+    printf("AM_Drawer\n");
     if (!automapactive) return;
 
     AM_clearFB(BACKGROUND);

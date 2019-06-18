@@ -4,12 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void uart_putc(char ch) {
-    NRF_UART0->EVENTS_TXDRDY = 0;
-    NRF_UART0->TXD = ch;
-    while (!NRF_UART0->EVENTS_TXDRDY) {}
-}
-
+void uart_putc(char ch); // in main.c for now
 
 #if defined(__CC_ARM)
 

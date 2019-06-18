@@ -260,7 +260,7 @@
 #define ST_MAPHEIGHT            1
 
 // graphics are drawn to a backing screen and blitted to the real screen
-pixel_t                 *st_backing_screen;
+pixel_t                 st_backing_screen[ST_WIDTH*ST_HEIGHT];
             
 // main player in game
 static player_t*        plyr; 
@@ -416,8 +416,6 @@ void ST_Stop(void);
 
 void ST_refreshBackground(void)
 {
-    printf("NRFD-TODO: ST_refreshBackground\n"); return;
-
     if (st_statusbaron)
     {
         V_UseBuffer(st_backing_screen);
@@ -959,7 +957,8 @@ static int st_palette = 0;
 
 void ST_doPaletteStuff(void)
 {
-
+    N_ldbg("NRFD-TODO: ST_doPaletteStuff\n");
+    /*
     int         palette;
     byte*       pal;
     int         cnt;
@@ -1019,6 +1018,7 @@ void ST_doPaletteStuff(void)
         pal = (byte *) W_CacheLumpNum (lu_palette, PU_CACHE)+palette*768;
         I_SetPalette (pal);
     }
+    */
 
 }
 
@@ -1078,13 +1078,15 @@ void ST_diffDraw(void)
 
 void ST_Drawer (boolean fullscreen, boolean refresh)
 {
-  
+    N_ldbg("ST_Drawer\n");
     st_statusbaron = (!fullscreen) || automapactive;
     st_firsttime = st_firsttime || refresh;
 
     // Do red-/gold-shifts from damage/items
     ST_doPaletteStuff();
 
+    st_firsttime = true; // NRFD-TODO: remove
+    
     // If just after ST_Start(), refresh all
     if (st_firsttime) ST_doRefresh();
     // Otherwise, update as little as possible
@@ -1413,7 +1415,6 @@ static boolean  st_stopped = true;
 
 void ST_Start (void)
 {
-    printf("NRFD-TODO: ST_Start\n"); return;
     if (!st_stopped)
       ST_Stop();
 
@@ -1435,8 +1436,8 @@ void ST_Stop (void)
 
 void ST_Init (void)
 {
-    printf("NRFD-TODO: ST_Init\n"); return;
+    printf("ST_Init\n");
     ST_loadData();
-    st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
+    // st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 

@@ -37,7 +37,7 @@
 
 #include "w_wad.h"
 
-#include "n_mem.h"
+#include "n_buttons.h"
 
 typedef PACKED_STRUCT (
 {
@@ -55,19 +55,33 @@ typedef PACKED_STRUCT (
     char                name[8];
 }) filelump_t;
 
+
+#include "n_fs.h"
+#include "n_qspi.h"
+#include "n_mem.h"
+
 //
 // GLOBALS
 //
 
-wad_file_t *wad_file = NULL; // NRFD
+// wad_file_t *wad_file = NULL; // NRFD
 
 // Location of each lump on disk.
 #define MAX_NUMLUMPS 1300
-lumpinfo_t lumpinfo[MAX_NUMLUMPS];
+// lumpinfo_t lumpinfo[MAX_NUMLUMPS];
 unsigned short numlumps = 0;
+
+filelump_t *filelumps;
 
 // Hash table for fast lookups
 static lumpindex_t *lumphash = NULL;
+
+N_FILE wad_file;
+int first_lump_pos;
+
+int debugLumpCount = 0;
+int debugLumpNums[12];
+void *debugLumpCache[12];
 
 // Variables for the reload hack: filename of the PWAD to reload, and the
 // lumps from WADs before the reload file, so we can resent numlumps and
@@ -114,11 +128,22 @@ wad_file_t *W_AddFile (char *filename)
     wadinfo_t header;
     lumpindex_t i;
     // wad_file_t *wad_file;
+    wad_file_t *wad_file_data;
     int length;
     int startlump;
     filelump_t *fileinfo;
     filelump_t *filerover;
-    lumpinfo_t *filelumps;
+    // lumpinfo_t *filelumps;
+
+    boolean do_wad_transfer = false;
+
+    N_ReadButtons();
+    I_Sleep(1);
+    N_ReadButtons();
+
+    if (N_ButtonState(0)) {
+        do_wad_transfer = true;
+    }
 
     /* NRFD-EXCLUDE:
     // If the filename begins with a ~, it indicates that we should use the
@@ -141,11 +166,15 @@ wad_file_t *W_AddFile (char *filename)
     }
     */
 
-    if (wad_file != NULL) {
+    if (numlumps != 0) {
         I_Error("Only one wad file supported\n");
     }
+
+    printf("W_AddFile: Reading %s\n", filename);
     // Open the file and add to directory
-    wad_file = W_OpenFile(filename);
+    // wad_file = W_OpenFile(filename);
+    wad_file = N_fs_open(filename);
+    wad_file_data = Z_Malloc(sizeof(wad_file_t), PU_STATIC, 0);
 
     if (wad_file == NULL)
     {
@@ -177,14 +206,68 @@ wad_file_t *W_AddFile (char *filename)
     }
     else
     {
+        // Copy entire WAD file to Flash memory
+
+        long file_size = N_fs_size(wad_file);
+        printf("File size: %ldKB\n", file_size/1024);
+
+        
+        int num_blocks = (file_size + N_QSPI_BLOCK_SIZE - 1) / N_QSPI_BLOCK_SIZE;
+        uint8_t *block_data = N_malloc(N_QSPI_BLOCK_SIZE);
+        int block_loc = 0;
+        uint8_t *qspi_data = N_qspi_data_pointer(0);
+        boolean data_mismatch = do_wad_transfer;
+
+        N_qspi_reserve_blocks(num_blocks);
+        
+        /*
+        for (i = 0; i<num_blocks; i++) {
+            printf("Verifying block %d of %d\n", i, num_blocks);
+            int block_next = block_loc + N_QSPI_BLOCK_SIZE;
+            int block_size = block_next > file_size ? (file_size%N_QSPI_BLOCK_SIZE) : N_QSPI_BLOCK_SIZE;
+            printf("N_fs_read\n");
+            N_fs_read(wad_file, block_loc, block_data, block_size);
+            printf("Comparing...\n");
+            for (int j = 0; j<block_size; j++) {
+                if (block_data[j] != qspi_data[block_loc+j]) {
+                    data_mismatch = true;
+                    printf("Found mismatch in byte %d\n", block_loc+j);
+                    break;
+                }
+            }
+            if (data_mismatch) break;
+            block_loc = block_next;
+        }
+        */
+        
+        if (data_mismatch) {
+            printf("Uploading WAD data to QSPI flash memory..");
+            block_loc = 0;
+            for (i = 0; i<num_blocks; i++) {
+                printf("Copying block %d of %d\n", i, num_blocks);
+                int block_next = block_loc + N_QSPI_BLOCK_SIZE;
+                int block_size = block_next > file_size ? (file_size%N_QSPI_BLOCK_SIZE) : N_QSPI_BLOCK_SIZE;
+                printf("N_fs_read\n");
+                N_fs_read(wad_file, block_loc, block_data, block_size);
+                printf("N_qspi_write_block\n");
+                N_qspi_write_block(block_loc, block_data, block_size);
+                block_loc = block_next;
+            }
+        }
+        N_free(block_data);
+        
+
+        wadinfo_t *header_ptr = N_qspi_data_pointer(0);
+
         // WAD file
-        W_Read(wad_file, 0, &header, sizeof(header));
-        if (strncmp(header.identification,"IWAD",4))
+        // W_Read(wad_file, 0, &header, sizeof(header));
+
+        if (strncmp(header_ptr->identification,"IWAD",4))
         {
             // Homebrew levels?
-            if (strncmp(header.identification,"PWAD",4))
+            if (strncmp(header_ptr->identification,"PWAD",4))
             {
-                W_CloseFile(wad_file);
+                // W_CloseFile(wad_file);
                 I_Error ("Wad file %s doesn't have IWAD "
                     "or PWAD id\n", filename);
             }
@@ -192,48 +275,80 @@ wad_file_t *W_AddFile (char *filename)
             // ???modifiedgame = true;
         }
 
-        header.numlumps = LONG(header.numlumps);
+        header_ptr->numlumps = LONG(header_ptr->numlumps);
 
          // Vanilla Doom doesn't like WADs with more than 4046 lumps
          // https://www.doomworld.com/vb/post/1010985
-         if (!strncmp(header.identification,"PWAD",4) && header.numlumps > 4046)
+         if (!strncmp(header_ptr->identification,"PWAD",4) && header_ptr->numlumps > 4046)
          {
-                 W_CloseFile(wad_file);
+                 // W_CloseFile(wad_file);
                  I_Error ("Error: Vanilla limit for lumps in a WAD is 4046, "
-                          "PWAD %s has %d", filename, header.numlumps);
+                          "PWAD %s has %d", filename, header_ptr->numlumps);
          }
 
-        header.infotableofs = LONG(header.infotableofs);
-        // length = header.numlumps*sizeof(filelump_t);
+        header_ptr->infotableofs = LONG(header_ptr->infotableofs);
+        // length = header_ptr->numlumps*sizeof(filelump_t);
         // fileinfo = Z_Malloc(length, PU_STATIC, 0);
 
-        printf("WAD header\n");
-        printf("ID: %.4s\n", header.identification);
-        printf("Num lumps: %d\n", header.numlumps);
-        printf("Info table: %d\n", header.infotableofs);
-        I_Sleep(10); // NRFD-TODO
+        printf("WAD header_ptr\n");
+        printf("ID: %.4s\n", header_ptr->identification);
+        printf("Num lumps: %d\n", header_ptr->numlumps);
+        printf("Info table: %d\n", header_ptr->infotableofs);
 
+        
         if (numlumps != 0) { 
-            I_Error("NRFD-TODO: Multiple WADs not supported\n");
+            I_Error("NRFD-TODO: Multiple WADs not supported yet\n");
         }
 
-        for (i = 0; i < header.numlumps; i++)
+        if ((numlumps+header_ptr->numlumps) > MAX_NUMLUMPS) {
+            I_Error("W_AddFile: MAX_NUMLUMPS reached\n");
+        } 
+
+        first_lump_pos = header_ptr->infotableofs;
+        filelumps = (filelump_t*)N_qspi_data_pointer(first_lump_pos);
+        numlumps +=  header_ptr->numlumps;
+        /*
+        for (i = 0; i < header_ptr->numlumps; i++)
         {
             filelump_t filelump;
-            int lump_pos = header.infotableofs+sizeof(filelump_t)*i;
-            W_Read(wad_file, lump_pos, &filelump, sizeof(filelump_t));
+            int lump_pos = header_ptr->infotableofs+sizeof(filelump_t)*i;
+            // W_Read(wad_file, lump_pos, &filelump, sizeof(filelump_t));
+            filelump = *((filelump_t*)(N_qspi_data_pointer(lump_pos)));
             lumpinfo_t *lump_p = &lumpinfo[numlumps];
             // lump_p->wad_file = wad_file; // NRFD-TODO: Support multiple files
-            lump_p->position = LONG(filelump.filepos);
+            // lump_p->position = LONG(filelump.filepos);
+            unsigned int lump_filepos = LONG(filelump.filepos);
             lump_p->size = LONG(filelump.size);
-            lump_p->cache = NULL;
+            // lump_p->cache = NULL;
+            lump_p->cache = N_qspi_data_pointer(lump_filepos);
             strncpy(lump_p->name, filelump.name, 8);
+
+            // printf("Lump %.8s: num: %d size: %d location: %X\n", lump_p->name, numlumps, lump_p->size, (unsigned int)lump_p->cache);
+
+            if (0) //!strncasecmp(filelump.name, "ENDOOM", 8))
+            {
+                printf("Found ENDOOM at %X\n", lump_filepos);
+                char *endoom = lump_p->cache;
+                printf("%X\n", (unsigned int)(endoom));
+                for (int i=0; i<80*4; i++) {
+                    char c = endoom[i];
+                    if (i%2==1) continue;
+                    if ((i/2)%80==0)
+                        printf("\n");
+                    if (c < 32 || c > 127)
+                        printf("X");
+                    else 
+                        printf("%c", c);
+                }
+                printf("\n");
+            }
+
             numlumps += 1;
         }
+        */
 
-        if (numlumps > MAX_NUMLUMPS) {
-            I_Error("W_AddFile: MAX_NUMLUMPS reached\n");
-        }
+        wad_file_data->path = filename;
+        wad_file_data->length = file_size;
     }
 
     if (lumphash != NULL)
@@ -252,10 +367,14 @@ wad_file_t *W_AddFile (char *filename)
     }
     */
 
-    return wad_file;
+    return wad_file_data;
 }
 
 
+void *W_LumpDataPointer(lumpindex_t lump)
+{
+    return N_qspi_data_pointer(LONG(filelumps[lump].filepos));
+}
 
 //
 // W_NumLumps
@@ -265,14 +384,12 @@ int W_NumLumps (void)
     return numlumps;
 }
 
-
-
 //
 // W_CheckNumForName
 // Returns -1 if name not found.
 //
 
-lumpindex_t W_CheckNumForName(char* name)
+lumpindex_t W_CheckNumForName(const char* name)
 {
     lumpindex_t i;
 
@@ -304,7 +421,8 @@ lumpindex_t W_CheckNumForName(char* name)
 
         for (i = numlumps - 1; i >= 0; --i)
         {
-            if (!strncasecmp(lumpinfo[i].name, name, 8))
+            if (!strncasecmp(filelumps[i].name, name, 8))
+            // if (!strncasecmp(lumpinfo[i].name, name, 8))
             {
                 return i;
             }
@@ -316,14 +434,11 @@ lumpindex_t W_CheckNumForName(char* name)
     return -1;
 }
 
-
-
-
 //
 // W_GetNumForName
 // Calls W_CheckNumForName, but bombs out if not found.
 //
-lumpindex_t W_GetNumForName(char* name)
+lumpindex_t W_GetNumForName(const char* name)
 {
     lumpindex_t i;
 
@@ -337,6 +452,10 @@ lumpindex_t W_GetNumForName(char* name)
     return i;
 }
 
+char *W_LumpName(lumpindex_t lump)
+{
+    return filelumps[lump].name;
+}
 
 //
 // W_LumpLength
@@ -349,7 +468,8 @@ int W_LumpLength(lumpindex_t lump)
         I_Error ("W_LumpLength: %i >= numlumps", lump);
     }
 
-    return lumpinfo[lump].size;
+    // return lumpinfo[lump].size;
+    return LONG(filelumps[lump].size);
 }
 
 
@@ -361,27 +481,34 @@ int W_LumpLength(lumpindex_t lump)
 //
 void W_ReadLump(lumpindex_t lump, void *dest)
 {
-    int c;
-    lumpinfo_t *l;
-
     if (lump >= numlumps)
     {
         I_Error ("W_ReadLump: %i >= numlumps", lump);
     }
 
-    l = &lumpinfo[lump];
-    printf("ReadLump: %.8s\n", l->name);
-    V_BeginRead(l->size);
+    // lumpinfo_t *l;
+    // l = &lumpinfo[lump];
+    // printf("W_ReadLump(dummy): %.8s\n", l->name);
 
+    // V_BeginRead(l->size);
+    filelump_t *filelump = &filelumps[lump];
+    void *ptr = N_qspi_data_pointer(LONG(filelump->filepos));
+    memcpy(dest, ptr, LONG(filelump->size));
+
+    // memcpy(dest, l->cache, l->size);
+
+    /* NRFD-EXCLUDE
+
+    // int c;
     // printf("Read lump at %d with size %d to %X\n", l->position, l->size, (unsigned int)(dest));
     // c = W_Read(l->wad_file, l->position, dest, l->size);
-    c = W_Read(wad_file, l->position, dest, l->size);
-    // printf("Read done\n");
+    // c = W_Read(wad_file, l->position, dest, l->size);
+
     if (c < l->size)
     {
         I_Error("W_ReadLump: only read %i of %i on lump %i",
                 c, l->size, lump);
-    }
+    }*/
 }
 
 
@@ -402,28 +529,44 @@ void W_ReadLump(lumpindex_t lump, void *dest)
 void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
 {
     byte *result;
-    lumpinfo_t *lump;
+    // lumpinfo_t *lump;
 
     if ((unsigned)lumpnum >= numlumps)
     {
         I_Error ("W_CacheLumpNum: %i >= numlumps", lumpnum);
     }
 
-    lump = &lumpinfo[lumpnum];
+    // lump = &lumpinfo[lumpnum];
 
-    // Get the pointer to return.  If the lump is in a memory-mapped
+    // Get the pointer to return.  If the lump is in a Memory-mapped
     // file, we can just return a pointer to within the memory-mapped
     // region.  If the lump is in an ordinary file, we may already
     // have it cached; otherwise, load it into memory.
 
-    /* NRFD-TODO: mem mapping
+    // result = lump->cache;
+    for (int i=0;i<debugLumpCount;i++) {
+        if (debugLumpNums[i]==lumpnum) {
+            byte *cache = debugLumpCache[i];
+            byte *qspi_data = W_LumpDataPointer(lumpnum);
+            for (int j=0;j<filelumps[lumpnum].size;j++) {
+                if (cache[j] != qspi_data[j]) {
+                    printf("X");
+                }
+            }
+            return cache;
+        }
+    }
+    result = W_LumpDataPointer(lumpnum);
+    // N_ldbg("W_CacheLumpNum: %.8s\n", lump->name);
+
+    /* NRFD-EXCLUDE:
     if (lump->wad_file->mapped != NULL)
     {
         // Memory mapped file, return from the mmapped region.
 
         result = lump->wad_file->mapped + lump->position;
     }
-    else */ if (lump->cache != NULL)
+    else if (lump->cache != NULL)
     {
         // Already cached, so just switch the zone tag.
 
@@ -437,6 +580,7 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
         W_ReadLump (lumpnum, lump->cache);
         result = lump->cache;
     }
+    */
 
     return result;
 }
@@ -463,24 +607,26 @@ void *W_CacheLumpName(char *name, int tag)
 
 void W_ReleaseLumpNum(lumpindex_t lumpnum)
 {
-    lumpinfo_t *lump;
 
     if ((unsigned)lumpnum >= numlumps)
     {
         I_Error ("W_ReleaseLumpNum: %i >= numlumps", lumpnum);
     }
 
+    /* NRFD-EXCLUDE
+
+    lumpinfo_t *lump;
     lump = &lumpinfo[lumpnum];
 
-    /* NRFD-TODO: mem mapping
     if (lump->wad_file->mapped != NULL)
     {
         // Memory-mapped file, so nothing needs to be done here.
     }
-    else*/
+    else
     {
         Z_ChangeTag(lump->cache, PU_CACHE);
     }
+    */
 }
 
 void W_ReleaseLumpName(char *name)
@@ -642,3 +788,25 @@ void W_Reload(void)
     */
 }
 
+
+void W_DebugLump(int lump)
+{
+    return;
+    if (lump != 561) return;
+
+    filelump_t *filelump = &filelumps[lump];
+
+    printf("W_DebugLump: %d size: %d\n", lump, filelump->size);
+
+    byte *cache = N_malloc(filelump->size);
+    
+    // N_fs_read(wad_file, filelump->filepos, cache, filelump->size);
+    byte *qspi_data = W_LumpDataPointer(lump);
+    for (int i=0;i<filelump->size;i++) {
+        cache[i] = qspi_data[i];
+    }
+
+    debugLumpNums[debugLumpCount] = lump;
+    debugLumpCache[debugLumpCount] = cache;
+    debugLumpCount++;
+}

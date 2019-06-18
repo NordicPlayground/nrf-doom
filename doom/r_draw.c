@@ -70,7 +70,7 @@ int             viewwindowy;
 //  translate a limited part to another
 //  (color ramps used for  suit colors).
 //
-byte            translations[3][256];   
+// byte            translations[3][256];   
  
 // Backing buffer containing the bezel drawn around the screen and 
 // surrounding background.
@@ -82,7 +82,10 @@ static pixel_t *background_buffer = NULL;
 // R_DrawColumn
 // Source is the top of the column to scale.
 //
-lighttable_t*           dc_colormap; 
+boolean                 dc_debug = false;
+ // NRFD-TODO: Optimize?
+lighttable_t            *dc_colormap; 
+lighttable_t            dc_colormap_buf[256]; 
 int                     dc_x; 
 int                     dc_yl; 
 int                     dc_yh; 
@@ -105,6 +108,8 @@ int columnofs(int x)
     return viewwindowx + x;
 }
 
+byte column_buffer[SCREENHEIGHT+3];
+
 //
 // A column is a vertical slice/span from a wall texture that,
 //  given the DOOM style restrictions on the view orientation,
@@ -118,7 +123,7 @@ void R_DrawColumn (void)
     pixel_t*            dest;
     fixed_t             frac;
     fixed_t             fracstep;        
- 
+
     count = dc_yh - dc_yl; 
 
     // Zero length, column does not exceed a pixel.
@@ -128,8 +133,11 @@ void R_DrawColumn (void)
 #ifdef RANGECHECK 
     if ((unsigned)dc_x >= SCREENWIDTH
         || dc_yl < 0
-        || dc_yh >= SCREENHEIGHT) 
-        I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
+        || dc_yh >= SCREENHEIGHT) {
+        // NRFD-TODO: I_Error 
+        printf ("R_DrawColumn: %i to %i at %i\n", dc_yl, dc_yh, dc_x);
+        return;
+    }
 #endif 
 
     // Framebuffer destination address.
@@ -142,6 +150,9 @@ void R_DrawColumn (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep; 
 
+    // NRFD-TODO: Optimizations
+    // memcpy(column_buffer, dc_source, SCREENHEIGHT);
+
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
@@ -150,6 +161,8 @@ void R_DrawColumn (void)
         // Re-map color indices from wall texture column
         //  using a lighting/special effects LUT.
         *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
+        // *dest = dc_colormap[column_buffer[(frac>>FRACBITS)&127]];
+        // *dest = dc_source[(frac>>FRACBITS)&127]];
         
         dest += SCREENWIDTH; 
         frac += fracstep;
@@ -271,7 +284,7 @@ void R_DrawColumnLow (void)
 #define FUZZOFF (SCREENWIDTH)
 
 
-int     fuzzoffset[FUZZTABLE] =
+const int     fuzzoffset[FUZZTABLE] =
 {
     FUZZOFF,-FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
@@ -547,9 +560,10 @@ void R_DrawTranslatedColumnLow (void)
 //
 void R_InitTranslationTables (void)
 {
+    printf("NRFD-TODO: R_InitTranslationTables\n");
+    /*
+    // NRFD-TODO: Memory optimizations
     int i;
-    printf("NRFD-TODO: R_InitTranslationTables\n");  
-    /*      
     translationtables = Z_Malloc (256*3, PU_STATIC, 0);
     
     // translate just the 16 green colors
@@ -818,6 +832,7 @@ R_InitBuffer
 
     // Preclaculate all row offsets.
 
+    // NRFD-TODO?
     // for (i=0 ; i<height ; i++) 
     //     ylookup[i] = I_VideoBuffer + (i+viewwindowy)*SCREENWIDTH; 
 } 
