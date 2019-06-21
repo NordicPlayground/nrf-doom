@@ -510,12 +510,15 @@ R_PointOnSegSide
     fixed_t     dy;
     fixed_t     left;
     fixed_t     right;
+
+    vertex_t *v1 = SegV1(line);
+    vertex_t *v2 = SegV2(line);
+
+    lx = v1->x;
+    ly = v1->y;
         
-    lx = line->v1->x;
-    ly = line->v1->y;
-        
-    ldx = line->v2->x - lx;
-    ldy = line->v2->y - ly;
+    ldx = v2->x - lx;
+    ldy = v2->y - ly;
         
     if (!ldx)
     {
@@ -1134,7 +1137,7 @@ R_PointInSubsector
   fixed_t       y )
 {
     // printf("R_PointInSubsector\n");
-    node_t*     node;
+    
     int         side;
     int         nodenum;
 
@@ -1146,9 +1149,10 @@ R_PointInSubsector
 
     while (! (nodenum & NF_SUBSECTOR) )
     {
-        node = &nodes[nodenum];
-        side = R_PointOnSide (x, y, node);
-        nodenum = node->children[side];
+        // NRFD-TODO: Optimize?
+        node_t node = GetNode(nodenum); //&nodes[nodenum];
+        side = R_PointOnSide (x, y, &node);
+        nodenum = node.children[side];
     }
         
     return &subsectors[nodenum & ~NF_SUBSECTOR];
@@ -1201,6 +1205,7 @@ void R_SetupFrame (player_t* player)
 //
 void R_RenderPlayerView (player_t* player)
 {       
+    // printf("Setup start ... \n");
     R_SetupFrame (player);
 
     // Clear buffers.
@@ -1208,22 +1213,29 @@ void R_RenderPlayerView (player_t* player)
     R_ClearDrawSegs ();
     R_ClearPlanes ();
     R_ClearSprites ();
+    // printf("finish\n");
     
     // check for new console commands.
     NetUpdate ();
 
     // The head node is the last node output.
+    // printf("R_RenderBSPNode start ... \n");
     R_RenderBSPNode (numnodes-1);
+    // printf("finish\n");
     
     // Check for new console commands.
     NetUpdate ();
     
+    // printf("R_DrawPlanes start ... \n");
     R_DrawPlanes ();
+    // printf("finish\n");
     
     // Check for new console commands.
     NetUpdate ();
     
+    // printf("R_DrawMasked start ...\n");
     R_DrawMasked ();
+    // printf("finish\n");
 
     // Check for new console commands.
     NetUpdate ();                               

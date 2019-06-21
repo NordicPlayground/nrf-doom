@@ -8,6 +8,7 @@
 
 #define BUF_MAXCNT 8
 
+volatile int display_spi_tip; // transfer-in-progress
 volatile uint8_t display_spi_txd_buf[BUF_MAXCNT];
 volatile uint8_t display_spi_rxd_buf[BUF_MAXCNT];
 
@@ -30,6 +31,20 @@ void pin_clr(int pin) {
 
 void pin_tgl(int pin) {
   NRF_GPIO->OUT ^= (1<<pin);
+}
+
+void N_display_gpiote_end_to_cs() {
+  const int TASK_MODE = 3;
+  const int LO_TO_HI = 1;
+  const int OUT_INIT_LOW = 0;
+  NRF_PPI->CH[0].EEP = (uint32_t)&NRF_SPIM3->EVENTS_END;
+  NRF_PPI->CH[0].TEP = (uint32_t)&NRF_GPIOTE->TASKS_OUT[0];
+  NRF_PPI->CHENSET = 1;
+  NRF_GPIOTE->CONFIG[0] = (TASK_MODE << 0) | (PIN_CS_N << 8) | (LO_TO_HI << 16) | (OUT_INIT_LOW << 20);
+}
+
+void N_display_gpiote_clear() {
+  NRF_GPIOTE->CONFIG[0] = 0;
 }
 
 void N_display_spi_init() {
@@ -58,6 +73,8 @@ void N_display_spi_init() {
 
   NRF_SPIM3->TXD.PTR = 0xFFFFFFFF;
 
+  display_spi_tip = 0;
+
 }
 
 void N_display_power_reset() {
@@ -76,7 +93,18 @@ void N_display_spi_setup(int txdMaxCnt, volatile uint8_t * txdPtr,
   NRF_SPIM3->RXD.PTR = (uint32_t)rxdPtr;
 }
 
+void N_display_spi_transfer_finish() {
+  if (display_spi_tip) {
+    while (NRF_SPIM3->EVENTS_END == 0) { 
+    }
+    NRF_SPIM3->EVENTS_END = 0;
+    display_spi_tip = 0;
+    N_display_gpiote_clear();
+  }
+}
+
 void N_display_spi_transfer_start() {
+  N_display_spi_transfer_finish();
   pin_clr(PIN_CS_N);
 }
 
@@ -85,6 +113,16 @@ void N_display_spi_transfer_data() {
   NRF_SPIM3->TASKS_START = 1;
   while (NRF_SPIM3->EVENTS_END == 0) { 
   }
+  NRF_SPIM3->EVENTS_END = 0;
+}
+
+void N_display_spi_transfer_data_end() {
+  NRF_SPIM3->EVENTS_END = 0;
+
+  N_display_gpiote_end_to_cs();
+
+  NRF_SPIM3->TASKS_START = 1;
+  display_spi_tip = 1;
 }
 
 void N_display_spi_transfer_end() {
@@ -156,35 +194,6 @@ void N_display_spi_wr32(uint32_t addr, uint32_t data) {
   N_display_spi_transfer();
 }
 
-/*
-void N_display_spi_wr(uint32_t addr, int dataSize, uint8_t *data) {
-  uint8_t *addrBytes = (uint8_t*)&addr;
-
-  // Assuming MCU is Little-Endian
-  display_spi_txd_buf[0] = addrBytes[2] | 0x80;
-  display_spi_txd_buf[1] = addrBytes[1];
-  display_spi_txd_buf[2] = addrBytes[0];
-
-  N_display_spi_transfer_start();
-
-  N_display_spi_setup(3, display_spi_txd_buf, 0, NULL);
-  N_display_spi_transfer_data();
-
-  volatile uint8_t *dataPtr = (volatile uint8_t*)data;
-  int restSize = dataSize;
-  while (restSize > 0) {
-    int txSize = restSize;
-    if (txSize > 65535) txSize = 65535; // TODO: Update with Yoda
-    N_display_spi_setup(txSize, dataPtr, 0, NULL);
-    N_display_spi_transfer_data();
-    dataPtr += txSize;
-    restSize -= txSize;
-  }
-
-  N_display_spi_transfer_end();
-}
-*/
-
 void N_display_spi_wr(uint32_t addr, int dataSize, uint8_t *data) {
   uint8_t *addrBytes = (uint8_t*)&addr;
 
@@ -200,12 +209,37 @@ void N_display_spi_wr(uint32_t addr, int dataSize, uint8_t *data) {
 
   volatile uint8_t *dataPtr = (volatile uint8_t*)data;
   N_display_spi_setup(dataSize, dataPtr, 0, NULL);
-  N_display_spi_transfer_data();
+  N_display_spi_transfer_data_end();
 
-  N_display_spi_transfer_end();
+  // N_display_spi_transfer_end();
 }
 
+// void N_display_spi_transfer_data_async() {
+//   NRF_SPIM3->EVENTS_END = 0;
+//   NRF_SPIM3->TASKS_START = 1;
+//   while (NRF_SPIM3->EVENTS_END == 0) { 
+//   }
+// }
 
+// void N_display_spi_wr_async(uint32_t addr, int dataSize, uint8_t *data) {
+//   uint8_t *addrBytes = (uint8_t*)&addr;
+
+//   // Assuming MCU is Little-Endian
+//   display_spi_txd_buf[0] = addrBytes[2] | 0x80;
+//   display_spi_txd_buf[1] = addrBytes[1];
+//   display_spi_txd_buf[2] = addrBytes[0];
+
+//   N_display_spi_transfer_start();
+
+//   N_display_spi_setup(3, display_spi_txd_buf, 0, NULL);
+//   N_display_spi_transfer_data();
+
+//   volatile uint8_t *dataPtr = (volatile uint8_t*)data;
+//   N_display_spi_setup(dataSize, dataPtr, 0, NULL);
+//   N_display_spi_transfer_data();
+
+//   N_display_spi_transfer_end();
+// }
 
 uint8_t N_display_spi_rd8(uint32_t addr) {
   uint8_t *addrBytes = (uint8_t*)&addr;

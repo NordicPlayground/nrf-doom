@@ -22,12 +22,15 @@
 
 #define TICRATE 35
 
+#include "doomtype.h"
+
 // Called by D_DoomLoop,
 // returns current time in tics.
 int I_GetTime (void);
 
 // returns current time in ms
 int I_GetTimeMS (void);
+uint32_t I_GetTimeRaw (void);
 
 // Pause for a specified number of ms
 void I_Sleep(int ms);

@@ -52,7 +52,7 @@ visplane_t*             ceilingplane;
 
 // ?
 // NRFD-TODO: 
-#define MAXOPENINGS     SCREENWIDTH*5 //SCREENWIDTH*64
+#define MAXOPENINGS     SCREENWIDTH*8 //SCREENWIDTH*64
 short                   openings[MAXOPENINGS];
 short*                  lastopening;
 
@@ -440,10 +440,7 @@ void R_DrawPlanes (void)
             //  i.e. colormaps[0] is used.
             // Because of this hack, sky is not affected
             //  by INVUL inverse mapping.
-            // dc_colormap = colormaps; 
-            // NRFD-TODO: Optimize
-            memcpy(dc_colormap_buf, colormaps, 256);
-            dc_colormap = dc_colormap_buf;
+            dc_colormap = colormaps; 
 
             dc_texturemid = skytexturemid;
             for (x=pl->minx ; x <= pl->maxx ; x++)
@@ -455,7 +452,7 @@ void R_DrawPlanes (void)
                 {
                     angle = (viewangle + xtoviewangle[x])>>ANGLETOSKYSHIFT;
                     dc_x = x;
-                    dc_source = R_GetColumn(skytexture, angle);
+                    dc_source = R_GetCachedColumn(skytexture, angle);
                     colfunc ();
                 }
             }

@@ -342,14 +342,14 @@ int main(void)
     printf("UART Initialized\n");
     printf("---------------------------------\n");
 
-    NRF_MWU->REGION[0].START = 0x2003f500;
-    NRF_MWU->REGION[0].END   = 0x2003f600;
+    NRF_MWU->REGION[0].START = 0x2003f000;
+    NRF_MWU->REGION[0].END   = 0x2003f100;
     NRF_MWU->REGIONENSET = (1 << MWU_REGIONENSET_RGN0RA_Pos) | (1 << MWU_REGIONENSET_RGN0WA_Pos);
     NRF_MWU->INTENSET = (1<<0) | (1<<1);
     // NRF_MWU->NMIENSET = (1<<0) | (1<<1);
 
-    NRF_MWU->REGION[1].START = 0x2003f600;
-    NRF_MWU->REGION[1].END   = 0x2003f700;
+    NRF_MWU->REGION[1].START = 0x2003f100;
+    NRF_MWU->REGION[1].END   = 0x2003f200;
     NRF_MWU->REGIONENSET = (1 << MWU_REGIONENSET_RGN1RA_Pos) | (1 << MWU_REGIONENSET_RGN1WA_Pos);
     NRF_MWU->INTENSET = (1<<2) | (1<<3);
 

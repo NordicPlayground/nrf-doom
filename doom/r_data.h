@@ -31,6 +31,10 @@ R_GetColumn
 ( int		tex,
   int		col );
 
+byte*
+R_GetCachedColumn
+( int       tex,
+  int       col );
 
 // I/O, setting up the stuff.
 void R_InitData (void);

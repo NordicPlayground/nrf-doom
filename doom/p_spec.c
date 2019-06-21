@@ -213,7 +213,8 @@ getSide
   int           line,
   int           side )
 {
-    return &sides[ (sectors[currentSector].lines[line])->sidenum[side] ];
+    return LineSide(sectors[currentSector].lines[line], side);
+    // return &sides[ (sectors[currentSector].lines[line])->sidenum[side] ];
 }
 
 
@@ -229,7 +230,9 @@ getSector
   int           line,
   int           side )
 {
-    return sides[ (sectors[currentSector].lines[line])->sidenum[side] ].sector;
+    // NRFD-TODO: Optimize?
+    return SideSector(LineSide(sectors[currentSector].lines[line], side));
+    // return sides[ (sectors[currentSector].lines[line])->sidenum[side] ].sector;
 }
 
 
@@ -243,7 +246,7 @@ twoSided
 ( int   sector,
   int   line )
 {
-    return (sectors[sector].lines[line])->flags & ML_TWOSIDED;
+    return LineFlags(sectors[sector].lines[line]) & ML_TWOSIDED;
 }
 
 
@@ -259,13 +262,13 @@ getNextSector
 ( line_t*       line,
   sector_t*     sec )
 {
-    if (!(line->flags & ML_TWOSIDED))
+    if (!(LineFlags(line) & ML_TWOSIDED))
         return NULL;
                 
-    if (line->frontsector == sec)
-        return line->backsector;
+    if (LineFrontSector(line) == sec)
+        return LineBackSector(line);
         
-    return line->frontsector;
+    return LineFrontSector(line);
 }
 
 
@@ -454,9 +457,10 @@ P_FindSectorFromLineTag
   int           start )
 {
     int i;
-        
+    short line_tag = LineTag(line);
+
     for (i=start+1;i<numsectors;i++)
-        if (sectors[i].tag == line->tag)
+        if (sectors[i].tag == line_tag)
             return i;
     
     return -1;
@@ -1137,7 +1141,8 @@ void P_UpdateSpecials (void)
         {
           case 48:
             // EFFECT FIRSTCOL SCROLL +
-            sides[line->sidenum[0]].textureoffset += FRACUNIT;
+            // sides[line->sidenum[0]].textureoffset += FRACUNIT;
+            LineSide(line,0)->textureoffset_short += 1;
             break;
         }
     }
@@ -1150,21 +1155,19 @@ void P_UpdateSpecials (void)
             buttonlist[i].btimer--;
             if (!buttonlist[i].btimer)
             {
+                side_t *side = LineSide(buttonlist[i].line, 0);
                 switch(buttonlist[i].where)
                 {
                   case top:
-                    sides[buttonlist[i].line->sidenum[0]].toptexture =
-                        buttonlist[i].btexture;
+                    side->toptexture = buttonlist[i].btexture;
                     break;
                     
                   case middle:
-                    sides[buttonlist[i].line->sidenum[0]].midtexture =
-                        buttonlist[i].btexture;
+                    side->midtexture = buttonlist[i].btexture;
                     break;
                     
                   case bottom:
-                    sides[buttonlist[i].line->sidenum[0]].bottomtexture =
-                        buttonlist[i].btexture;
+                    side->bottomtexture = buttonlist[i].btexture;
                     break;
                 }
                 S_StartSound(&buttonlist[i].soundorg,sfx_swtchn);
@@ -1307,7 +1310,7 @@ int EV_DoDonut(line_t*  line)
 
         for (i = 0; i < s2->linecount; i++)
         {
-            s3 = s2->lines[i]->backsector;
+            s3 = LineBackSector(s2->lines[i]);
 
             if (s3 == s1)
                 continue;

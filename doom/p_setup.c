@@ -50,7 +50,8 @@ int             numvertexes;
 vertex_t*       vertexes;
 
 int             numsegs;
-seg_t*          segs;
+// seg_t*          segs;
+mapseg_t*          mapsegs;
 
 int             numsectors;
 sector_t*       sectors;
@@ -59,13 +60,15 @@ int             numsubsectors;
 subsector_t*    subsectors;
 
 int             numnodes;
-node_t*         nodes;
+// node_t*         nodes;
+mapnode_t*         mapnodes;
 
 int             numlines;
 line_t*         lines;
 
 int             numsides;
 side_t*         sides;
+mapsidedef_t*   mapsides;
 
 static int      totallines;
 
@@ -185,19 +188,24 @@ void P_LoadSegs (int lump)
     int                 sidenum;
         
     numsegs = W_LumpLength (lump) / sizeof(mapseg_t);
+    mapsegs = (mapseg_t*)W_CacheLumpNum(lump, PU_LEVEL);
+
+/*
     segs = Z_Malloc (numsegs*sizeof(seg_t),PU_LEVEL,0); 
     memset (segs, 0, numsegs*sizeof(seg_t));
     data = W_CacheLumpNum (lump,PU_STATIC);
-        
+
     ml = (mapseg_t *)data;
     li = segs;
     for (i=0 ; i<numsegs ; i++, li++, ml++)
     {
-        li->v1 = &vertexes[SHORT(ml->v1)];
-        li->v2 = &vertexes[SHORT(ml->v2)];
+        li->ms = ml;
+        
+        // li->v1 = &vertexes[SHORT(ml->v1)];
+        // li->v2 = &vertexes[SHORT(ml->v2)];
 
-        li->angle = (SHORT(ml->angle))<<FRACBITS;
-        li->offset = (SHORT(ml->offset))<<FRACBITS;
+        // li->angle = (SHORT(ml->angle))<<FRACBITS;
+        // li->offset = (SHORT(ml->offset))<<FRACBITS;
         linedef = SHORT(ml->linedef);
         ldef = &lines[linedef];
         li->linedef = ldef;
@@ -212,9 +220,7 @@ void P_LoadSegs (int lump)
 
         li->sidedef = &sides[ldef->sidenum[side]];
 
-        /* NRFD-TODO?
         li->frontsector = sides[ldef->sidenum[side]].sector;
-        */
 
         if (ldef-> flags & ML_TWOSIDED)
         {
@@ -228,7 +234,8 @@ void P_LoadSegs (int lump)
 
             if (sidenum < 0 || sidenum >= numsides)
             {
-                li->backsector = GetSectorAtNullAddress();
+                I_Error("TODO?");
+                // li->backsector = GetSectorAtNullAddress();
             }
             else
             {
@@ -242,24 +249,150 @@ void P_LoadSegs (int lump)
     }
         
     W_ReleaseLumpNum(lump);
+        */
 }
 
 
+seg_t *GetSeg(int num)
+{
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    return (seg_t*)&mapsegs[num];
+}
 
 sector_t *SegFrontSector(seg_t *seg) {
-    return seg->sidedef->sector;
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    // NRFD-TODO: Optimize: Use numbers insteadof pointers?
+    side_t *sidedef = SegSideDef(seg);
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    return SideSector(sidedef);
 }
 sector_t *SegBackSector(seg_t *seg) {
-    return seg->backsector;
-    // if (seg->linedef->flags & ML_TWOSIDED) {
-    //     int sidenum = seg->ldef->sidenum[side ^ 1];
-    //     return seg->sidedef->sector;
-    // }
-    // else {
-    //     return NULL;
-    // }
+    mapseg_t *ms = (mapseg_t*)seg;
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    line_t *linedef = SegLineDef(seg);
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    if (LineFlags(linedef) & ML_TWOSIDED) {
+        int side = SHORT(ms->side);
+        asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+        asm volatile("nop");
+        side = side ^ 1;
+        asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+        asm volatile("nop");
+            // NRFD-TODO: Optimize: Use numbers insteadof pointers?
+        side_t *line_side = LineSide(linedef, side);
+        asm volatile("nop");
+        asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+        asm volatile("nop");
+        return SideSector(line_side);
+    }
+    else {
+        return NULL;
+    }
 }
 
+// NRFD-TODO: Consider returning data instead of pointer?
+vertex_t *SegV1(seg_t *seg) {
+    mapseg_t *ms = (mapseg_t*)seg;
+            asm volatile("nop");
+        asm volatile("nop");
+
+        asm volatile("nop");
+
+    int v1_num = SHORT(ms->v1);
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    return &vertexes[v1_num];
+}
+vertex_t *SegV2(seg_t *seg) {
+    mapseg_t *ms = (mapseg_t*)seg;
+            asm volatile("nop");
+    asm volatile("nop");
+        asm volatile("nop");
+        asm volatile("nop");
+
+    int v2_num = SHORT(ms->v2);
+        asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    return &vertexes[v2_num];
+}
+angle_t SegAngle(seg_t *seg) {
+    mapseg_t *ms = (mapseg_t*)seg;
+    asm volatile("nop");
+            asm volatile("nop");
+        asm volatile("nop");
+        asm volatile("nop");
+
+    return (SHORT(ms->angle))<<FRACBITS;
+}
+fixed_t SegOffset(seg_t *seg) {
+    mapseg_t *ms = (mapseg_t*)seg;
+            asm volatile("nop");
+        asm volatile("nop");
+        asm volatile("nop");
+    asm volatile("nop");
+
+    return (SHORT(ms->offset))<<FRACBITS;
+}
+line_t *SegLineDef(seg_t *seg)
+{
+    mapseg_t *ms = (mapseg_t*)seg;
+        asm volatile("nop");
+        asm volatile("nop");
+    asm volatile("nop");
+        asm volatile("nop");
+    int num = ms->linedef;
+        asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    return &lines[num];
+}
+side_t *SegSideDef(seg_t *seg)
+{
+    mapseg_t *ms = (mapseg_t*)seg;
+    asm volatile("nop");
+        asm volatile("nop");
+
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    short side = SHORT(ms->side);
+    asm volatile("nop");
+        asm volatile("nop");
+        asm volatile("nop");
+    asm volatile("nop");
+asm volatile("nop");
+    line_t *ldef = SegLineDef(seg);
+        asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    asm volatile("nop");
+    return LineSide(ldef, side);
+}
 //
 // P_LoadSubsectors
 //
@@ -325,6 +458,10 @@ void P_LoadSectors (int lump)
     W_ReleaseLumpNum(lump);
 }
 
+degenmobj_t *SectorSoundOrg(sector_t *sec)
+{
+    return NULL;
+}
 
 //
 // P_LoadNodes
@@ -333,14 +470,16 @@ void P_LoadNodes (int lump)
 {
     printf("P_LoadNodes\n");
 
-    byte*       data;
-    int         i;
-    int         j;
-    int         k;
-    mapnode_t*  mn;
-    node_t*     no;
-        
+    // byte*       data;
+    // int         i;
+    // int         j;
+    // int         k;
+    // mapnode_t*  mn;
+    // node_t*     no;
+      
     numnodes = W_LumpLength (lump) / sizeof(mapnode_t);
+    mapnodes = (mapnode_t*)W_CacheLumpNum(lump, PU_LEVEL);
+      /*
     nodes = Z_Malloc (numnodes*sizeof(node_t),PU_LEVEL,0);      
     data = W_CacheLumpNum (lump,PU_STATIC);
         
@@ -349,7 +488,7 @@ void P_LoadNodes (int lump)
     
     for (i=0 ; i<numnodes ; i++, no++, mn++)
     {
-        no->x = SHORT(mn->x)<<FRACBITS;
+        no.x = SHORT(mn->x)<<FRACBITS;
         no->y = SHORT(mn->y)<<FRACBITS;
         no->dx = SHORT(mn->dx)<<FRACBITS;
         no->dy = SHORT(mn->dy)<<FRACBITS;
@@ -361,7 +500,8 @@ void P_LoadNodes (int lump)
         }
     }
         
-    W_ReleaseLumpNum(lump);
+    W_ReleaseLumpNum(lump);*/
+
 }
 
 
@@ -448,39 +588,43 @@ void P_LoadLineDefs (int lump)
     ld = lines;
     for (i=0 ; i<numlines ; i++, mld++, ld++)
     {
-        ld->flags = SHORT(mld->flags);
-        ld->special = SHORT(mld->special);
-        ld->tag = SHORT(mld->tag);
-
+        ld->mld = mld;
+        // ld->flags_x = SHORT(mld->flags);
+        short special = SHORT(mld->special);
+        if (special > 256 || special < 0) {
+            I_Error("P_LoadLineDefs: special");
+        }
+        ld->special = special;
+        // ld->tag_x = SHORT(mld->tag);
 
         short v1_num = SHORT(mld->v1);
         short v2_num = SHORT(mld->v2);
 
-        if (v1_num > numvertexes) I_Error("P_LoadLineDefs v1 %d > %d", ld->v1, numvertexes);
-        if (v2_num > numvertexes) I_Error("P_LoadLineDefs v2 %d > %d", ld->v2, numvertexes);
+        if (v1_num > numvertexes) I_Error("P_LoadLineDefs v1 %d > %d", v1_num, numvertexes);
+        if (v2_num > numvertexes) I_Error("P_LoadLineDefs v2 %d > %d", v2_num, numvertexes);
 
-        v1 = ld->v1 = &vertexes[v1_num];
-        v2 = ld->v2 = &vertexes[v2_num];
-        dx = v2->x - v1->x;
-        dy = v2->y - v1->y;
+        // v1 = &vertexes[v1_num];
+        // v2 = &vertexes[v2_num];
+        // dx = v2->x - v1->x;
+        // dy = v2->y - v1->y;
 
-        // ld->dx = v2->x - v1->x;
-        // ld->dy = v2->y - v1->y;
+        // // ld->dx = v2->x - v1->x;
+        // // ld->dy = v2->y - v1->y;
         
-        if (!dx)
-            ld->slopetype = ST_VERTICAL;
-        else if (!dy)
-            ld->slopetype = ST_HORIZONTAL;
-        else
-        {
-            if (FixedDiv (dy , dx) > 0)
-                ld->slopetype = ST_POSITIVE;
-            else
-                ld->slopetype = ST_NEGATIVE;
-        }
+        // if (!dx)
+        //     ld->slopetype = ST_VERTICAL;
+        // else if (!dy)
+        //     ld->slopetype = ST_HORIZONTAL;
+        // else
+        // {
+        //     if (FixedDiv (dy , dx) > 0)
+        //         ld->slopetype = ST_POSITIVE;
+        //     else
+        //         ld->slopetype = ST_NEGATIVE;
+        // }
                 
         /*
-        // NRFD-NOTE: Moved to P_LineBBox
+        // NRFD-NOTE: Moved to LineBBox
         if (v1->x < v2->x)
         {
             ld->bbox[BOXLEFT] = v1->x;
@@ -504,21 +648,159 @@ void P_LoadLineDefs (int lump)
         }
         */
 
-        ld->sidenum[0] = SHORT(mld->sidenum[0]);
-        ld->sidenum[1] = SHORT(mld->sidenum[1]);
+        // ld->sidenum[0] = SHORT(mld->sidenum[0]);
+        // ld->sidenum[1] = SHORT(mld->sidenum[1]);
 
-        if (ld->sidenum[0] != -1)
-            ld->frontsector = sides[ld->sidenum[0]].sector;
-        else
-            ld->frontsector = 0;
+        // if (ld->sidenum[0] != -1)
+        //     ld->frontsector = sides[ld->sidenum[0]].sector;
+        // else
+        //     ld->frontsector = 0;
 
-        if (ld->sidenum[1] != -1)
-            ld->backsector = sides[ld->sidenum[1]].sector;
-        else
-            ld->backsector = 0;
+        // if (ld->sidenum[1] != -1)
+        //     ld->backsector = sides[ld->sidenum[1]].sector;
+        // else
+        //     ld->backsector = 0;
     }
 
-    W_ReleaseLumpNum(lump);
+    // W_ReleaseLumpNum(lump);
+}
+
+vertex_t LineV1(line_t *line)
+{
+    short v1_num = SHORT(line->mld->v1);
+    asm volatile("nop");
+    asm volatile("nop");
+    return vertexes[v1_num];
+}
+vertex_t LineV2(line_t *line)
+{
+    short v2_num = SHORT(line->mld->v2);
+    asm volatile("nop");
+    asm volatile("nop");
+    return vertexes[v2_num];
+}
+short LineFlags(line_t *line)
+{
+    return SHORT(line->mld->flags);
+}
+void LineSetMapped(line_t *line)
+{
+    // printf("NRFD-TODO: LineSetMapped");
+    // line->flags_x |= ML_MAPPED;
+}
+short LineTag(line_t *line)
+{
+    asm volatile("nop");
+    asm volatile("nop");
+    return SHORT(line->mld->tag);
+}
+void LineTagSet666(line_t *line)
+{
+    I_Error("NRFD-TODO: LineTagSet666");
+}
+short   LineSideNum(line_t *line, int num)
+{
+    asm volatile("nop");
+    asm volatile("nop");
+    return  SHORT(line->mld->sidenum[num]);
+}
+side_t*   LineSide(line_t *line, int num)
+{
+    asm volatile("nop");
+    asm volatile("nop");
+    short sn = SHORT(line->mld->sidenum[num]);
+    if (sn == -1) return NULL;
+    asm volatile("nop");
+    return &sides[sn];
+}
+
+sector_t *LineFrontSector(line_t *ld) 
+{
+    // NRFD-TODO: Optimize: Use numbers insteadof pointers?
+    side_t *side = LineSide(ld,0);
+    asm volatile("nop");
+    asm volatile("nop");
+    if (side)
+        return SideSector(side);
+    else
+        return NULL;
+}
+sector_t *LineBackSector(line_t *ld)
+{
+    // NRFD-TODO: Optimize: Use numbers insteadof pointers?
+    side_t *side = LineSide(ld,1);
+    asm volatile("nop");
+    asm volatile("nop");
+    if (side)
+        return SideSector(side);
+    else
+        return NULL;
+}
+
+slopetype_t LineSlopeType(line_t *line)
+{
+    vector_t vec = LineVector(line);
+    if      (!vec.dx) return ST_VERTICAL;
+    else if (!vec.dy) return ST_HORIZONTAL;
+    else
+    {
+        if (FixedDiv (vec.dy , vec.dx) > 0)
+            return ST_POSITIVE;
+        else
+            return ST_NEGATIVE;
+    }
+}
+
+vector_t LineVector(line_t* ld)
+{
+    // NRFD-TODO: Optimize?
+    vector_t result;
+    vertex_t  v1 = LineV1(ld);
+    vertex_t  v2 = LineV2(ld);
+    result.dx = v2.x - v1.x;
+    result.dy = v2.y - v1.y;
+    return result;
+}
+
+static fixed_t shared_bbox[4];
+
+fixed_t* LineBBox(line_t* ld)
+{
+    // NRFD-TODO: Optimize?
+
+    vertex_t           v1;
+    vertex_t           v2;
+
+    v1 = LineV1(ld);
+    v2 = LineV2(ld);
+
+    // if (ld->v1 >= &vertexes[numvertexes]) I_Error("LineBBox v1 overflow %X vs %X", (unsigned int)ld->v1, (unsigned int)vertexes);
+    // if (ld->v1 <  &vertexes[0])           I_Error("LineBBox v1 underflow %X vs %X", (unsigned int)ld->v1, (unsigned int)vertexes);
+    // if (ld->v2 >= &vertexes[numvertexes]) I_Error("LineBBox v2 overflow %X vs %X", (unsigned int)ld->v2, (unsigned int)vertexes);
+    // if (ld->v2 <  &vertexes[0])           I_Error("LineBBox v2 underflow %X vs %X", (unsigned int)ld->v2, (unsigned int)vertexes);
+
+    if (v1.x < v2.x)
+    {
+        shared_bbox[BOXLEFT] = v1.x;
+        shared_bbox[BOXRIGHT] = v2.x;
+    }
+    else
+    {
+        shared_bbox[BOXLEFT] = v2.x;
+        shared_bbox[BOXRIGHT] = v1.x;
+    }
+
+    if (v1.y < v2.y)
+    {
+        shared_bbox[BOXBOTTOM] = v1.y;
+        shared_bbox[BOXTOP] = v2.y;
+    }
+    else
+    {
+        shared_bbox[BOXBOTTOM] = v2.y;
+        shared_bbox[BOXTOP] = v1.y;
+    }
+    return shared_bbox;
 }
 
 
@@ -538,21 +820,51 @@ void P_LoadSideDefs (int lump)
     sides = Z_Malloc (numsides*sizeof(side_t),PU_LEVEL,0);      
     memset (sides, 0, numsides*sizeof(side_t));
     data = W_CacheLumpNum (lump,PU_STATIC);
-        
+    
     msd = (mapsidedef_t *)data;
+    mapsides = msd; 
     sd = sides;
     for (i=0 ; i<numsides ; i++, msd++, sd++)
     {
-        sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
-        sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
+        // sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
+        // sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
+        sd->textureoffset_short = SHORT(msd->textureoffset);
+        sd->rowoffset_short = SHORT(msd->rowoffset);
         sd->toptexture = R_TextureNumForName(msd->toptexture);
         sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
         sd->midtexture = R_TextureNumForName(msd->midtexture);
-        sd->sector = &sectors[SHORT(msd->sector)];
+        // sd->sector = &sectors[SHORT(msd->sector)];
+        sd->sector_num = SHORT(msd->sector);
+        if (sd->sector_num < 0 || sd->sector_num > 256) {
+            I_Error("P_LoadSideDefs: sector_num");
+        }
     }
 
-    W_ReleaseLumpNum(lump);
+    // W_ReleaseLumpNum(lump);
 }
+
+fixed_t R_SideTextureOffset(side_t *side)
+{
+    return side->textureoffset_short << FRACBITS;
+}
+fixed_t R_SideRowOffset(side_t *side)
+{
+    return side->rowoffset_short << FRACBITS;
+}
+sector_t* SideSector(side_t *side)
+{
+    return &sectors[side->sector_num];
+}
+sector_t* SideNumSector(int sidenum)
+{
+    return &sectors[sides[sidenum].sector_num];
+    // mapsidedef_t *msd = &mapsides[sidenum];
+    // asm volatile("nop");
+    // asm volatile("nop");
+    // asm volatile("nop");
+    // return &sectors[SHORT(msd->sector)];
+}
+
 
 
 //
@@ -570,11 +882,11 @@ void P_LoadBlockMap (int lump)
     count = lumplen / 2;
     
     // NRFD-NOTE: Replace W_ReadLump with cache
-    blockmaplump = Z_Malloc(lumplen, PU_LEVEL, NULL);
-    W_ReadLump(lump, blockmaplump);
+    // blockmaplump = Z_Malloc(lumplen, PU_LEVEL, NULL);
+    // W_ReadLump(lump, blockmaplump);
     // NRFD-TODO: Optimizations
-    /*
-    blockmaplump = W_CacheLumpNum(lump, PU_LEVEL);*/
+    
+    blockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
     blockmap = blockmaplump + 4;
 
     // Swap all short integers to native byte ordering.
@@ -601,7 +913,9 @@ void P_LoadBlockMap (int lump)
     // int blocklinks_size = sizeof(*blocklinks) * block_count;
     // blocklinks = Z_Malloc(blocklinks_size, PU_LEVEL, 0);
     // memset(blocklinks, 0, blocklinks_size);
-}
+
+    memset(blocklinks, 0, BLOCKLINKS_SIZE*sizeof(*blocklinks));
+ }
 
 
 
@@ -628,8 +942,8 @@ void P_GroupLines (void)
     ss = subsectors;
     for (i=0 ; i<numsubsectors ; i++, ss++)
     {
-        seg = &segs[ss->firstline];
-        ss->sector = seg->sidedef->sector;
+        seg = GetSeg(ss->firstline); //&segs[ss->firstline];
+        ss->sector = SegFrontSector(seg); //seg->sidedef->sector;
     }
 
     // count number of lines in each sector
@@ -637,12 +951,14 @@ void P_GroupLines (void)
     totallines = 0;
     for (i=0 ; i<numlines ; i++, li++)
     {
+        sector_t *li_fs = LineFrontSector(li);
+        sector_t *li_bs = LineBackSector(li);
         totallines++;
-        li->frontsector->linecount++;
+        li_fs->linecount++;
 
-        if (li->backsector && li->backsector != li->frontsector)
+        if (li_bs && li_bs != li_fs)
         {
-            li->backsector->linecount++;
+            li_bs->linecount++;
             totallines++;
         }
     }
@@ -669,17 +985,20 @@ void P_GroupLines (void)
     { 
         li = &lines[i];
 
-        if (li->frontsector != NULL)
+        sector_t *li_fs = LineFrontSector(li);
+        sector_t *li_bs = LineBackSector(li);
+
+        if (li_fs != NULL)
         {
-            sector = li->frontsector;
+            sector = li_fs;
 
             sector->lines[sector->linecount] = li;
             ++sector->linecount;
         }
 
-        if (li->backsector != NULL && li->frontsector != li->backsector)
+        if (li_bs != NULL && li_fs != li_bs)
         {
-            sector = li->backsector;
+            sector = li_bs;
 
             sector->lines[sector->linecount] = li;
             ++sector->linecount;
@@ -695,19 +1014,20 @@ void P_GroupLines (void)
 
         for (j=0 ; j<sector->linecount; j++)
         {
-            vertex_t *v1, *v2;
+            vertex_t v1, v2;
 
             li = sector->lines[j];
-            v1 = li->v1;
-            v2 = li->v2;
+            v1 = LineV1(li);
+            v2 = LineV2(li);
 
-            M_AddToBox (bbox, v1->x, v1->y);
-            M_AddToBox (bbox, v2->x, v2->y);
+            M_AddToBox (bbox, v1.x, v1.y);
+            M_AddToBox (bbox, v2.x, v2.y);
         }
 
         // set the degenmobj_t to the middle of the bounding box
-        sector->soundorg.x = (bbox[BOXRIGHT]+bbox[BOXLEFT])/2;
-        sector->soundorg.y = (bbox[BOXTOP]+bbox[BOXBOTTOM])/2;
+        // NRFD-TODO: sound
+        // sector->soundorg.x = (bbox[BOXRIGHT]+bbox[BOXLEFT])/2;
+        // sector->soundorg.y = (bbox[BOXTOP]+bbox[BOXBOTTOM])/2;
                 
         // adjust bounding box to map blocks
         block = (bbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;
@@ -825,7 +1145,8 @@ P_SetupLevel
   int           playermask,
   skill_t       skill)
 {
-    printf("P_SetupLevel\n");
+    map = 2;
+    printf("P_SetupLevel %d %d\n", episode, map);
     int         i;
     char        lumpname[9];
     int         lumpnum;

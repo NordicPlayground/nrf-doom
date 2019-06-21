@@ -54,63 +54,6 @@ P_AproxDistance
     return dx+dy-(dy>>1);
 }
 
-vector_t P_LineVector(line_t* ld)
-{
-    // NRFD-TODO: Optimize?
-    vertex_t*           v1;
-    vertex_t*           v2;
-    fixed_t             line_dx, line_dy;
-    vector_t result;
-
-    v1 = ld->v1;
-    v2 = ld->v2;
-    result.dx = v2->x - v1->x;
-    result.dy = v2->y - v1->y;
-    return result;
-}
-
-static fixed_t shared_bbox[4];
-
-fixed_t* P_LineBBox(line_t* ld)
-{
-    // NRFD-TODO: Optimize?
-
-    vertex_t*           v1;
-    vertex_t*           v2;
-
-    v1 = ld->v1;
-    v2 = ld->v2;
-
-    if (ld->v1 >= &vertexes[numvertexes]) I_Error("P_LineBBox v1 overflow %X vs %X", (unsigned int)ld->v1, (unsigned int)vertexes);
-    if (ld->v1 <  &vertexes[0])           I_Error("P_LineBBox v1 underflow %X vs %X", (unsigned int)ld->v1, (unsigned int)vertexes);
-    if (ld->v2 >= &vertexes[numvertexes]) I_Error("P_LineBBox v2 overflow %X vs %X", (unsigned int)ld->v2, (unsigned int)vertexes);
-    if (ld->v2 <  &vertexes[0])           I_Error("P_LineBBox v2 underflow %X vs %X", (unsigned int)ld->v2, (unsigned int)vertexes);
-
-
-    if (v1->x < v2->x)
-    {
-        shared_bbox[BOXLEFT] = v1->x;
-        shared_bbox[BOXRIGHT] = v2->x;
-    }
-    else
-    {
-        shared_bbox[BOXLEFT] = v2->x;
-        shared_bbox[BOXRIGHT] = v1->x;
-    }
-
-    if (v1->y < v2->y)
-    {
-        shared_bbox[BOXBOTTOM] = v1->y;
-        shared_bbox[BOXTOP] = v2->y;
-    }
-    else
-    {
-        shared_bbox[BOXBOTTOM] = v2->y;
-        shared_bbox[BOXTOP] = v1->y;
-    }
-    return shared_bbox;
-}
-
 //
 // P_PointOnLineSide
 // Returns 0 or 1
@@ -127,33 +70,33 @@ P_PointOnLineSide
     fixed_t     dy;
     fixed_t     left;
     fixed_t     right;
-    vertex_t*           v1;
-    vertex_t*           v2;
-    fixed_t             line_dx, line_dy;
+    vertex_t    v1;
+    vertex_t    v2;
+    fixed_t     line_dx, line_dy;
 
     // NRFD-TODO: Optimize?
-    v1 = line->v1;
-    v2 = line->v2;
-    line_dx = v2->x - v1->x;
-    line_dy = v2->y - v1->y;
+    v1 = LineV1(line);
+    v2 = LineV2(line);
+    line_dx = v2.x - v1.x;
+    line_dy = v2.y - v1.y;
         
     if (!line_dx)
     {
-        if (x <= v1->x)
+        if (x <= v1.x)
             return line_dy > 0;
         
         return line_dy < 0;
     }
     if (!line_dy)
     {
-        if (y <= v1->y)
+        if (y <= v1.y)
             return line_dx < 0;
         
         return line_dx > 0;
     }
         
-    dx = (x - v1->x);
-    dy = (y - v1->y);
+    dx = (x - v1.x);
+    dy = (y - v1.y);
         
     left = FixedMul ( line_dy>>FRACBITS , dx );
     right = FixedMul ( dy , line_dx>>FRACBITS );
@@ -178,21 +121,22 @@ P_BoxOnLineSide
     int         p1 = 0;
     int         p2 = 0;
 
-    vertex_t*           v1;
-    vertex_t*           v2;
-    fixed_t             line_dx, line_dy;
+    vertex_t       v1;
+    vertex_t       v2;
+    fixed_t        line_dx, line_dy;
+    slopetype_t    slopetype = LineSlopeType(ld);
 
     // NRFD-TODO: Optimize?
-    v1 = ld->v1;
-    v2 = ld->v2;
-    line_dx = v2->x - v1->x;
-    line_dy = v2->y - v1->y;
+    v1 = LineV1(ld);
+    v2 = LineV2(ld);
+    line_dx = v2.x - v1.x;
+    line_dy = v2.y - v1.y;
 
-    switch (ld->slopetype)
+    switch (slopetype)
     {
       case ST_HORIZONTAL:
-        p1 = tmbox[BOXTOP] > v1->y;
-        p2 = tmbox[BOXBOTTOM] > v1->y;
+        p1 = tmbox[BOXTOP] > v1.y;
+        p2 = tmbox[BOXBOTTOM] > v1.y;
         if (line_dx < 0)
         {
             p1 ^= 1;
@@ -201,8 +145,8 @@ P_BoxOnLineSide
         break;
         
       case ST_VERTICAL:
-        p1 = tmbox[BOXRIGHT] < v1->x;
-        p2 = tmbox[BOXLEFT] < v1->x;
+        p1 = tmbox[BOXRIGHT] < v1.x;
+        p2 = tmbox[BOXLEFT] < v1.x;
         if (line_dy < 0)
         {
             p1 ^= 1;
@@ -287,9 +231,11 @@ P_MakeDivline
 ( line_t*       li,
   divline_t*    dl )
 {
-    vector_t lv = P_LineVector(li);
-    dl->x = li->v1->x;
-    dl->y = li->v1->y;
+    // NRFD-TODO: Optimize
+    vertex_t v1 = LineV1(li);
+    vector_t lv = LineVector(li);
+    dl->x = v1.x;
+    dl->y = v1.y;
     dl->dx = lv.dx;
     dl->dy = lv.dy;
 }
@@ -377,16 +323,16 @@ void P_LineOpening (line_t* linedef)
 {
     sector_t*   front;
     sector_t*   back;
-        
-    if (linedef->sidenum[1] == -1)
+    
+    if (LineSideNum(linedef, 1) == -1)
     {
         // single sided line
         openrange = 0;
         return;
     }
          
-    front = linedef->frontsector;
-    back = linedef->backsector;
+    front = LineFrontSector(linedef);
+    back = LineBackSector(linedef);
         
     if (front->ceilingheight < back->ceilingheight)
         opentop = front->ceilingheight;
@@ -459,18 +405,22 @@ void P_UnsetThingPosition (mobj_t* thing)
         // NRFD-TODO: Optimize?
         thing->block = -1;
 
-        mobj_t *prev = blocklinks[blocklink];
-        if (prev == thing) {
-            blocklinks[blocklink] = thing->bnext;
-        }
-        else {
-            while (prev->bnext != thing) {
-                prev = prev->bnext;
-                if (prev == NULL) {
-                    I_Error("P_UnsetThingPosition: Couldn't find previous thing in blocklink");
-                }
+        if (blockx>=0 && blockx < bmapwidth
+            && blocky>=0 && blocky <bmapheight)
+        {
+            mobj_t *prev = blocklinks[blocklink];
+            if (prev == thing) {
+                blocklinks[blocklink] = thing->bnext;
             }
-            prev->bnext = thing->bnext;
+            else {
+                while (prev->bnext != thing) {
+                    prev = prev->bnext;
+                    if (prev == NULL) {
+                        I_Error("P_UnsetThingPosition: Couldn't find previous thing in blocklink");
+                    }
+                }
+                prev->bnext = thing->bnext;
+            }
         }
 
 
@@ -593,9 +543,7 @@ P_BlockLinesIterator
   int                   y,
   boolean(*func)(line_t*) )
 {
-    int                 offset;
-    short*              list;
-    line_t*             ld;
+    
         
     if (x<0
         || y<0
@@ -605,15 +553,21 @@ P_BlockLinesIterator
         return true;
     }
     
-    offset = y*bmapwidth+x;
+    int block_num = y*bmapwidth+x;
         
-    offset = *(blockmap+offset);
+    short *offset_ptr = blockmap+block_num;
+    short offset = *offset_ptr;
+    short *list = blockmaplump+offset;
 
-    for ( list = blockmaplump+offset ; *list != -1 ; list++)
-    {
-        int line_num = *list;
+    asm volatile("nop");
+
+    short line_num;
+    for( ; (line_num = *list) != -1; list++)
+    {        
+        asm volatile("nop");
         if (line_num < 0 || line_num >= numlines) I_Error("P_BlockLinesIterator: line_num overflow %d vs %d", line_num, numlines);
-        ld = &lines[*list];
+        asm volatile("nop");
+        line_t *ld = &lines[line_num]; // TODO: Seperate with nop for QSPI loading
 
         if (ld->validcount == validcount)
             continue;   // line has already been checked
@@ -647,6 +601,7 @@ P_BlockThingsIterator
     int block = y*bmapwidth+x;
     int blocklink = block%BLOCKLINKS_SIZE;
 
+    int i=0;
     for (mobj = blocklinks[blocklink] ;
          mobj ;
          mobj = mobj->bnext)
@@ -654,6 +609,11 @@ P_BlockThingsIterator
         if (mobj->block == block) {
             if (!func( mobj ) )
                 return false;
+        }
+        i++;
+        if (i > 512) {
+            printf("P_BlockThingsIterator: problem with blocklinks\n");
+            break;
         }
     }
     
@@ -699,8 +659,10 @@ PIT_AddLineIntercepts (line_t* ld)
          || trace.dx < -FRACUNIT*16
          || trace.dy < -FRACUNIT*16)
     {
-        s1 = P_PointOnDivlineSide (ld->v1->x, ld->v1->y, &trace);
-        s2 = P_PointOnDivlineSide (ld->v2->x, ld->v2->y, &trace);
+        vertex_t v1 = LineV1(ld);
+        vertex_t v2 = LineV2(ld);
+        s1 = P_PointOnDivlineSide (v1.x, v1.y, &trace);
+        s2 = P_PointOnDivlineSide (v2.x, v2.y, &trace);
     }
     else
     {
@@ -721,7 +683,7 @@ PIT_AddLineIntercepts (line_t* ld)
     // try to early out the check
     if (earlyout
         && frac < FRACUNIT
-        && !ld->backsector)
+        && !LineBackSector(ld))
     {
         return false;   // stop checking
     }

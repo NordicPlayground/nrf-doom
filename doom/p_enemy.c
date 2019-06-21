@@ -101,6 +101,9 @@ P_RecursiveSound
 ( sector_t*     sec,
   int           soundblocks )
 {
+    printf("NRFD-TODO: P_RecursiveSound");
+    // TODO: Infinite recursion issue
+    /*
     int         i;
     line_t*     check;
     sector_t*   other;
@@ -119,7 +122,8 @@ P_RecursiveSound
     for (i=0 ;i<sec->linecount ; i++)
     {
         check = sec->lines[i];
-        if (! (check->flags & ML_TWOSIDED) )
+        short line_flags = LineFlags(check);
+        if (! (line_flags & ML_TWOSIDED) )
             continue;
         
         P_LineOpening (check);
@@ -127,19 +131,23 @@ P_RecursiveSound
         if (openrange <= 0)
             continue;   // closed door
         
-        if ( sides[ check->sidenum[0] ].sector == sec)
-            other = sides[ check->sidenum[1] ] .sector;
+        short side0 = LineSideNum(check, 0);
+        short side1 = LineSideNum(check, 1);
+        sector_t *side0_sector = SideNumSector(side0);
+        sector_t *side1_sector = SideNumSector(side1);
+        if ( side0_sector == sec)
+            other = side1_sector;
         else
-            other = sides[ check->sidenum[0] ].sector;
+            other = side0_sector;
         
-        if (check->flags & ML_SOUNDBLOCK)
+        if (line_flags & ML_SOUNDBLOCK)
         {
             if (!soundblocks)
                 P_RecursiveSound (other, 1);
         }
         else
             P_RecursiveSound (other, soundblocks);
-    }
+    }*/
 }
 
 
@@ -574,7 +582,7 @@ void A_KeenDie (mobj_t* mo)
         }
     }
 
-    junk.tag = 666;
+    LineTagSet666(&junk);
     EV_DoDoor(&junk, vld_open);
 }
 
@@ -999,7 +1007,7 @@ void A_SkelMissile (mobj_t* actor)
 
     mo->x += mo->momx;
     mo->y += mo->momy;
-    mo->tracer = actor->target;
+    mo->tracer = actor->target; // NRFD-TODO: tracer
 }
 
 int     TRACEANGLE = 0xc000000;
@@ -1710,14 +1718,14 @@ void A_BossDeath (mobj_t* mo)
         {
             if (mo->type == MT_FATSO)
             {
-                junk.tag = 666;
+                LineTagSet666(&junk);
                 EV_DoFloor(&junk,lowerFloorToLowest);
                 return;
             }
             
             if (mo->type == MT_BABY)
             {
-                junk.tag = 667;
+                LineTagSet666(&junk);
                 EV_DoFloor(&junk,raiseToTexture);
                 return;
             }
@@ -1728,7 +1736,7 @@ void A_BossDeath (mobj_t* mo)
         switch(gameepisode)
         {
           case 1:
-            junk.tag = 666;
+            LineTagSet666(&junk);
             EV_DoFloor (&junk, lowerFloorToLowest);
             return;
             break;
@@ -1737,13 +1745,13 @@ void A_BossDeath (mobj_t* mo)
             switch(gamemap)
             {
               case 6:
-                junk.tag = 666;
+                LineTagSet666(&junk);
                 EV_DoDoor (&junk, vld_blazeOpen);
                 return;
                 break;
                 
               case 8:
-                junk.tag = 666;
+                LineTagSet666(&junk);
                 EV_DoFloor (&junk, lowerFloorToLowest);
                 return;
                 break;

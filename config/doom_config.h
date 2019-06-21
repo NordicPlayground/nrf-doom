@@ -32,4 +32,5 @@
 
 // Game-Loop debug messages
 #define N_ldbg(...)
+// #define N_ldbg printf
 

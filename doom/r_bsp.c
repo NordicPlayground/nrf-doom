@@ -267,8 +267,10 @@ void R_AddLine (seg_t*  line)
     curline = line;
 
     // OPTIMIZE: quickly reject orthogonal back sides.
-    angle1 = R_PointToAngle (line->v1->x, line->v1->y);
-    angle2 = R_PointToAngle (line->v2->x, line->v2->y);
+    vertex_t *v1 = SegV1(line);
+    vertex_t *v2 = SegV2(line);
+    angle1 = R_PointToAngle (v1->x, v1->y);
+    angle2 = R_PointToAngle (v2->x, v2->y);
     
     // Clip to view edges.
     // OPTIMIZE: make constant out of 2*clipangle (FIELDOFVIEW).
@@ -340,7 +342,7 @@ void R_AddLine (seg_t*  line)
     if (backsector->ceilingpic == frontsector->ceilingpic
         && backsector->floorpic == frontsector->floorpic
         && backsector->lightlevel == frontsector->lightlevel
-        && curline->sidedef->midtexture == 0)
+        && SegSideDef(curline)->midtexture == 0)
     {
         return;
     }
@@ -510,7 +512,7 @@ void R_Subsector (int num)
     sub = &subsectors[num];
     frontsector = sub->sector;
     count = sub->numlines;
-    line = &segs[sub->firstline];
+    line = GetSeg(sub->firstline); //&segs[sub->firstline];
 
     if (frontsector->floorheight < viewz)
     {
@@ -554,7 +556,6 @@ void R_Subsector (int num)
 // Just call with BSP root.
 void R_RenderBSPNode (int bspnum)
 {
-    node_t*     bsp;
     int         side;
 
     // Found a subsector?
@@ -566,18 +567,30 @@ void R_RenderBSPNode (int bspnum)
             R_Subsector (bspnum&(~NF_SUBSECTOR));
         return;
     }
-                
-    bsp = &nodes[bspnum];
     
-    // Decide which side the view point is on.
-    side = R_PointOnSide (viewx, viewy, bsp);
+    fixed_t bbox[4];
+    int bspnum_front;
+    int bspnum_back;
+    {
+        // NRFD-TODO: Optimize stack?  
+        node_t bsp = GetNode(bspnum); //&nodes[bspnum];
+        
+        // Decide which side the view point is on.
+        side = R_PointOnSide (viewx, viewy, &bsp);
 
-    // Recursively divide front space.
-    R_RenderBSPNode (bsp->children[side]); 
+        bspnum_front = bsp.children[side];
+        // bbox         = bsp.bbox[side^1];
+        memcpy(bbox, bsp.bbox[side^1], 4*sizeof(fixed_t));
+        bspnum_back  = bsp.children[side^1];
+    }
+
+    R_RenderBSPNode (bspnum_front); 
 
     // Possibly divide back space.
-    if (R_CheckBBox (bsp->bbox[side^1]))        
-        R_RenderBSPNode (bsp->children[side^1]);
+    if (R_CheckBBox (bbox)) {
+        R_RenderBSPNode (bspnum_back);
+    }
 }
+
 
 

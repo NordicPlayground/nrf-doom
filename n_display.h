@@ -7,11 +7,7 @@
 // SPI
 void N_display_spi_init();
 void N_display_power_reset();
-// void N_display_spi_setup(int txdMaxCnt, volatile uint8_t * txdPtr, int rxdMaxCnt, volatile uint8_t * rxdPtr);
-// void N_display_spi_transfer_start();
-// void N_display_spi_transfer_data();
-// void N_display_spi_transfer_end();
-// void N_display_spi_transfer();
+void N_display_spi_transfer_finish();
 void N_display_spi_cmd(uint8_t b1, uint8_t b2);
 void N_display_spi_wr8(uint32_t addr, uint8_t data);
 void N_display_spi_wr16(uint32_t addr, uint16_t data);

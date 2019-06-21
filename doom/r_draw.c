@@ -85,7 +85,6 @@ static pixel_t *background_buffer = NULL;
 boolean                 dc_debug = false;
  // NRFD-TODO: Optimize?
 lighttable_t            *dc_colormap; 
-lighttable_t            dc_colormap_buf[256]; 
 int                     dc_x; 
 int                     dc_yl; 
 int                     dc_yh; 
@@ -109,6 +108,62 @@ int columnofs(int x)
 }
 
 byte column_buffer[SCREENHEIGHT+3];
+
+void R_DrawTransColumn (void) 
+{ 
+    int                 count; 
+    pixel_t*            dest;
+    fixed_t             frac;
+    fixed_t             fracstep;        
+
+    count = dc_yh - dc_yl; 
+
+    // Zero length, column does not exceed a pixel.
+    if (count < 0) 
+        return; 
+                                 
+#ifdef RANGECHECK 
+    if ((unsigned)dc_x >= SCREENWIDTH
+        || dc_yl < 0
+        || dc_yh >= SCREENHEIGHT) {
+        // NRFD-TODO: I_Error 
+        printf ("R_DrawColumn: %i to %i at %i\n", dc_yl, dc_yh, dc_x);
+        return;
+    }
+#endif 
+
+    // Framebuffer destination address.
+    // Use ylookup LUT to avoid multiply with ScreenWidth.
+    // Use columnofs LUT for subwindows? 
+    dest = ylookup(dc_yl) + columnofs(dc_x);  
+
+    // Determine scaling,
+    //  which is the only mapping to be done.
+    fracstep = dc_iscale; 
+    frac = dc_texturemid + (dc_yl-centery)*fracstep; 
+
+    // NRFD-TODO: Optimizations
+    // memcpy(column_buffer, dc_source, SCREENHEIGHT);
+
+    // Inner loop that does the actual texture mapping,
+    //  e.g. a DDA-lile scaling.
+    // This is as fast as it gets.
+    do 
+    {
+        // Re-map color indices from wall texture column
+        //  using a lighting/special effects LUT.
+        pixel_t val = dc_source[(frac>>FRACBITS)&127];
+        if (val != 251) { // Use pink as transparent color
+            *dest = dc_colormap[val];
+        }
+        // *dest = dc_colormap[column_buffer[(frac>>FRACBITS)&127]];
+        // *dest = dc_source[(frac>>FRACBITS)&127]];
+        
+        dest += SCREENWIDTH; 
+        frac += fracstep;
+        
+    } while (count--); 
+} 
 
 //
 // A column is a vertical slice/span from a wall texture that,

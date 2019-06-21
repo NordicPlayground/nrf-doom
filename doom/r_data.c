@@ -41,6 +41,8 @@
 
 #include "n_qspi.h"
 
+#include "n_buttons.h"
+
 // NRFD-TODO: Check values for all supported games
 #define MAX_TEXTURES 125
 #define MAX_TEXTURE_PATCHES 350
@@ -332,19 +334,27 @@ void R_GenerateComposite (int texnum)
     // Z_ChangeTag (block, PU_CACHE); // NRFD-TODO?
 }
 
+boolean generate_to_flash;
 byte *generate_buffer;
 size_t store_loc;
 
-
 void R_GenerateInit(int texture_storage_size)
 {
+    N_ReadButtons();
+    I_Sleep(1);
+    N_ReadButtons();
+    generate_to_flash = N_ButtonState(1);
+
     generate_buffer = I_VideoBuffer;
     store_loc = N_qspi_alloc_block();
+    printf("R_GenerateInit: %d %d\n", store_loc, generate_to_flash);
+
     for (int ofs=0; ofs<texture_storage_size; ofs+=N_QSPI_BLOCK_SIZE) {
-        // N_qspi_erase_block(store_loc+ofs);
+        if (generate_to_flash) {
+            N_qspi_erase_block(store_loc+ofs);
+        }
         N_qspi_alloc_block();
     } 
-    printf("R_GenerateInit: %d\n", store_loc);
 }
 
 
@@ -362,33 +372,43 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
     int height = R_TextureHeight(texture);
     size_t texture_size = width*height;
     maptexture_t *mtex = texture->wad_texture;
-    // printf("    %.8s\n", mtex->name);
+    printf("    %.8s\n", mtex->name);
 
     size_t texture_loc = store_loc;
     store_loc += texture_size;
 
     texture->composite = N_qspi_data_pointer(texture_loc);
 
+    for (int i=0; i<texture_size; i++) {
+        generate_buffer[i] = 251; // PINK, use as transparent is masked textures
+    }
 
     int patchcount = SHORT(mtex->patchcount);
     for (i=0; i<patchcount; i++)
     {
-        int             x;
-        int             x1;
-        int             x2;
-        mappatch_t *mpatch = &mtex->patches[i];
-        short patch_num = SHORT(mpatch->patch);
-        int   originy   = SHORT(mpatch->originy);
+        // printf("P");
+        int          x;
+        int          x1;
+        int          x2;
+        mappatch_t*  mpatch        = &mtex->patches[i];
+        short        patch_num     = SHORT(mpatch->patch);
+        int          originy       = SHORT(mpatch->originy);
+        char*        patch_name    = patch_names + patch_num * 8;
+        // int          patch_lump    = W_CheckNumForName(patch_name);
+        patch_t*     realpatch     = W_CacheLumpName(patch_name, PU_CACHE); //W_CacheLumpNum (patch_lump, PU_CACHE);
+        int          columnofs[256];
 
-        char *patch_name = patch_names + patch_num * 8;
-        // printf("        %.8s(%d)\n", patch_name, patch_num);
+        printf("        %.8s(%d)\n", patch_name, patch_num);
 
-        int patch_lump_num = W_CheckNumForName(patch_name);
-        patch_t*  realpatch = W_CacheLumpNum (patch_lump_num, PU_CACHE);
+        // int *patch_columnofs = realpatch->columnofs;
+        // NOTE: Having some trouble with reliable reading of this data from QSPI
+        memcpy(columnofs, realpatch->columnofs, 256*sizeof(int));
 
+        asm volatile("nop");
         x1 = SHORT(mpatch->originx);
+        asm volatile("nop");
         x2 = x1 + SHORT(realpatch->width);
-
+        asm volatile("nop");
 
         if (x1<0)
             x = 0;
@@ -398,21 +418,36 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         if (x2 > width)
             x2 = width;
 
+        printf("      %d - %d\n", x1, x2);
+
         for ( ; x<x2 ; x++)
         {
-            // printf("%d ", x);
+            // printf(".");
             column_t*       firstcol;
-
-            int colofs = LONG(realpatch->columnofs[x-x1]);
-            firstcol = (column_t *)((byte *)realpatch + colofs);
-
             byte* dest_col = generate_buffer + (height*x);
-            column_t* col_ptr = firstcol; 
+            int col_num = x-x1;
+            // int colofs = LONG(patch_columnofs[col_num]);
+            if (col_num >= 256) {
+                I_Error("R_GenerateComposite_N: col_num(%d) > 256\n", col_num);
+            }
+            int colofs = columnofs[col_num]; // LONG(...)
+            firstcol = (column_t *)((byte *)realpatch + colofs);
+            column_t* col_ptr = firstcol;
+
+            if (num==14 && x==64 && i==0) {
+                printf("XXX\n");
+            }
+            // if ((uint32_t)(col_ptr) < 0x12000000 || (uint32_t)(col_ptr) > 0x20000000) {
+            //     printf("\n         %lx %lx %lx %d %d %d %d\n",
+            //             (uint32_t)(realpatch), (uint32_t)(col_ptr), (uint32_t)(columnofs), col_num, colofs, i, x);
+            //     I_Error("R_GenerateComposite_N");
+            // }
+
             while (col_ptr->topdelta != 0xff)
             {
-
+                int col_length = col_ptr->length;
                 byte* source = (byte *)col_ptr + 3;
-                int count = col_ptr->length;
+                int count = col_length;
                 int position = originy + col_ptr->topdelta;
                 if (position < 0)
                 {
@@ -426,14 +461,15 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 
                 if (count > 0) {
                     memcpy (dest_col + position, source, count);
-
                 }
-                col_ptr = (column_t *)(  (byte *)col_ptr + col_ptr->length + 4);
+                col_ptr = (column_t *)((byte*)(col_ptr)  + col_length + 4);
             }
         }
-        // printf("\n");
     }
-    // N_qspi_write(texture_loc, generate_buffer, texture_size);
+        // printf("\n");
+    if (generate_to_flash) {
+        N_qspi_write(texture_loc, generate_buffer, texture_size);
+    }
 }
 
 
@@ -526,27 +562,39 @@ void R_GenerateLookup (int texnum)
     */
 }
 
-const byte dummy_data[] = {
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0, // 16
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0,
-    112,112,112,112,  0,  0,  0,  0,112,112,112,112,  0,  0,  0,  0};
-
 //
 // R_GetColumn
 //
+byte*
+R_GetCachedColumn
+( int           tex,
+  int           col )
+{
+    // printf("NRF-TODO: R_GetColumn\n");
+
+    texture_t      *texture;
+    short           height;
+    short           width;
+
+    texture = &textures[tex];
+    col &= R_TextureWidthMask(tex);
+    height = R_TextureHeight(texture);
+    width = R_TextureWidth(texture);
+
+    if (col < 0 || col >= width) {
+        printf("Assertion failed: %d < %d < %d\n", 0, col, width);
+        I_Error("R_GetCachedColumn");
+    }
+
+    if (texture->composite != NULL) {
+        return texture->composite + (col*height);
+    }
+    else {
+        I_Error("R_GetCachedColumn: composite not generated");
+    }
+    return NULL;
+}
+
 byte*
 R_GetColumn
 ( int           tex,
@@ -567,35 +615,10 @@ R_GetColumn
         printf("Assertion failed: %d < %d < %d\n", 0, col, width);
         I_Error("R_GetColumn");
     }
-
-    // if (texture->columns != NULL) {
-    //     return texture->columns[col];
-    // }
-
-    if (texture->composite != NULL) {
-        return texture->composite + (col*height);
-    }
-
-    return (byte*)dummy_data;
-
-    /*
-    int             lump;
-    int             ofs;
-    texture_t      *texture;
-
-    texture = &textures[tex];
-    col &= R_TextureWidthMask(tex);
-    lump = texture->columnlump[col];
-    ofs = texture->columnofs[col];
-    
-    if (lump > 0)
-        return (byte *)W_CacheLumpNum(lump,PU_CACHE)+ofs;
-
-    if (!texture->composite)
-        R_GenerateComposite (tex);
-
-    return texture->composite + ofs;*/
+    I_Error("R_GetColumn");
+    return NULL;
 }
+
 
 
 static void GenerateTextureHashTable(void)
@@ -996,14 +1019,14 @@ void R_InitColormaps (void)
     //  256 byte align tables.
     lump = W_GetNumForName(DEH_String("COLORMAP"));
 
-    // NRFD-TODO: Optimize
-    colormaps = W_CacheLumpNum(lump, PU_STATIC);
+    // NRFD-TODO?
+    // colormaps = W_CacheLumpNum(lump, PU_STATIC);
 
-    // int length = W_LumpLength(lump);
-    // printf("R_InitColormaps: length = %d\n", length);
+    int length = W_LumpLength(lump);
+    printf("R_InitColormaps: length = %d\n", length);
 
-    // colormaps = Z_Malloc(length, PU_STATIC, 0);
-    // W_ReadLump(lump, colormaps);
+    colormaps = Z_Malloc(length, PU_STATIC, 0);
+    W_ReadLump(lump, colormaps);
 
 }
 
@@ -1042,7 +1065,7 @@ int R_FlatNumForName (const char* name)
         memcpy (namet, name,8);
         I_Error ("R_FlatNumForName: %s not found",namet);
     }
-    printf("R_FlatNumForName: %d\n", i);
+    // printf("R_FlatNumForName: %d\n", i);
     return i - firstflat;
 }
 
@@ -1106,6 +1129,9 @@ int     R_TextureNumForName (const char* name)
     {
         I_Error ("R_TextureNumForName: %s not found",
              name);
+    }
+    if (i>256) {
+        I_Error("R_TextureNumForName: Only 256 textures supported");
     }
     return i;
 }

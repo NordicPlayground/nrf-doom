@@ -1392,7 +1392,7 @@ void WI_initStats(void)
 
 void WI_updateStats(void)
 {
-    printf("WI_updateStats\n");
+    // printf("WI_updateStats\n");
 
     WI_updateAnimatedBack();
 
@@ -1499,7 +1499,7 @@ void WI_updateStats(void)
 
 void WI_drawStats(void)
 {
-    printf("WI_drawStats\n");
+    // printf("WI_drawStats\n");
     // line height
     int lh;     
 
@@ -1810,6 +1810,7 @@ void WI_unloadData(void)
    
     // W_ReleaseLumpName("STFST01");
     // W_ReleaseLumpName("STFDEAD0");
+    printf("WI_unloadData finished\n");
 }
 
 void WI_Drawer (void)

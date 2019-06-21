@@ -1082,6 +1082,7 @@ void G_Ticker (void)
     if (oldgamestate == GS_INTERMISSION && gamestate != GS_INTERMISSION)
     {
         WI_End();
+        printf("WI_End\n");
     }
 
     oldgamestate = gamestate;

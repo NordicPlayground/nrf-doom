@@ -186,7 +186,7 @@ void D_Display (void)
     boolean                     wipe;
     boolean                     redrawsbar;
 
-    N_ldbg("NRFD_TODO: D_Display\n");
+    // printf("D_Display\n");
     if (nodrawers)
         return;                    // for comparative timing / profiling
 
@@ -303,7 +303,6 @@ void D_Display (void)
         V_DrawPatchDirect(viewwindowx + (scaledviewwidth - 68) / 2, y,
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
-
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything

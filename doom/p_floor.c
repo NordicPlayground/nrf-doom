@@ -210,7 +210,7 @@ void T_MoveFloor(floormove_t* floor)
 		      floor->crush,0,floor->direction);
     
     if (!(leveltime&7))
-	S_StartSound(&floor->sector->soundorg, sfx_stnmov);
+	S_StartSound(SectorSoundOrg(floor->sector), sfx_stnmov);
     
     if (res == pastdest)
     {
@@ -240,7 +240,7 @@ void T_MoveFloor(floormove_t* floor)
 	}
 	P_RemoveThinker(&floor->thinker);
 
-	S_StartSound(&floor->sector->soundorg, sfx_pstop);
+	S_StartSound(SectorSoundOrg(floor->sector), sfx_pstop);
     }
 
 }
@@ -357,8 +357,8 @@ EV_DoFloor
 	    floor->speed = FLOORSPEED;
 	    floor->floordestheight = floor->sector->floorheight +
 		24 * FRACUNIT;
-	    sec->floorpic = line->frontsector->floorpic;
-	    sec->special = line->frontsector->special;
+	    sec->floorpic = LineFrontSector(line)->floorpic;
+	    sec->special = LineFrontSector(line)->special;
 	    break;
 
 	  case raiseToTexture:
@@ -404,7 +404,10 @@ EV_DoFloor
 	    {
 		if ( twoSided(secnum, i) )
 		{
-		    if (getSide(secnum,i,0)->sector-sectors == secnum)
+			// NRFD-TODO: Optimize: Could use numbers insteadof pointers here
+			side_t *side = getSide(secnum,i,0);
+			sector_t *side_sector = SideSector(side);
+		    if (side_sector-sectors == secnum)
 		    {
 			sec = getSector(secnum,i,1);
 
@@ -508,16 +511,16 @@ EV_BuildStairs
 	    ok = 0;
 	    for (i = 0;i < sec->linecount;i++)
 	    {
-		if ( !((sec->lines[i])->flags & ML_TWOSIDED) )
+		if ( !( LineFlags(sec->lines[i]) & ML_TWOSIDED) )
 		    continue;
 					
-		tsec = (sec->lines[i])->frontsector;
+		tsec = LineFrontSector(sec->lines[i]);
 		newsecnum = tsec-sectors;
 		
 		if (secnum != newsecnum)
 		    continue;
 
-		tsec = (sec->lines[i])->backsector;
+		tsec = LineBackSector(sec->lines[i]);
 		newsecnum = tsec - sectors;
 
 		if (tsec->floorpic != texture)

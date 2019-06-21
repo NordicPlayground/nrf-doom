@@ -165,8 +165,6 @@ extern intercept_t* intercept_p;
 
 typedef boolean (*traverser_t) (intercept_t *in);
 
-vector_t P_LineVector(line_t* line);
-fixed_t*   P_LineBBox(line_t* line);
 fixed_t P_AproxDistance (fixed_t dx, fixed_t dy);
 int     P_PointOnLineSide (fixed_t x, fixed_t y, line_t* line);
 int     P_PointOnDivlineSide (fixed_t x, fixed_t y, divline_t* line);
@@ -266,7 +264,7 @@ P_RadiusAttack
 // P_SETUP
 //
 // NRFD-TODO: Optimize
-#define BLOCKLINKS_SIZE 16
+#define BLOCKLINKS_SIZE 64
 
 extern byte*        rejectmatrix;   // for fast sight rejection
 extern short*       blockmaplump;   // offsets in blockmap are from here

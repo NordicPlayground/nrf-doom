@@ -207,7 +207,7 @@ boolean PIT_CheckLine (line_t* ld)
 {
     // printf("  PIT_CheckLine\n");
 
-    fixed_t* ld_bbox = P_LineBBox(ld);
+    fixed_t* ld_bbox = LineBBox(ld);
 
     // printf("   RL: %d <= %d", tmbbox[BOXRIGHT], ld_bbox[BOXLEFT]);
     // printf("   LR: %d >= %d", tmbbox[BOXLEFT], ld_bbox[BOXRIGHT]);
@@ -234,15 +234,15 @@ boolean PIT_CheckLine (line_t* ld)
     // so two special lines that are only 8 pixels apart
     // could be crossed in either order.
     
-    if (!ld->backsector)
+    if (!LineBackSector(ld))
         return false;           // one sided line
                 
     if (!(tmthing->flags & MF_MISSILE) )
     {
-        if ( ld->flags & ML_BLOCKING )
+        if ( LineFlags(ld) & ML_BLOCKING )
             return false;       // explicitly blocking everything
 
-        if ( !tmthing->player && ld->flags & ML_BLOCKMONSTERS )
+        if ( !tmthing->player && (LineFlags(ld) & ML_BLOCKMONSTERS) )
             return false;       // block monsters only
     }
     // printf("J");
@@ -634,14 +634,15 @@ void P_HitSlideLine (line_t* ld)
     
     fixed_t             movelen;
     fixed_t             newlen;
+    slopetype_t         slopetype = LineSlopeType(ld);
         
-    if (ld->slopetype == ST_HORIZONTAL)
+    if (slopetype == ST_HORIZONTAL)
     {
         tmymove = 0;
         return;
     }
     
-    if (ld->slopetype == ST_VERTICAL)
+    if (slopetype == ST_VERTICAL)
     {
         tmxmove = 0;
         return;
@@ -649,7 +650,7 @@ void P_HitSlideLine (line_t* ld)
         
     side = P_PointOnLineSide (slidemo->x, slidemo->y, ld);
 
-    vector_t lv = P_LineVector(ld);
+    vector_t lv = LineVector(ld);
 
     lineangle = R_PointToAngle2 (0,0, lv.dx, lv.dy);
 
@@ -686,7 +687,7 @@ boolean PTR_SlideTraverse (intercept_t* in)
                 
     li = in->d.line;
     
-    if ( ! (li->flags & ML_TWOSIDED) )
+    if ( ! (LineFlags(li) & ML_TWOSIDED) )
     {
         if (P_PointOnLineSide (slidemo->x, slidemo->y, li))
         {
@@ -869,8 +870,10 @@ PTR_AimTraverse (intercept_t* in)
     if (in->isaline)
     {
         li = in->d.line;
+        sector_t *li_fs = LineFrontSector(li);
+        sector_t *li_bs = LineBackSector(li);
         
-        if ( !(li->flags & ML_TWOSIDED) )
+        if ( !(LineFlags(li) & ML_TWOSIDED) )
             return false;               // stop
         
         // Crosses a two sided line.
@@ -883,16 +886,14 @@ PTR_AimTraverse (intercept_t* in)
         
         dist = FixedMul (attackrange, in->frac);
 
-        if (li->backsector == NULL
-         || li->frontsector->floorheight != li->backsector->floorheight)
+        if (li_bs == NULL || li_fs->floorheight != li_bs->floorheight)
         {
             slope = FixedDiv (openbottom - shootz , dist);
             if (slope > bottomslope)
                 bottomslope = slope;
         }
                 
-        if (li->backsector == NULL
-         || li->frontsector->ceilingheight != li->backsector->ceilingheight)
+        if (li_bs == NULL || li_fs->ceilingheight != li_bs->ceilingheight)
         {
             slope = FixedDiv (opentop - shootz , dist);
             if (slope < topslope)
@@ -961,11 +962,13 @@ boolean PTR_ShootTraverse (intercept_t* in)
     if (in->isaline)
     {
         li = in->d.line;
+        sector_t *li_fs = LineFrontSector(li);
+        sector_t *li_bs = LineBackSector(li);
         
         if (li->special)
             P_ShootSpecialLine (shootthing, li);
 
-        if ( !(li->flags & ML_TWOSIDED) )
+        if ( !(LineFlags(li) & ML_TWOSIDED) )
             goto hitline;
         
         // crosses a two sided line
@@ -976,7 +979,7 @@ boolean PTR_ShootTraverse (intercept_t* in)
         // e6y: emulation of missed back side on two-sided lines.
         // backsector can be NULL when emulating missing back side.
 
-        if (li->backsector == NULL)
+        if (li_bs == NULL)
         {
             slope = FixedDiv (openbottom - shootz , dist);
             if (slope > aimslope)
@@ -988,14 +991,14 @@ boolean PTR_ShootTraverse (intercept_t* in)
         }
         else
         {
-            if (li->frontsector->floorheight != li->backsector->floorheight)
+            if (li_fs->floorheight != li_bs->floorheight)
             {
                 slope = FixedDiv (openbottom - shootz , dist);
                 if (slope > aimslope)
                     goto hitline;
             }
 
-            if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
+            if (li_fs->ceilingheight != li_bs->ceilingheight)
             {
                 slope = FixedDiv (opentop - shootz , dist);
                 if (slope < aimslope)
@@ -1015,14 +1018,14 @@ boolean PTR_ShootTraverse (intercept_t* in)
         y = trace.y + FixedMul (trace.dy, frac);
         z = shootz + FixedMul (aimslope, FixedMul(frac, attackrange));
 
-        if (li->frontsector->ceilingpic == skyflatnum)
+        if (li_fs->ceilingpic == skyflatnum)
         {
             // don't shoot the sky!
-            if (z > li->frontsector->ceilingheight)
+            if (z > li_fs->ceilingheight)
                 return false;
             
             // it's a sky hack wall
-            if  (li->backsector && li->backsector->ceilingpic == skyflatnum)
+            if  (li_bs && li_bs->ceilingpic == skyflatnum)
                 return false;           
         }
 

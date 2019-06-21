@@ -17,7 +17,6 @@
 //
 
 #include "i_timer.h"
-#include "doomtype.h"
 
 #undef PACKED_STRUCT
 #include "nrf_delay.h"
@@ -47,6 +46,13 @@ int I_GetTimeMS(void)
     NRF_TIMER0->TASKS_CAPTURE[0] = 1;
     uint32_t cc = NRF_TIMER0->CC[0];
     cc = cc*10/625;
+    return cc;
+}
+
+uint32_t I_GetTimeRaw(void)
+{
+    NRF_TIMER0->TASKS_CAPTURE[0] = 1;
+    uint32_t cc = NRF_TIMER0->CC[0];
     return cc;
 }
 

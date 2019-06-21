@@ -24,7 +24,6 @@
 
 extern boolean     dc_debug;
 extern lighttable_t     *dc_colormap;
-extern lighttable_t     dc_colormap_buf[];
 extern int              dc_x;
 extern int              dc_yl;
 extern int              dc_yh;

@@ -33,7 +33,7 @@
 
 #include "doomstat.h"
 
-#define MAX_MOBJ  128
+#define MAX_MOBJ  253
 
 mobj_t  mobjs[MAX_MOBJ];
 
@@ -185,8 +185,8 @@ void P_XYMovement (mobj_t* mo)
             {
                 // explode a missile
                 if (ceilingline &&
-                    ceilingline->backsector &&
-                    ceilingline->backsector->ceilingpic == skyflatnum)
+                    LineBackSector(ceilingline) &&
+                    LineBackSector(ceilingline)->ceilingpic == skyflatnum)
                 {
                     // Hack to prevent missiles exploding
                     // against the sky.
@@ -520,7 +520,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t* P_AllocMobj (void)
 {
-    printf("P_AllocMobj\n");
+    // printf("P_AllocMobj\n");
     // mobj = Z_Malloc (sizeof(*mobj), PU_LEVEL, NULL);
     // memset (mobj, 0, sizeof (*mobj));
 
@@ -528,7 +528,7 @@ mobj_t* P_AllocMobj (void)
     for (i=0; i<MAX_MOBJ; i++) {
         if (mobjs[i].type == MT_FREE) {
             mobj_t *ptr = &mobjs[i];
-            printf("  Allocated mobj #%d %X\n", i, (unsigned int)ptr); 
+            // printf("  Allocated mobj #%d %X\n", i, (unsigned int)ptr); 
             ptr->type = MT_ALLOC;
             return ptr;
         }
@@ -721,7 +721,7 @@ void P_RespawnSpecials (void)
 //
 void P_SpawnPlayer (mapthing_t* mthing)
 {
-    printf("P_SpawnPlayer\n");
+    // printf("P_SpawnPlayer\n");
     player_t*           p;
     fixed_t             x;
     fixed_t             y;
@@ -800,7 +800,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     fixed_t             y;
     fixed_t             z;
 
-    printf("P_SpawnMapThing\n");
+    // printf("P_SpawnMapThing\n");
     // count deathmatch start positions
     if (mthing->type == 11)
     {

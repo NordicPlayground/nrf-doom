@@ -38,6 +38,7 @@
 
 #include "v_patch.h"
 
+#include "i_swap.h"
 
 
 
@@ -121,10 +122,10 @@ typedef struct  __attribute__((packed))
     short       blockbox[4];  //NRFD-NOTE: changed from int to short
 
     // origin for any sounds played by the sector
-    degenmobj_t soundorg;
+    // degenmobj_t soundorg;
 
     // if == validcount, already checked
-    short     validcount;  //NRFD-NOTE: changed from int to short
+    uint8_t     validcount;  //NRFD-NOTE: changed from int to uint8_t
 
     // list of mobjs in sector
     mobj_t* thinglist;
@@ -137,7 +138,7 @@ typedef struct  __attribute__((packed))
     
 } sector_t;
 
-
+degenmobj_t *SectorSoundOrg(sector_t *sec);
 
 
 //
@@ -147,23 +148,28 @@ typedef struct  __attribute__((packed))
 typedef struct  __attribute__((packed))
 {
     // add this to the calculated texture column
-    fixed_t textureoffset;
+    short textureoffset_short; // NRFD-NOTE: Was fixed_t
     
     // add this to the calculated texture top
-    fixed_t rowoffset;
+    short rowoffset_short; // NRFD-NOTE: Was fixed_t
 
     // Texture indices.
     // We do not maintain names here. 
-    short   toptexture;
-    short   bottomtexture;
-    short   midtexture;
+    // NRFD-TODO: Support more than 256 textures
+    byte   toptexture;
+    byte   bottomtexture;
+    byte   midtexture;
 
     // Sector the SideDef is facing.
-    sector_t*   sector;
+    // sector_t*   sector;
+    uint8_t sector_num;
     
 } side_t;
 
-
+fixed_t R_SideTextureOffset(side_t *side);
+fixed_t R_SideRowOffset(side_t *side);
+sector_t *SideSector(side_t *side);
+sector_t *SideNumSector(int sidenum);
 
 //
 // Move clipping aid for LineDefs.
@@ -181,45 +187,60 @@ typedef enum
 
 typedef struct  __attribute__((packed)) line_s
 {
+    maplinedef_t* mld;
     // Vertices, from v1 to v2.
-    vertex_t*   v1;
-    vertex_t*   v2;
+
+    // vertex_t*   v1_x;
+    // vertex_t*   v2_x;
 
     // Precalculated v2 - v1 for side checking.
     // fixed_t dx;
     // fixed_t dy;
 
     // Animation related.
-    short   flags;
-    short   special;
-    short   tag;
+    // short   flags;
+    byte   special; // NRFD-NOTE: Was short
+    // short   tag;
 
     // Visual appearance: SideDefs.
     //  sidenum[1] will be -1 if one sided
-    short   sidenum[2];         
+    // short   sidenum[2];         
 
     // Neat. Another bounding box, for the extent
     //  of the LineDef.
     // fixed_t bbox[4];
 
     // To aid move clipping.
-    slopetype_t slopetype;
+    // slopetype_t slopetype;
 
     // Front and back sector.
     // Note: redundant? Can be retrieved from SideDefs.
-    sector_t*   frontsector;
-    sector_t*   backsector;
+    // sector_t*   frontsector;
+    // sector_t*   backsector;
 
     // if == validcount, already checked
+    // NRFD-TODO: Optimize?
     int8_t     validcount; // NRFD-NOTE: Was int
 
+    // NRFD-TODO?
     // thinker_t for reversable actions
-    void*   specialdata;        
+    // void*   specialdata;        
 } line_t;
 
-
-
-
+vertex_t    LineV1          (line_t *line);
+vertex_t    LineV2          (line_t *line);
+void        LineSetMapped   (line_t *line);
+short       LineFlags       (line_t *line);
+short       LineTag         (line_t *line);
+void        LineTagSet666   (line_t *line);
+short       LineSideNum     (line_t *line, int num);
+side_t*     LineSide        (line_t *line, int num);
+sector_t *  LineFrontSector (line_t *line);
+sector_t *  LineBackSector  (line_t *line);
+short       LineTag         (line_t *line);
+slopetype_t LineSlopeType   (line_t *line);
+vector_t    LineVector      (line_t* line);
+fixed_t*    LineBBox        (line_t* line);
 //
 // A SubSector.
 // References a Sector.
@@ -240,32 +261,43 @@ typedef struct  __attribute__((packed)) subsector_s
 //
 // The LineSeg.
 //
+/*
 typedef struct  __attribute__((packed))
 {
-    vertex_t*   v1;
-    vertex_t*   v2;
+    // vertex_t*   v1;
+    // vertex_t*   v2;
     
-    fixed_t offset;
+    // fixed_t offset;
 
-    angle_t angle;
+    // angle_t angle;
 
-    side_t* sidedef;
-    line_t* linedef;
+    // side_t* sidedef;
+    // line_t* linedef;
 
     // Sector references.
     // Could be retrieved from linedef, too.
     // backsector is NULL for one sided lines
     // sector_t*   frontsector;
-    sector_t*   backsector;
-    
-} seg_t;
+    // sector_t*   backsector;
+} seg_t;*/
+typedef mapseg_t seg_t;
 
+seg_t *GetSeg(int num);
 sector_t *SegFrontSector(seg_t *seg);
 sector_t *SegBackSector(seg_t *seg); 
+angle_t SegAngle(seg_t *seg);
+fixed_t SegOffset(seg_t *seg);
+vertex_t *SegV1(seg_t *seg);
+vertex_t *SegV2(seg_t *seg);
+line_t *SegLineDef(seg_t *seg);
+side_t *SegSideDef(seg_t *seg);
+
+
 
 //
 // BSP node.
 //
+
 typedef struct  __attribute__((packed))
 {
     // Partition line.
@@ -282,8 +314,42 @@ typedef struct  __attribute__((packed))
     
 } node_t;
 
+extern mapnode_t*          mapnodes;
 
+static inline node_t GetNode(unsigned short num)
+{
+    int         j;
+    int         k;
+    mapnode_t *mn = &mapnodes[num];
+    node_t     no;
+        asm volatile("nop");
+    asm volatile("nop");
 
+    no.x = SHORT(mn->x)<<FRACBITS;
+    asm volatile("nop");
+    asm volatile("nop");
+    no.y = SHORT(mn->y)<<FRACBITS;
+    asm volatile("nop");
+    asm volatile("nop");
+    no.dx = SHORT(mn->dx)<<FRACBITS;
+    asm volatile("nop");
+    asm volatile("nop");
+    no.dy = SHORT(mn->dy)<<FRACBITS;
+    asm volatile("nop");
+    asm volatile("nop");
+    for (j=0 ; j<2 ; j++)
+    {
+    asm volatile("nop");
+        no.children[j] = SHORT(mn->children[j]);
+    asm volatile("nop");
+        for (k=0 ; k<4 ; k++) {
+    asm volatile("nop");
+            no.bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
+    asm volatile("nop");
+        }
+    }
+    return no;
+}
 
 // PC direct to screen pointers
 //B UNUSED - keep till detailshift in r_draw.c resolved
@@ -353,6 +419,8 @@ typedef struct  __attribute__((packed)) vissprite_s
     short         x1; // NRFD-NOTE: Was int
     short         x2; // NRFD-NOTE: Was int
 
+    mobj_t  *thing;
+    /*
     // for line side calculation
     fixed_t     gx;
     fixed_t     gy;     
@@ -360,6 +428,7 @@ typedef struct  __attribute__((packed)) vissprite_s
     // global bottom / top for silhouette clipping
     fixed_t     gz;
     fixed_t     gzt;
+    */
 
     // horizontal position of x1
     fixed_t     startfrac;

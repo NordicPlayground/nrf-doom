@@ -189,8 +189,7 @@ void I_ShutdownGraphics(void)
 //
 void I_StartFrame (void)
 {
-    // er?
-
+    N_display_spi_transfer_finish();
 }
 
 static void I_ToggleFullScreen(void)
@@ -239,38 +238,8 @@ void I_UpdateNoBlit (void)
     // what is this?
 }
 
-//
-// I_FinishUpdate
-//
-void I_FinishUpdate (void)
+void I_WriteDisplayList(void)
 {
-    N_ldbg("NRFD-TODO: I_FinishUpdate\n");
-    // PrintVBuffer();
-    // static int lasttic;
-    // int tics;
-    // int i;
-
-    // draws little dots on the bottom of the screen
-
-    // NRFD-TODO
-    // if (display_fps_dots)
-    // {
-    //     i = I_GetTime();
-    //     tics = i - lasttic;
-    //     lasttic = i;
-    //     if (tics > 20) tics = 20;
-
-    //     for (i=0 ; i<tics*4 ; i+=4)
-    //         I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
-    //     for ( ; i<20*4 ; i+=4)
-    //         I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
-    // }
-
-    // Draw disk icon before blit, if necessary.
-    // NRFD_TODO: V_DrawDiskIcon();
-
-    N_display_spi_wr(display_vbuffer_loc, SCREENWIDTH*SCREENHEIGHT, I_VideoBuffer);
-    
     dl_start();
 
     dl(FT810_CLEAR_COLOR_RGB(0x00, 0x00, 0x00));
@@ -317,6 +286,42 @@ void I_FinishUpdate (void)
     dl_end();
 
     N_display_dlswap_frame();
+}
+
+//
+// I_FinishUpdate
+//
+void I_FinishUpdate (void)
+{
+    N_ldbg("NRFD-TODO: I_FinishUpdate\n");
+    // PrintVBuffer();
+    // static int lasttic;
+    // int tics;
+    // int i;
+
+    // draws little dots on the bottom of the screen
+
+    // NRFD-TODO
+    // if (display_fps_dots)
+    // {
+    //     i = I_GetTime();
+    //     tics = i - lasttic;
+    //     lasttic = i;
+    //     if (tics > 20) tics = 20;
+
+    //     for (i=0 ; i<tics*4 ; i+=4)
+    //         I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
+    //     for ( ; i<20*4 ; i+=4)
+    //         I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
+    // }
+
+    // Draw disk icon before blit, if necessary.
+    // NRFD_TODO: V_DrawDiskIcon();
+
+    N_display_spi_wr(display_vbuffer_loc, SCREENWIDTH*SCREENHEIGHT, I_VideoBuffer);
+    
+    
+    // N_display_dlswap_frame();
     
 
     // Restore background and undo the disk indicator, if it was drawn.
@@ -445,6 +450,9 @@ void I_InitGraphics(void)
     display_palette_loc = N_display_ram_alloc(DISPLAY_PALETTE_SIZE);
     display_vbuffer_loc = N_display_ram_alloc(SCREENWIDTH*SCREENHEIGHT);
     
+    I_WriteDisplayList();
+    I_WriteDisplayList();
+
     initialized = true;
 }
 
@@ -473,9 +481,11 @@ void I_BindVideoVariables(void)
     // M_BindIntVariable("png_screenshots",           &png_screenshots);
 }
 
+// Rename to StartUpdate?
 void I_ClearVideoBuffer(void)
 {
-    for (int i=0; i<SCREENHEIGHT*SCREENWIDTH; i++) {
-        I_VideoBuffer[i] = 251; // pink
-    }
+    // N_display_spi_transfer_finish();
+    // for (int i=0; i<SCREENHEIGHT*SCREENWIDTH; i++) {
+    //     I_VideoBuffer[i] = 251; // pink
+    // }
 }

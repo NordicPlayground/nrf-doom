@@ -65,7 +65,7 @@ EV_Teleport
 	return 0;	
 
     
-    tag = line->tag;
+    tag = LineTag(line);
     for (i = 0; i < numsectors; i++)
     {
 	if (sectors[ i ].tag == tag )

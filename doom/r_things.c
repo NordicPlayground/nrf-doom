@@ -392,8 +392,14 @@ void R_InitSprites ()
 // R_ClearSprites
 // Called at frame start.
 //
+int vissprite_count = 0;
+
 void R_ClearSprites (void)
 {
+    if (vissprite_count != 0) {
+        // printf("VSC: %d\n", vissprite_count);
+    }
+    vissprite_count = 0;
     vissprite_p = vissprites;
 }
 
@@ -401,15 +407,16 @@ void R_ClearSprites (void)
 //
 // R_NewVisSprite
 //
-// vissprite_t     overflowsprite;
+vissprite_t     overflowsprite;
 
 vissprite_t* R_NewVisSprite (void)
 {
     if (vissprite_p == &vissprites[MAXVISSPRITES]) {
-        I_Error("R_NewVisSprite: overflow\n");
-        // return &overflowsprite;
+        // printf("R_NewVisSprite: overflow %d\n", vissprite_count);
+        vissprite_count++;
+        return &overflowsprite;
     }
-    
+    vissprite_count++;
     vissprite_p++;
     return vissprite_p-1;
 }
@@ -435,7 +442,7 @@ void R_DrawMaskedColumn (column_t* column)
     fixed_t     basetexturemid;
         
     basetexturemid = dc_texturemid;
-        
+
     for ( ; column->topdelta != 0xff ; ) 
     {
         // calculate unclipped screen coordinates
@@ -510,10 +517,6 @@ R_DrawVisSprite
     }
     */
 
-    //NRFD-TODO: Optimize
-    memcpy(dc_colormap_buf, dc_colormap, 256);
-    dc_colormap = dc_colormap_buf;
-        
     dc_iscale = abs(vis->xiscale)>>detailshift;
     dc_texturemid = vis->texturemid;
     frac = vis->startfrac;
@@ -648,11 +651,17 @@ void R_ProjectSprite (mobj_t* thing)
     vis = R_NewVisSprite ();
     // vis->mobjflags = thing->flags; // NRFD-TODO?
     vis->scale = xscale<<detailshift;
+
+    vis->thing = thing;
+    /*
     vis->gx = thing->x;
     vis->gy = thing->y;
     vis->gz = thing->z;
     vis->gzt = thing->z + R_SpriteTopOffset(lump);
-    vis->texturemid = vis->gzt - viewz;
+    */
+    fixed_t gzt = thing->z + R_SpriteTopOffset(lump);
+    vis->texturemid = gzt - viewz;
+
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;       
     iscale = FixedDiv (FRACUNIT, xscale);
@@ -989,6 +998,11 @@ void R_DrawSprite (vissprite_t* spr)
     fixed_t             scale;
     fixed_t             lowscale;
     int                 silhouette;
+
+    fixed_t gx  = spr->thing->x;
+    fixed_t gy  = spr->thing->y;
+    fixed_t gz  = spr->thing->z;
+    fixed_t gzt = spr->thing->z + R_SpriteTopOffset(spr->patch);
                 
     for (x = spr->x1 ; x<=spr->x2 ; x++)
         clipbot[x] = cliptop[x] = -2;
@@ -1024,7 +1038,7 @@ void R_DrawSprite (vissprite_t* spr)
                 
         if (scale < spr->scale
             || ( lowscale < spr->scale
-                 && !R_PointOnSegSide (spr->gx, spr->gy, ds->curline) ) )
+                 && !R_PointOnSegSide (gx, gy, ds->curline) ) )
         {
             // masked mid texture?
             if (ds->maskedtexturecol)   
@@ -1037,10 +1051,10 @@ void R_DrawSprite (vissprite_t* spr)
         // clip this piece of the sprite
         silhouette = ds->silhouette;
         
-        if (spr->gz >= ds->bsilheight)
+        if (gz >= ds->bsilheight)
             silhouette &= ~SIL_BOTTOM;
 
-        if (spr->gzt <= ds->tsilheight)
+        if (gzt <= ds->tsilheight)
             silhouette &= ~SIL_TOP;
                         
         if (silhouette == 1)
@@ -1118,12 +1132,14 @@ void R_DrawMasked (void)
             R_DrawSprite (spr);
         }
     }
-    
+
     // render any remaining masked mid textures
-    for (ds=ds_p-1 ; ds >= drawsegs ; ds--)
-        if (ds->maskedtexturecol)
+    for (ds=ds_p-1 ; ds >= drawsegs ; ds--) {
+        if (ds->maskedtexturecol) {
             R_RenderMaskedSegRange (ds, ds->x1, ds->x2);
-    
+        }
+    }
+
     // draw the psprites on top of everything
     //  but does not draw on side views
     if (!viewangleoffset)               

@@ -450,6 +450,7 @@ static int Clamp(int x)
 void S_StartSound(void *origin_p, int sfx_id)
 {
     // printf("NRFD-TODO: S_StartSound\n");
+    // TODO: Check if origin is NULL
     /*
     sfxinfo_t *sfx;
     mobj_t *origin;
