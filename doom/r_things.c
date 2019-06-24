@@ -508,12 +508,12 @@ R_DrawVisSprite
         // NULL colormap = shadow draw
         colfunc = fuzzcolfunc;
     }
-    /* NRFD-TODO: dc_translation
-    else if (vis->mobjflags & MF_TRANSLATION)
+    /* NRFD_TODO: translation
+    else if (vis->thing->flags & MF_TRANSLATION)
     {
         colfunc = transcolfunc;
         dc_translation = translationtables - 256 +
-            ( (vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
+            ( (vis->thing->flags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
     }
     */
 

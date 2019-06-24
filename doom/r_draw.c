@@ -83,7 +83,6 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 boolean                 dc_debug = false;
- // NRFD-TODO: Optimize?
 lighttable_t            *dc_colormap; 
 int                     dc_x; 
 int                     dc_yl; 
@@ -142,9 +141,6 @@ void R_DrawTransColumn (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep; 
 
-    // NRFD-TODO: Optimizations
-    // memcpy(column_buffer, dc_source, SCREENHEIGHT);
-
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
@@ -156,8 +152,6 @@ void R_DrawTransColumn (void)
         if (val != 251) { // Use pink as transparent color
             *dest = dc_colormap[val];
         }
-        // *dest = dc_colormap[column_buffer[(frac>>FRACBITS)&127]];
-        // *dest = dc_source[(frac>>FRACBITS)&127]];
         
         dest += SCREENWIDTH; 
         frac += fracstep;
@@ -205,9 +199,6 @@ void R_DrawColumn (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep; 
 
-    // NRFD-TODO: Optimizations
-    // memcpy(column_buffer, dc_source, SCREENHEIGHT);
-
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
@@ -216,8 +207,6 @@ void R_DrawColumn (void)
         // Re-map color indices from wall texture column
         //  using a lighting/special effects LUT.
         *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
-        // *dest = dc_colormap[column_buffer[(frac>>FRACBITS)&127]];
-        // *dest = dc_source[(frac>>FRACBITS)&127]];
         
         dest += SCREENWIDTH; 
         frac += fracstep;
@@ -501,17 +490,66 @@ void R_DrawFuzzColumnLow (void)
 //
 byte*   dc_translation;
 byte*   translationtables;
+const byte   translationtables_const[256*3] = {
+                      0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15, 
+                     16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31, 
+                     32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47, 
+                     48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63, 
+                     64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79, 
+                     80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95, 
+                     96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 
+                     96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 
+                    128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 
+                    144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 
+                    160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 
+                    176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 
+                    192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 
+                    208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 
+                    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 
+                    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 
+                      0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15, 
+                     16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31, 
+                     32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47, 
+                     48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63, 
+                     64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79, 
+                     80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95, 
+                     96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 
+                     64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79, 
+                    128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 
+                    144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 
+                    160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 
+                    176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 
+                    192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 
+                    208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 
+                    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 
+                    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 
+                      0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15, 
+                     16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31, 
+                     32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47, 
+                     48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63, 
+                     64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79, 
+                     80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95, 
+                     96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 
+                     32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47, 
+                    128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 
+                    144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 
+                    160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 
+                    176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 
+                    192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 
+                    208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 
+                    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 
+                    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
+                    };
 
 void R_DrawTranslatedColumn (void) 
 { 
-    printf("NRFD-TODO: R_DrawTranslatedColumn\n"); /*
     int                 count; 
     pixel_t*            dest;
     fixed_t             frac;
     fixed_t             fracstep;        
  
     count = dc_yh - dc_yl; 
-    if (count < 0) 
+    if (count <  0) 
         return; 
                                  
 #ifdef RANGECHECK 
@@ -545,7 +583,6 @@ void R_DrawTranslatedColumn (void)
         
         frac += fracstep; 
     } while (count--); 
-    */
 } 
 
 void R_DrawTranslatedColumnLow (void) 
@@ -605,7 +642,6 @@ void R_DrawTranslatedColumnLow (void)
 
 
 
-
 //
 // R_InitTranslationTables
 // Creates the translation tables to map
@@ -615,10 +651,9 @@ void R_DrawTranslatedColumnLow (void)
 //
 void R_InitTranslationTables (void)
 {
-    printf("NRFD-TODO: R_InitTranslationTables\n");
-    /*
-    // NRFD-TODO: Memory optimizations
+    translationtables = (byte*)translationtables_const;
     int i;
+    /* NRFD-EXCLUDED: moved to constant table
     translationtables = Z_Malloc (256*3, PU_STATIC, 0);
     
     // translate just the 16 green colors
@@ -638,6 +673,15 @@ void R_InitTranslationTables (void)
                 = translationtables[i+512] = i;
         }
     }
+    */
+    /*
+    printf("translationtables_const[256*3] = {\n");
+    for (i=0 ; i<256*3 ; i++)
+    {
+        printf("%3d, ", translationtables[i]);
+        if (i%16==15) { printf("\n"); }
+    }
+    printf("}\n");
     */
 }
 

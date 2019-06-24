@@ -95,6 +95,7 @@ static hu_itext_t       w_chat;
 static boolean          always_off = false;
 static char             chat_dest[MAXPLAYERS];
 static hu_itext_t w_inputbuffer[MAXPLAYERS];
+*/
 
 static boolean          message_on;
 boolean                 message_dontfuckwithme;
@@ -104,15 +105,14 @@ static hu_stext_t       w_message;
 static int              message_counter;
 
 extern int              showMessages;
-*/
 static boolean          headsupactive = false;
-/*
+
 //
 // Builtin map names.
 // The actual names can be found in DStrings.h.
 //
 
-char*   mapnames[] =    // DOOM shareware/registered/retail (Ultimate) names.
+const char*   mapnames[] =    // DOOM shareware/registered/retail (Ultimate) names.
 {
 
     HUSTR_E1M1,
@@ -166,6 +166,7 @@ char*   mapnames[] =    // DOOM shareware/registered/retail (Ultimate) names.
     "NEWLEVEL"
 };
 
+/*
 char*   mapnames_chex[] =   // Chex Quest names.
 {
 
@@ -219,14 +220,14 @@ char*   mapnames_chex[] =   // Chex Quest names.
     "NEWLEVEL",
     "NEWLEVEL"
 };
-
+*/
 // List of names for levels in commercial IWADs
 // (doom2.wad, plutonia.wad, tnt.wad).  These are stored in a
 // single large array; WADs like pl2.wad have a MAP33, and rely on
 // the layout in the Vanilla executable, where it is possible to
 // overflow the end of one array into the next.
 
-char *mapnames_commercial[] =
+const char *mapnames_commercial[] =
 {
     // DOOM 2 map names.
 
@@ -339,7 +340,7 @@ char *mapnames_commercial[] =
     THUSTR_31,
     THUSTR_32
 };
-*/
+
 void HU_Init(void)
 {
 
@@ -368,8 +369,6 @@ void HU_Start(void)
     int         i;
     char*       s;
 
-    printf("NRFD-TODO: HU_Start\n"); return;
-/*
     if (headsupactive)
         HU_Stop();
 
@@ -377,7 +376,7 @@ void HU_Start(void)
     message_on = false;
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
-    chat_on = false;
+    // chat_on = false; // NRFD-TODO: chat
 
     // create the message widget
     HUlib_initSText(&w_message,
@@ -394,26 +393,28 @@ void HU_Start(void)
     switch ( logical_gamemission )
     {
       case doom:
-        s = HU_TITLE;
+        s = (char*)HU_TITLE;
         break;
       case doom2:
-         s = HU_TITLE2;
+         s = (char*)HU_TITLE2;
          break;
       case pack_plut:
-        s = HU_TITLEP;
+        s = (char*)HU_TITLEP;
         break;
       case pack_tnt:
-        s = HU_TITLET;
+        s = (char*)HU_TITLET;
         break;
       default:
          s = "Unknown level";
          break;
     }
 
+    /* NRFD-EXCLUDE: Chex
     if (logical_gamemission == doom && gameversion == exe_chex)
     {
         s = HU_TITLE_CHEX;
     }
+    */
 
     // dehacked substitution to get modified level name
 
@@ -422,6 +423,7 @@ void HU_Start(void)
     while (*s)
         HUlib_addCharToTextLine(&w_title, *(s++));
 
+    /* NRFD-TODO: Chat
     // create the chat widget
     HUlib_initIText(&w_chat,
                     HU_INPUTX, HU_INPUTY,
@@ -431,37 +433,28 @@ void HU_Start(void)
     // create the inputbuffer widgets
     for (i=0 ; i<MAXPLAYERS ; i++)
         HUlib_initIText(&w_inputbuffer[i], 0, 0, 0, 0, &always_off);
-
+    */
     headsupactive = true;
-*/
-
 }
 
 
 void HU_Drawer(void)
 {
-    N_ldbg("NRFD-TODO: HU_Drawer\n");
-    /*
     HUlib_drawSText(&w_message);
-    HUlib_drawIText(&w_chat);
+    // HUlib_drawIText(&w_chat); // NRFD-TODO: Chat
     if (automapactive)
         HUlib_drawTextLine(&w_title, false);
-        */
 }
 
 void HU_Erase(void)
 {
-    N_ldbg("NRFD_TODO: HU_Erase\n");
-/* NRFD-TODO: HU
     HUlib_eraseSText(&w_message);
-    HUlib_eraseIText(&w_chat);
+    // HUlib_eraseIText(&w_chat); // NRFD-TODO: Chat
     HUlib_eraseTextLine(&w_title);
-*/
 }
 
 void HU_Ticker(void)
 {
-    /* NRFD-TOD: HU
     int i, rc;
     char c;
 
@@ -490,6 +483,7 @@ void HU_Ticker(void)
     } // else message_on = false;
 
     // check for incoming chat characters
+    /* NRFD-TODO: Chat
     if (netgame)
     {
         for (i=0 ; i<MAXPLAYERS; i++)
@@ -573,7 +567,7 @@ char HU_dequeueChatChar(void)
     */
 }
 
-/* NRFD-TODO: HU
+/* NRFD-TODO: HU/chat
 static void StartChatInput(int dest)
 {
     chat_on = true;
@@ -598,7 +592,6 @@ boolean HU_Responder(event_t *ev)
     unsigned char       c;
     int                 i;
     int                 numplayers;
-    /* NRFD-TODO: HU
     
     static int          num_nobrainers = 0;
 
@@ -619,6 +612,7 @@ boolean HU_Responder(event_t *ev)
     if (ev->type != ev_keydown)
         return false;
 
+    /* NRFD-TOO: Chat
     if (!chat_on)
     {
         if (ev->data1 == key_message_refresh)
@@ -715,7 +709,6 @@ boolean HU_Responder(event_t *ev)
             }
         }
     }
-
     */
     return eatkey;
 }

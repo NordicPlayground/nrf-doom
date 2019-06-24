@@ -74,7 +74,7 @@ typedef struct __attribute__((packed))
 
     // Event-specific data; see the descriptions given above.
     // NRFD-NOTE: Changed from int to short
-    short data1, data2, data3, data4, data5;
+    unsigned short data1, data2, data3, data4, data5;
 } event_t;
 
  

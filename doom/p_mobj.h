@@ -239,7 +239,7 @@ typedef struct __attribute__((packed)) mobj_s
     fixed_t             momz;
 
     // If == validcount, already checked.
-    short                 validcount; // NRFD-NOTE: was int
+    // uint8_t             validcount; // NRFD-NOTE: was int
 
     mobjtype_t          type;
     const mobjinfo_t*   info;   // &mobjinfo[mobj->type]

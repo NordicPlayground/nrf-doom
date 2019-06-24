@@ -230,6 +230,8 @@ typedef struct  __attribute__((packed)) line_s
 vertex_t    LineV1          (line_t *line);
 vertex_t    LineV2          (line_t *line);
 void        LineSetMapped   (line_t *line);
+boolean     LineIsMapped    (line_t *line);
+boolean     LineDontDraw    (line_t *line);
 short       LineFlags       (line_t *line);
 short       LineTag         (line_t *line);
 void        LineTagSet666   (line_t *line);

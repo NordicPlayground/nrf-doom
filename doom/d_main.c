@@ -127,8 +127,8 @@ boolean         main_loop_started = false;
 // char            wadfile[1024];          // primary wad file
 // char            mapdir[1024];           // directory of development maps
 
-int             show_endoom = 1;
-int             show_diskicon = 1;
+const int             show_endoom = 1;
+const int             show_diskicon = 1;
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
@@ -167,7 +167,7 @@ void D_ProcessEvents (void)
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t     wipegamestate = GS_DEMOSCREEN;
 extern  boolean setsizeneeded;
-extern  int             showMessages;
+extern  const int             showMessages;
 void R_ExecuteSetViewSize (void);
 
 void D_Display (void)
@@ -383,17 +383,18 @@ void D_BindVariables(void)
 
     NET_BindVariables();
 
-    M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
+    // NRFD-TODO: mouse
+    // M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
-    M_BindIntVariable("show_messages",          &showMessages);
+    // M_BindIntVariable("show_messages",          &showMessages);
     // M_BindIntVariable("screenblocks",           &screenblocks);
     // M_BindIntVariable("detaillevel",            &detailLevel);
     // M_BindIntVariable("snd_channels",           &snd_channels);
     // M_BindIntVariable("vanilla_savegame_limit", &vanilla_savegame_limit);
     // M_BindIntVariable("vanilla_demo_limit",     &vanilla_demo_limit);
-    M_BindIntVariable("show_endoom",            &show_endoom);
-    M_BindIntVariable("show_diskicon",          &show_diskicon);
+    // M_BindIntVariable("show_endoom",            &show_endoom);
+    // M_BindIntVariable("show_diskicon",          &show_diskicon);
 
     // Multiplayer chat macros
 

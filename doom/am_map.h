@@ -23,10 +23,14 @@
 #include "m_cheat.h"
 
 // Used by ST StatusBar stuff.
-#define AM_MSGHEADER (('a'<<24)+('m'<<16))
-#define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
-#define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
+// NRFD-NOTE: Decreased size of data in event_t
+// #define AM_MSGHEADER (('a'<<24)+('m'<<16))
+// #define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
+// #define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
 
+#define AM_MSGHEADER 0xA000
+#define AM_MSGENTERED (AM_MSGHEADER | 0x0E00)
+#define AM_MSGEXITED (AM_MSGHEADER | 0X0F00)
 
 // Called by main loop.
 boolean AM_Responder (event_t* ev);

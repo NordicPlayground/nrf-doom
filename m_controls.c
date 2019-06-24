@@ -170,7 +170,7 @@ const int key_menu_endgame   = KEY_F7;
 const int key_menu_messages  = KEY_F8;
 const int key_menu_qload     = KEY_F9;
 const int key_menu_quit      = KEY_F10;
-const int key_menu_gamma     = KEY_F11;
+const int key_menu_gamma     = 'g';//KEY_F11;
 
 const int key_menu_incscreen = KEY_EQUALS;
 const int key_menu_decscreen = KEY_MINUS;

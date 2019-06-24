@@ -440,10 +440,12 @@ ST_Responder (event_t* ev)
 {
   int i;
    
-  /* NRFD-TODO: automap 
   // Filter automap on/off.
+  // NRFD-NOTE: Decreased size of data in event_t
+  // if (ev->type == ev_keyup
+  //     && ((ev->data1 & 0xffff0000) == AM_MSGHEADER))
   if (ev->type == ev_keyup
-      && ((ev->data1 & 0xffff0000) == AM_MSGHEADER))
+      && ((ev->data1 & 0xf000) == AM_MSGHEADER))
   {
     switch(ev->data1)
     {
@@ -458,7 +460,7 @@ ST_Responder (event_t* ev)
         break;
     }
   }
-  */
+
     /* NRFD-TODO: Cheat
 
   // if a user keypress...
@@ -957,8 +959,6 @@ static int st_palette = 0;
 
 void ST_doPaletteStuff(void)
 {
-    N_ldbg("NRFD-TODO: ST_doPaletteStuff\n");
-    /*
     int         palette;
     byte*       pal;
     int         cnt;
@@ -1001,6 +1001,7 @@ void ST_doPaletteStuff(void)
     else
         palette = 0;
 
+      /* NRFD-EXCLUDE
     // In Chex Quest, the player never sees red.  Instead, the
     // radiation suit palette is used to tint the screen green,
     // as though the player is being covered in goo by an
@@ -1011,6 +1012,7 @@ void ST_doPaletteStuff(void)
     {
         palette = RADIATIONPAL;
     }
+    */
 
     if (palette != st_palette)
     {
@@ -1018,8 +1020,6 @@ void ST_doPaletteStuff(void)
         pal = (byte *) W_CacheLumpNum (lu_palette, PU_CACHE)+palette*768;
         I_SetPalette (pal);
     }
-    */
-
 }
 
 void ST_drawWidgets(boolean refresh)

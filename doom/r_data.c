@@ -380,6 +380,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
     texture->composite = N_qspi_data_pointer(texture_loc);
 
     for (int i=0; i<texture_size; i++) {
+        // NRFD-TODO: Verify that textures don't have 251 in them
         generate_buffer[i] = 251; // PINK, use as transparent is masked textures
     }
 

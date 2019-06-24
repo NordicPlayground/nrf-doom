@@ -107,9 +107,6 @@
 #define CXMTOF(x)  (f_x + MTOF((x)-m_x))
 #define CYMTOF(y)  (f_y + (f_h - MTOF((y)-m_y)))
 
-// the following is crap
-#define LINE_NEVERSEE ML_DONTDRAW
-
 typedef struct
 {
     int x, y;
@@ -428,8 +425,6 @@ void AM_changeWindowLoc(void)
 //
 void AM_initVariables(void)
 {
-    printf("NRFD-TODO: AM_initVariables\n");
-    /*
     int pnum;
     static event_t st_notify = { ev_keyup, AM_MSGENTERED, 0, 0 };
 
@@ -478,7 +473,6 @@ void AM_initVariables(void)
 
     // inform the status bar of the change
     ST_Responder(&st_notify);
-    */
 }
 
 //
@@ -549,15 +543,12 @@ void AM_LevelInit(void)
 //
 void AM_Stop (void)
 {
-    printf("NRFD-TODO: AM_Stop\n");
-    /*
     static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED, 0 };
 
     AM_unloadPics();
     automapactive = false;
     ST_Responder(&st_notify);
     stopped = true;
-    */
 }
 
 //
@@ -1159,22 +1150,26 @@ void AM_drawGrid(int color)
 //
 void AM_drawWalls(void)
 {
-    printf("NRFD-TODO: AM_drawWalls\n");
-    /*
     int i;
     static mline_t l;
 
     for (i=0;i<numlines;i++)
     {
-        l.a.x = lines[i].v1->x;
-        l.a.y = lines[i].v1->y;
-        l.b.x = lines[i].v2->x;
-        l.b.y = lines[i].v2->y;
-        if (cheating || (lines[i].flags & ML_MAPPED))
+        line_t *line = &lines[i];
+        short lineFlags = LineFlags(line);
+        sector_t *backsector = LineBackSector(line);
+        sector_t *frontsector = LineFrontSector(line);
+        vertex_t v1 = LineV1(line);
+        vertex_t v2 = LineV2(line);
+        l.a.x = v1.x;
+        l.a.y = v1.y;
+        l.b.x = v2.x;
+        l.b.y = v2.y;
+        if (cheating || LineIsMapped(line))
         {
-            if ((lines[i].flags & LINE_NEVERSEE) && !cheating)
+            if ((lineFlags & ML_DONTDRAW) && !cheating)
                 continue;
-            if (!lines[i].backsector)
+            if (!backsector)
             {
                 AM_drawMline(&l, WALLCOLORS+lightlev);
             }
@@ -1184,17 +1179,17 @@ void AM_drawWalls(void)
                 { // teleporters
                     AM_drawMline(&l, WALLCOLORS+WALLRANGE/2);
                 }
-                else if (lines[i].flags & ML_SECRET) // secret door
+                else if (lineFlags & ML_SECRET) // secret door
                 {
                     if (cheating) AM_drawMline(&l, SECRETWALLCOLORS + lightlev);
                     else AM_drawMline(&l, WALLCOLORS+lightlev);
                 }
-                else if (lines[i].backsector->floorheight
-                           != lines[i].frontsector->floorheight) {
+                else if (backsector->floorheight
+                           != frontsector->floorheight) {
                     AM_drawMline(&l, FDWALLCOLORS + lightlev); // floor level change
                 }
-                else if (lines[i].backsector->ceilingheight
-                           != lines[i].frontsector->ceilingheight) {
+                else if (backsector->ceilingheight
+                           != frontsector->ceilingheight) {
                     AM_drawMline(&l, CDWALLCOLORS+lightlev); // ceiling level change
                 }
                 else if (cheating) {
@@ -1204,10 +1199,9 @@ void AM_drawWalls(void)
         }
         else if (plr->powers[pw_allmap])
         {
-            if (!(lines[i].flags & LINE_NEVERSEE)) AM_drawMline(&l, GRAYS+3);
+            if (!(lineFlags & ML_DONTDRAW)) AM_drawMline(&l, GRAYS+3);
         }
     }
-    */
 }
 
 
@@ -1354,7 +1348,7 @@ AM_drawThings
 
 void AM_drawMarks(void)
 {
-    printf("NRFD-TODO: AM_drawMarks\n");
+    N_ldbg("NRFD-TODO: AM_drawMarks\n");
     /* NRFD-TODO: mark points
     int i, fx, fy, w, h;
 
@@ -1383,7 +1377,6 @@ void AM_drawCrosshair(int color)
 
 void AM_Drawer (void)
 {
-    printf("AM_Drawer\n");
     if (!automapactive) return;
 
     AM_clearFB(BACKGROUND);

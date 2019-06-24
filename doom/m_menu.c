@@ -69,10 +69,10 @@ extern boolean          chat_on;                // in heads-up code
 //
 // defaulted values
 //
-int                     mouseSensitivity = 5;
+// int                     mouseSensitivity = 5;
 
 // Show messages has default, 0 = off, 1 = on
-int                     showMessages = 1;
+const int                     showMessages = 1;
         
 
 // Blocky mode, has default, 0 = high, 1 = normal
@@ -80,10 +80,10 @@ const int                     detailLevel = 0;
 const int                     screenblocks = 10;
 
 // temp for screenblocks (0-9)
-int                     screenSize;
+byte                     screenSize;
 
 // -1 = no quicksave slot picked!
-int                     quickSaveSlot;
+byte                     quickSaveSlot;
 
  // 1 = message to be printed
 int                     messageToPrint;
@@ -91,17 +91,16 @@ int                     messageToPrint;
 char*                   messageString;
 
 // message x & y
-int                     messx;
-int                     messy;
-int                     messageLastMenuActive;
+short                     messx;
+short                     messy;
+short                     messageLastMenuActive;
 
 // timed message = no input from user
 boolean                 messageNeedsInput;
 
 void    (*messageRoutine)(int response);
 
-/* NRFD-TODO:
-char gammamsg[5][26] =
+const char gammamsg[5][26] =
 {
     GAMMALVL0,
     GAMMALVL1,
@@ -109,7 +108,6 @@ char gammamsg[5][26] =
     GAMMALVL3,
     GAMMALVL4
 };
-*/
 
 // we are going to be entering a savegame string
 int                     saveStringEnter;              
@@ -961,8 +959,9 @@ void M_DrawOptions(void)
                       W_CacheLumpName(DEH_String((char*)msgNames[showMessages]),
                                       PU_CACHE));
 
-    M_DrawThermo(OptionsDef.x, OptionsDef.y + LINEHEIGHT * (mousesens + 1),
-                 10, mouseSensitivity);
+    // NRFD-TODO: Mouse
+    // M_DrawThermo(OptionsDef.x, OptionsDef.y + LINEHEIGHT * (mousesens + 1),
+    //              10, mouseSensitivity);
 
     M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(scrnsize+1),
                  9,screenSize);
@@ -980,6 +979,7 @@ void M_Options(int choice)
 //
 void M_ChangeMessages(int choice)
 {
+    /* NRFD-TODO: showMessages
     // warning: unused parameter `int choice'
     choice = 0;
     showMessages = 1 - showMessages;
@@ -988,7 +988,7 @@ void M_ChangeMessages(int choice)
         players[consoleplayer].message = DEH_String(MSGOFF);
     else
         players[consoleplayer].message = DEH_String(MSGON);
-
+    */
     // NRFD-TODO
     //message_dontfuckwithme = true;
 }
@@ -1134,6 +1134,7 @@ void M_QuitDOOM(int choice)
 
 void M_ChangeSensitivity(int choice)
 {
+    /* NRFD-TODO: Mouse
     switch(choice)
     {
       case 0:
@@ -1145,6 +1146,7 @@ void M_ChangeSensitivity(int choice)
             mouseSensitivity++;
         break;
     }
+    */
 }
 
 
@@ -1754,13 +1756,11 @@ boolean M_Responder (event_t* ev)
         }
         else if (key == key_menu_gamma)    // gamma toggle
         {
-            /* NRFD-TODO: gamma
             usegamma++;
             if (usegamma > 4)
             usegamma = 0;
-            players[consoleplayer].message = DEH_String(gammamsg[usegamma]);
+            players[consoleplayer].message = DEH_String((char*)gammamsg[usegamma]);
             I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
-            */
             return true;
         }
     }

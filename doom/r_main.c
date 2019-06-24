@@ -47,7 +47,7 @@
 int                     viewangleoffset;
 
 // increment every time a check is made
-short                     validcount = 1;         
+uint8_t                 validcount = 1;         
 
 
 lighttable_t*           fixedcolormap;
@@ -90,7 +90,6 @@ angle_t                 clipangle;
 // maps the visible view angles to screen X coordinates,
 // flattening the arc to a flat projection plane.
 // There will be many angles mapped to the same X. 
-// NRFD-TODO: Move to constant table? 
 // Was: int viewangletox
 const int                     viewangletox[FINEANGLES/2] = 
 {320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
@@ -353,7 +352,6 @@ const int                     viewangletox[FINEANGLES/2] =
 // The xtoviewangle[] table maps a screen pixel
 // to the lowest viewangle that maps back to x ranges
 // from clipangle to -clipangle.
-// NRFD-TODO: Lower precision?
 const angle_t                 xtoviewangle[SCREENWIDTH+1] = 
 {537395200, 534773760, 532676608, 530579456, 528482304, 526385152, 524288000, 521666560, 
 519569408, 517472256, 514850816, 512753664, 510656512, 508035072, 505937920, 503316480, 

@@ -569,9 +569,10 @@ P_BlockLinesIterator
         asm volatile("nop");
         line_t *ld = &lines[line_num]; // TODO: Seperate with nop for QSPI loading
 
-        if (ld->validcount == validcount)
+        // NRFD-TODO: validcount
+        if ((ld->validcount&0x7F) == (validcount&0x7F))
             continue;   // line has already been checked
-        ld->validcount = validcount;
+        ld->validcount = (ld->validcount&0x80) | (validcount&0x7F);
         if ( !func(ld) )
             return false;
     }

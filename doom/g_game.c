@@ -239,7 +239,7 @@ static char     savedescription[32];
 #define BODYQUESIZE     8
 
 mobj_t*         bodyque[BODYQUESIZE]; 
-int             bodyqueslot; 
+byte            bodyqueslot; 
  
 // int             vanilla_savegame_limit = 1;
 // int             vanilla_demo_limit = 1;

@@ -111,7 +111,7 @@ void P_RunThinkers (void)
         if ( currentthinker->function.acv == (actionf_v)(-1) )
         {
             // time to remove it
-            printf("Free thinker\n");
+            // printf("Free thinker\n");
             nextthinker = currentthinker->next;
             currentthinker->next->prev = currentthinker->prev;
             currentthinker->prev->next = currentthinker->next;
@@ -120,7 +120,7 @@ void P_RunThinkers (void)
         else if ( currentthinker->function.acv == (actionf_v)(-2) )
         {
             // time to remove it
-            printf("Free mobj\n");
+            // printf("Free mobj\n");
             nextthinker = currentthinker->next;
             currentthinker->next->prev = currentthinker->prev;
             currentthinker->prev->next = currentthinker->next;

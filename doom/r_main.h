@@ -44,7 +44,7 @@ extern fixed_t		centerxfrac;
 extern fixed_t		centeryfrac;
 extern fixed_t		projection;
 
-extern short		validcount;
+extern uint8_t		validcount;
 
 extern int		linecount;
 extern int		loopcount;

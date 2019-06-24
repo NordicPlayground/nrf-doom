@@ -740,7 +740,6 @@ R_StoreWallRange
 
     R_RenderSegLoop ();
 
-    // NRFD-TODO: sprite clipping
     // save sprite clipping info
     if ( ((ds_p->silhouette & SIL_TOP) || maskedtexture)
          && !ds_p->sprtopclip)

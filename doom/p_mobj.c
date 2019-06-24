@@ -33,7 +33,7 @@
 
 #include "doomstat.h"
 
-#define MAX_MOBJ  253
+#define MAX_MOBJ  261
 
 mobj_t  mobjs[MAX_MOBJ];
 
@@ -518,30 +518,47 @@ void P_MobjThinker (mobj_t* mobj)
 
 }
 
+void P_InitMobjs (int num)
+{
+    printf("P_InitMobjs %d\n", num);
+    int i;
+    for (i=0; i<MAX_MOBJ; i++) {
+        memset (&mobjs[i], 0, sizeof (*mobjs));
+        mobjs[i].type = MT_FREE;
+    }
+}
+
 mobj_t* P_AllocMobj (void)
 {
-    // printf("P_AllocMobj\n");
-    // mobj = Z_Malloc (sizeof(*mobj), PU_LEVEL, NULL);
-    // memset (mobj, 0, sizeof (*mobj));
-
+    mobj_t *mobj;
     int i;
     for (i=0; i<MAX_MOBJ; i++) {
         if (mobjs[i].type == MT_FREE) {
-            mobj_t *ptr = &mobjs[i];
-            // printf("  Allocated mobj #%d %X\n", i, (unsigned int)ptr); 
-            ptr->type = MT_ALLOC;
-            return ptr;
+            mobj = &mobjs[i];
+            memset (mobj, 0, sizeof (*mobj));
+            // printf("  Allocated mobj #%d %X\n", i, (unsigned int)mobj); 
+            mobj->type = MT_ALLOC;
+            return mobj;
         }
     }
-    I_Error("P_AllocMobj: Out of free mobjs");
-    return NULL;
+
+    printf("P_AllocMobj: Out of free mobjs");
+    mobj = Z_Malloc (sizeof(*mobj), PU_LEVEL, NULL);
+    memset (mobj, 0, sizeof (*mobj));
+    return mobj;
 }
 
 void P_FreeMobj (mobj_t* mobj)
 {
-    printf("P_FreeMobj %X\n", (unsigned int)mobj);
-    mobj->type = MT_FREE;
-    printf("  ret\n");
+    // printf("P_FreeMobj %X\n", (unsigned int)mobj);
+    if (mobj >= mobjs && mobj < &mobjs[MAX_MOBJ]) { 
+        // In pre-allocated buffer
+        mobj->type = MT_FREE;
+    } 
+    else {
+        Z_Free(mobj);
+        // Dynamically allocated
+    }
 }
 
 //
@@ -1106,13 +1123,4 @@ P_SpawnPlayerMissile
     th->momz = FixedMul( th->info->speed, slope);
 
     P_CheckMissileSpawn (th);
-}
-
-void P_InitMobjs (void)
-{
-    printf("P_InitMobjs\n");
-    int i;
-    for (i=0; i<MAX_MOBJ; i++) {
-        mobjs[i].type = MT_FREE;
-    }
 }

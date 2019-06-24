@@ -34,9 +34,9 @@
 //
 // sky mapping
 //
-int			skyflatnum;
-int			skytexture;
-int			skytexturemid;
+short        skyflatnum;
+short        skytexture;
+int         skytexturemid;
 
 
 

@@ -149,7 +149,7 @@ const boolean noblit = false;
 
 // Gamma correction level to use
 
-const int usegamma = 0;
+byte usegamma = 1;
 
 // Joystick/gamepad hysteresis
 unsigned int joywait = 0;
@@ -345,7 +345,7 @@ void I_ReadScreen (pixel_t* scr)
 void I_SetPalette (byte *doompalette)
 {
     int i;
-    N_ldbg("I_SetPalette %X\n", (unsigned int)(doompalette));
+    printf("I_SetPalette %X\n", (unsigned int)(doompalette));
 
     // Convert Doom palette to FT810 palette
     uint8_t  display_pal[DISPLAY_PALETTE_SIZE];

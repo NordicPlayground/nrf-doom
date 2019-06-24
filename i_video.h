@@ -36,7 +36,7 @@ extern const boolean screenvisible;
 
 extern const boolean vanilla_keyboard_mapping;
 // extern const boolean screensaver_mode;
-extern const int usegamma;
+extern byte usegamma;
 extern pixel_t I_VideoBuffer[];
 
 // extern int screen_width;

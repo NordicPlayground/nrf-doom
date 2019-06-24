@@ -161,10 +161,11 @@ boolean P_CrossSubsector (int num)
         line = SegLineDef(seg);
 
         // allready checked other side?
-        if (line->validcount == validcount)
+        // NRFD-TODO: validcount
+        if ((line->validcount&0x7F) == (validcount&0x7F))
             continue;
         
-        line->validcount = validcount;
+        line->validcount = (line->validcount&0x80) | (validcount&0x7F);
 
         v1 = LineV1(line);
         v2 = LineV2(line);

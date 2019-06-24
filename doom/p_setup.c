@@ -521,6 +521,9 @@ void P_LoadThings (int lump)
 
     data = W_CacheLumpNum (lump,PU_STATIC);
     numthings = W_LumpLength (lump) / sizeof(mapthing_t);
+
+    P_InitMobjs(numthings);
+
         
     mt = (mapthing_t *)data;
     for (i=0 ; i<numthings ; i++, mt++)
@@ -685,8 +688,11 @@ short LineFlags(line_t *line)
 }
 void LineSetMapped(line_t *line)
 {
-    // printf("NRFD-TODO: LineSetMapped");
-    // line->flags_x |= ML_MAPPED;
+    line->validcount |= 0x80;
+}
+boolean LineIsMapped(line_t *line)
+{
+    return (line->validcount & 0x80);
 }
 short LineTag(line_t *line)
 {
@@ -1145,13 +1151,11 @@ P_SetupLevel
   int           playermask,
   skill_t       skill)
 {
-    map = 2;
+    // map = 4;
     printf("P_SetupLevel %d %d\n", episode, map);
     int         i;
     char        lumpname[9];
     int         lumpnum;
-
-    P_InitMobjs();
 
     totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
     wminfo.partime = 180;
