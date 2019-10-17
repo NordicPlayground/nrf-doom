@@ -97,11 +97,13 @@ static char             chat_dest[MAXPLAYERS];
 static hu_itext_t w_inputbuffer[MAXPLAYERS];
 */
 
+static boolean          fps_on;
 static boolean          message_on;
 boolean                 message_dontfuckwithme;
 static boolean          message_nottobefuckedwith;
 
 static hu_stext_t       w_message;
+static hu_stext_t       w_fps;
 static int              message_counter;
 
 extern int              showMessages;
@@ -374,6 +376,7 @@ void HU_Start(void)
 
     plr = &players[consoleplayer];
     message_on = false;
+    fps_on     = true;
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
     // chat_on = false; // NRFD-TODO: chat
@@ -383,6 +386,11 @@ void HU_Start(void)
                     HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
                     hu_font,
                     HU_FONTSTART, &message_on);
+
+    HUlib_initSText(&w_fps,
+                    /*x*/ 270, /*y*/ 0, HU_MSGHEIGHT,
+                    hu_font,
+                    HU_FONTSTART, &fps_on);
 
     // create the map title widget
     HUlib_initTextLine(&w_title,
@@ -441,6 +449,7 @@ void HU_Start(void)
 void HU_Drawer(void)
 {
     HUlib_drawSText(&w_message);
+    HUlib_drawSText(&w_fps);
     // HUlib_drawIText(&w_chat); // NRFD-TODO: Chat
     if (automapactive)
         HUlib_drawTextLine(&w_title, false);
@@ -449,14 +458,27 @@ void HU_Drawer(void)
 void HU_Erase(void)
 {
     HUlib_eraseSText(&w_message);
+    HUlib_eraseSText(&w_fps);
     // HUlib_eraseIText(&w_chat); // NRFD-TODO: Chat
     HUlib_eraseTextLine(&w_title);
 }
+
+#include <stdlib.h>
+
+extern uint32_t frame_time_delta;
 
 void HU_Ticker(void)
 {
     int i, rc;
     char c;
+
+    // Hard-coded timer value. Sync up with D_DoomLoop and I_InitTimer
+    int fps = 62500/frame_time_delta;
+    char fps_buffer[16];
+    fps_buffer[0] = 0;
+    itoa(fps, fps_buffer, 10);
+
+    HUlib_addMessageToSText(&w_fps, "FPS: ", fps_buffer);
 
     // tick down message counter if message is up
     if (message_counter && !--message_counter)

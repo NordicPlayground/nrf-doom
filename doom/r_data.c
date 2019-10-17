@@ -363,7 +363,7 @@ void R_GenerateInit(int texture_storage_size)
 void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 {
 
-    printf("R_GenerateComposite_N: %d\n", num);
+    // printf("R_GenerateComposite_N: %d\n", num);
     
     byte*           block;
     int             i;
@@ -372,7 +372,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
     int height = R_TextureHeight(texture);
     size_t texture_size = width*height;
     maptexture_t *mtex = texture->wad_texture;
-    printf("    %.8s\n", mtex->name);
+    // printf("    %.8s\n", mtex->name);
 
     size_t texture_loc = store_loc;
     store_loc += texture_size;
@@ -399,7 +399,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         patch_t*     realpatch     = W_CacheLumpName(patch_name, PU_CACHE); //W_CacheLumpNum (patch_lump, PU_CACHE);
         int          columnofs[256];
 
-        printf("        %.8s(%d)\n", patch_name, patch_num);
+        // printf("        %.8s(%d)\n", patch_name, patch_num);
 
         // int *patch_columnofs = realpatch->columnofs;
         // NOTE: Having some trouble with reliable reading of this data from QSPI
@@ -419,7 +419,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         if (x2 > width)
             x2 = width;
 
-        printf("      %d - %d\n", x1, x2);
+        // printf("      %d - %d\n", x1, x2);
 
         for ( ; x<x2 ; x++)
         {
@@ -435,9 +435,9 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             firstcol = (column_t *)((byte *)realpatch + colofs);
             column_t* col_ptr = firstcol;
 
-            if (num==14 && x==64 && i==0) {
-                printf("XXX\n");
-            }
+            // if (num==14 && x==64 && i==0) {
+            //     printf("XXX\n");
+            // }
             // if ((uint32_t)(col_ptr) < 0x12000000 || (uint32_t)(col_ptr) > 0x20000000) {
             //     printf("\n         %lx %lx %lx %d %d %d %d\n",
             //             (uint32_t)(realpatch), (uint32_t)(col_ptr), (uint32_t)(columnofs), col_num, colofs, i, x);

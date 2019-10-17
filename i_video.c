@@ -42,6 +42,7 @@
 #include "n_buttons.h"
 #include "n_display.h"
 #include "n_uart.h"
+#include "n_nxc.h"
 
 #include "FT810.h"
 
@@ -214,6 +215,7 @@ void I_StartTic (void)
     }
     N_ReadButtons();
     N_ReadUart();
+    N_nxc_read();
 /*
     I_GetEvent();
 
@@ -249,8 +251,10 @@ void I_WriteDisplayList(void)
 
     dl(FT810_BITMAP_HANDLE(0)) ;
     dl(FT810_BITMAP_LAYOUT(PALETTED8, SCREENWIDTH, SCREENHEIGHT)) ;
-    dl(FT810_BITMAP_TRANSFORM_A((int)(256/2.0)));
-    dl(FT810_BITMAP_TRANSFORM_E((int)(256/2.4)));
+    int16_t trans_a = (int16_t)(256/2.0);
+    int16_t trans_b = (int16_t)(256/2.4);
+    dl(FT810_BITMAP_TRANSFORM_A(trans_a));
+    dl(FT810_BITMAP_TRANSFORM_E(trans_b));
     dl(FT810_BITMAP_SIZE(NEAREST, BORDER, BORDER, 640&0x1FF, 480));
     dl(FT810_BITMAP_SIZE_H(640>>9, 0));
     dl(FT810_BITMAP_SOURCE(display_vbuffer_loc)) ;

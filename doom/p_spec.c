@@ -157,7 +157,7 @@ void P_InitPicAnims (void)
         startname = DEH_String((char*)(animdefs[i].startname));
         endname = DEH_String((char*)(animdefs[i].endname));
 
-        printf("  Anim #%d: %.8s\n", i, startname);
+        // printf("  Anim #%d: %.8s\n", i, startname);
 
         if (animdefs[i].istexture)
         {

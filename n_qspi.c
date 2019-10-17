@@ -1,9 +1,14 @@
 
 #include "n_qspi.h"
 
-#include "nrf.h"
-#include "bsp.h"
+#include <stdio.h>
+
+#include <board_config.h>
+
+#include <nrf.h>
 #include <nrfx_qspi.h>
+#include <nordic_common.h>
+#include <app_error.h>
 
 void I_Error (char *error, ...);
 
@@ -32,7 +37,6 @@ static void qspi_handler(nrfx_qspi_evt_t event, void * p_context)
 static void configure_memory(void)
 {
     uint32_t err_code;
-    uint8_t data;
     nrf_qspi_cinstr_conf_t cinstr_cfg = {
         .opcode    = QSPI_STD_CMD_RSTEN,
         .length    = NRF_QSPI_CINSTR_LEN_1B,
@@ -51,12 +55,24 @@ static void configure_memory(void)
     err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, NULL, NULL);
     APP_ERROR_CHECK(err_code);
 
+    // Switch to qspi and high-performance mode
+    uint8_t data[3];
+    data[0] = 0x40; // set bit 6 for Quad mode
+    data[1] = 0x00;
+    data[2] = 0x02; // set bit 2 for high-performance mode
+    cinstr_cfg.opcode = QSPI_STD_CMD_WRSR;
+    cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_4B;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, NULL);
+    APP_ERROR_CHECK(err_code);
+
     // Switch to qspi mode
+    /*
     data = QSPI_SR_QUAD_ENABLE_BYTE;
     cinstr_cfg.opcode = QSPI_STD_CMD_WRSR;
     cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_2B;
     err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, &data, NULL);
     APP_ERROR_CHECK(err_code);
+    */
 
     while (nrfx_qspi_mem_busy_check())
     {}
@@ -66,21 +82,35 @@ void N_qspi_init() {
 
     uint32_t err_code = NRF_SUCCESS;
 
+    // Set high-drive for QuadSpi pins
+    // TODO: Update for nRF52 and nRF53 final product?
+    NRF_P0_S->PIN_CNF[13] = (3<<8);
+    NRF_P0_S->PIN_CNF[14] = (3<<8);
+    NRF_P0_S->PIN_CNF[15] = (3<<8);
+    NRF_P0_S->PIN_CNF[16] = (3<<8);
+    NRF_P0_S->PIN_CNF[17] = (3<<8);
+    NRF_P0_S->PIN_CNF[18] = (3<<8);
+
     // Set QSPI peripheral with default configuration.
     nrfx_qspi_config_t config = NRFX_QSPI_DEFAULT_CONFIG;
 
     // Set QSPI pins to pins related to connected board.
-    config.pins.sck_pin = BSP_QSPI_SCK_PIN;
-    config.pins.csn_pin = BSP_QSPI_CSN_PIN;
-    config.pins.io0_pin = BSP_QSPI_IO0_PIN;
-    config.pins.io1_pin = BSP_QSPI_IO1_PIN;
-    config.pins.io2_pin = BSP_QSPI_IO2_PIN;
-    config.pins.io3_pin = BSP_QSPI_IO3_PIN;
+    config.pins.sck_pin = QSPI_SCK_PIN;
+    config.pins.csn_pin = QSPI_CSN_PIN;
+    config.pins.io0_pin = QSPI_IO0_PIN;
+    config.pins.io1_pin = QSPI_IO1_PIN;
+    config.pins.io2_pin = QSPI_IO2_PIN;
+    config.pins.io3_pin = QSPI_IO3_PIN;
+
+    config.phy_if.sck_freq = 0;
 
     // Try to initialize QSPI peripheral in blocking mode.
     err_code = nrfx_qspi_init(&config, qspi_handler, NULL);
     APP_ERROR_CHECK(err_code);
-    printf("QSPI initialized\n");
+
+    NRF_QSPI_S->IFTIMING = (1 << 8);
+    printf("QSPI initialized %ld %ld\n", (NRF_QSPI_S->IFTIMING>>8), ((NRF_QSPI_S->IFCONFIG1>>28)&0xF));
+
 
     // Restart and configure external memory to use quad line mode for data exchange.
     configure_memory();

@@ -1,26 +1,14 @@
 
 
 #include "nrf.h"
-#include "bsp.h"
+#include "board_config.h"
+
 #include "ff.h"
 #include "diskio_blkdev.h"
 #include "nrf_block_dev_sdc.h"
 
-#ifdef N_FS_LOG
-    #include "nrf_log.h"
-    #include "nrf_log_ctrl.h"
-    #include "nrf_log_default_backends.h"
-#else
-    #define NRF_LOG_INFO(...)
-    #define NRF_LOG_ERROR(...)
-#endif
 
 #include "n_mem.h"
-
-#define SDC_SCK_PIN     ARDUINO_13_PIN  ///< SDC serial clock (SCK) pin.
-#define SDC_MOSI_PIN    ARDUINO_11_PIN  ///< SDC serial data in (DI) pin.
-#define SDC_MISO_PIN    ARDUINO_12_PIN  ///< SDC serial data out (DO) pin.
-#define SDC_CS_PIN      ARDUINO_10_PIN  ///< SDC chip select (CS) pin.
 
 void I_Error (char *error, ...);
 
@@ -82,7 +70,7 @@ void N_fs_init()
         return;
     }
 
-    printf("\r\n Listing directory: /\n");
+    printf("Listing directory: /\n");
     ff_result = f_opendir(&dir, "/");
     if (ff_result)
     {
@@ -118,6 +106,8 @@ void N_fs_init()
 
 void N_fs_shutdown()
 {
+    printf("N_fs_shutdown\n");
+    disk_uninitialize(0);
     N_free(fs);
     fs = NULL;
 }
@@ -201,7 +191,7 @@ int N_fs_file_exists(char *path) {
             break;
 
         default:
-            NRF_LOG_ERROR("N_fs_file_exists");
+            I_Error("N_fs_file_exists");
     }
     return 0;
 }
@@ -224,7 +214,7 @@ long N_fs_file_length(char *path) {
             break;
 
         default:
-            NRF_LOG_ERROR("N_fs_file_length");
+            I_Error("N_fs_file_length");
     }
     return -1;
 }

@@ -37,278 +37,22 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/** @file
- * @defgroup fatfs_example_main main.c
- * @{
- * @ingroup fatfs_example
- * @brief FATFS Example Application main file.
- *
- * This file contains the source code for a sample application using FAT filesystem and SD card library.
- *
- */
 
+#include <stdio.h>
 
 #include "nrf.h"
-#include "bsp.h"
-#include "ff.h"
-#include "diskio_blkdev.h"
-#include "nrf_block_dev_sdc.h"
 
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
-
-#include "n_fs.h"
-#include "n_mem.h"
+#include "n_uart.h"
 #include "n_qspi.h"
+#include "n_fs.h"
+#include "n_buttons.h"
+#include "n_nxc.h"
 
 #include "nrf_delay.h"
 
-#include "hardfault.h"
-
-static void uart_init(void)
-{
-    NRF_UART0->PSELTXD = TX_PIN_NUMBER;
-    NRF_UART0->PSELRXD = RX_PIN_NUMBER;
-    NRF_UART0->BAUDRATE = UART_BAUDRATE_BAUDRATE_Baud115200;
-    NRF_UART0->CONFIG = 0;
-    NRF_UART0->ENABLE = UART_ENABLE_ENABLE_Enabled;
-    NRF_UART0->TASKS_STARTTX = 1; 
-    NRF_UART0->TASKS_STARTRX = 1; 
-    NRF_UART0->EVENTS_RXDRDY = 0;
-}
-
-void uart_putc(char ch)
-{
-    NRF_UART0->EVENTS_TXDRDY = 0;
-    NRF_UART0->TXD = ch;
-    while (!NRF_UART0->EVENTS_TXDRDY) {}
-}
-
-bool uart_has_data() {
-    return NRF_UART0->EVENTS_RXDRDY;
-}
-
-char uart_getc() {
-    while (!NRF_UART0->EVENTS_RXDRDY) {}
-    NRF_UART0->EVENTS_RXDRDY = 0;
-    return NRF_UART0->RXD;
-}
-
 void D_DoomMain (void);
 void M_ArgvInit(void);
-
-// void HardFault_Handler(void)
-// {
-//     bsp_board_led_on(2);
-//     char *panic_msg = "PANIC!\n";
-//     for (int i=0;i<7;i++) {
-//         NRF_UART0->EVENTS_TXDRDY = 0;
-//         NRF_UART0->TXD = panic_msg[i];
-//         while (!NRF_UART0->EVENTS_TXDRDY) {}
-//     }
-//     while (1) { }
-// }
-
-
-
-/*lint -save -e14 */
-__WEAK void HardFault_process(HardFault_stack_t * p_stack)
-{
-    nrf_delay_ms(5000);
-    // Restart the system by default
-    NVIC_SystemReset();
-}
-/*lint -restore */
-
-void HardFault_Print(const char *msg) {
-    for (int i=0;i<256;i++) {
-        char c = msg[i];
-        if (!c) return;
-        NRF_UART0->EVENTS_TXDRDY = 0;
-        NRF_UART0->TXD = c;
-        while (!NRF_UART0->EVENTS_TXDRDY) {}
-    }
-}
-
-
-void intToHex(unsigned long n, char *outbuf)
-{
-
-    int i = 12;
-    int j = 0;
-
-    do{
-        outbuf[i] = "0123456789ABCDEF"[n % 16];
-        i--;
-        n = n/16;
-    } while( n > 0);
-
-    while( ++i < 13){
-       outbuf[j++] = outbuf[i];
-    }
-
-    outbuf[j] = 0;
-
-}
-
-void HardFault_Print_Hex(unsigned int value) {
-    char msg[13];
-    intToHex(value, msg);
-    HardFault_Print(msg);
-}
-
-
-void HardFault_c_handler(uint32_t * p_stack_address)
-{
-    bsp_board_led_on(2);
-
-    HardFault_Print("HardFault!!\n");
-
-#ifndef CFSR_MMARVALID
-  #define CFSR_MMARVALID (1 << (0 + 7))
-#endif
-
-#ifndef CFSR_BFARVALID
-  #define CFSR_BFARVALID (1 << (8 + 7))
-#endif
-
-    static const char *cfsr_msgs[] = {
-        [0]  = "The processor has attempted to execute an undefined instruction",
-        [1]  = "The processor attempted a load or store at a location that does not permit the operation",
-        [2]  = NULL,
-        [3]  = "Unstack for an exception return has caused one or more access violations",
-        [4]  = "Stacking for an exception entry has caused one or more access violations",
-        [5]  = "A MemManage fault occurred during floating-point lazy state preservation",
-        [6]  = NULL,
-        [7]  = NULL,
-        [8]  = "Instruction bus error",
-        [9]  = "Data bus error (PC value stacked for the exception return points to the instruction that caused the fault)",
-        [10] = "Data bus error (return address in the stack frame is not related to the instruction that caused the error)",
-        [11] = "Unstack for an exception return has caused one or more BusFaults",
-        [12] = "Stacking for an exception entry has caused one or more BusFaults",
-        [13] = "A bus fault occurred during floating-point lazy state preservation",
-        [14] = NULL,
-        [15] = NULL,
-        [16] = "The processor has attempted to execute an undefined instruction",
-        [17] = "The processor has attempted to execute an instruction that makes illegal use of the EPSR",
-        [18] = "The processor has attempted an illegal load of EXC_RETURN to the PC, as a result of an invalid context, or an invalid EXC_RETURN value",
-        [19] = "The processor has attempted to access a coprocessor",
-        [20] = NULL,
-        [21] = NULL,
-        [22] = NULL,
-        [23] = NULL,
-        [24] = "The processor has made an unaligned memory access",
-        [25] = "The processor has executed an SDIV or UDIV instruction with a divisor of 0",
-    };
-
-    uint32_t cfsr = SCB->CFSR;
-
-    if (SCB->HFSR & SCB_HFSR_VECTTBL_Msk)
-    {
-        HardFault_Print("Cause: BusFault on a vector table read during exception processing.\n");
-    }
-
-    for (uint32_t i = 0; i < sizeof(cfsr_msgs) / sizeof(cfsr_msgs[0]); i++)
-    {
-        if (((cfsr & (1 << i)) != 0) && (cfsr_msgs[i] != NULL))
-        {
-            printf("Cause: %s.\n", (char*)cfsr_msgs[i]);
-        }
-    }
-
-    if (cfsr & CFSR_MMARVALID)
-    {
-        HardFault_Print("MemManage Fault Address:");
-    }
-
-    if (cfsr & CFSR_BFARVALID)
-    {
-        HardFault_Print("Bus Fault Address:");
-        HardFault_Print_Hex((unsigned int)SCB->BFAR);
-    }
-
 /*
-#ifndef CFSR_MMARVALID
-  #define CFSR_MMARVALID (1 << (0 + 7))
-#endif
-
-#ifndef CFSR_BFARVALID
-  #define CFSR_BFARVALID (1 << (8 + 7))
-#endif
-
-    HardFault_stack_t * p_stack = (HardFault_stack_t *)p_stack_address;
-    static const char *cfsr_msgs[] = {
-        [0]  = "The processor has attempted to execute an undefined instruction",
-        [1]  = "The processor attempted a load or store at a location that does not permit the operation",
-        [2]  = NULL,
-        [3]  = "Unstack for an exception return has caused one or more access violations",
-        [4]  = "Stacking for an exception entry has caused one or more access violations",
-        [5]  = "A MemManage fault occurred during floating-point lazy state preservation",
-        [6]  = NULL,
-        [7]  = NULL,
-        [8]  = "Instruction bus error",
-        [9]  = "Data bus error (PC value stacked for the exception return points to the instruction that caused the fault)",
-        [10] = "Data bus error (return address in the stack frame is not related to the instruction that caused the error)",
-        [11] = "Unstack for an exception return has caused one or more BusFaults",
-        [12] = "Stacking for an exception entry has caused one or more BusFaults",
-        [13] = "A bus fault occurred during floating-point lazy state preservation",
-        [14] = NULL,
-        [15] = NULL,
-        [16] = "The processor has attempted to execute an undefined instruction",
-        [17] = "The processor has attempted to execute an instruction that makes illegal use of the EPSR",
-        [18] = "The processor has attempted an illegal load of EXC_RETURN to the PC, as a result of an invalid context, or an invalid EXC_RETURN value",
-        [19] = "The processor has attempted to access a coprocessor",
-        [20] = NULL,
-        [21] = NULL,
-        [22] = NULL,
-        [23] = NULL,
-        [24] = "The processor has made an unaligned memory access",
-        [25] = "The processor has executed an SDIV or UDIV instruction with a divisor of 0",
-    };
-
-    uint32_t cfsr = SCB->CFSR;
-    
-    if (p_stack != NULL)
-    {
-        // Print information about error.
-        printf("HARD FAULT at 0x%08X\n", (unsigned int)p_stack->pc);
-        printf("  R0:  0x%08X  R1:  0x%08X  R2:  0x%08X  R3:  0x%08X\n",
-                             (unsigned int)p_stack->r0, (unsigned int)p_stack->r1, (unsigned int)p_stack->r2, (unsigned int)p_stack->r3);
-        printf("  R12: 0x%08X  LR:  0x%08X  PSR: 0x%08X\n",
-                             (unsigned int)p_stack->r12, (unsigned int)p_stack->lr, (unsigned int)p_stack->psr);
-    }
-    else
-    {
-        printf("Stack violation: stack pointer outside stack area.\n");
-    }
-
-    if (SCB->HFSR & SCB_HFSR_VECTTBL_Msk)
-    {
-        printf("Cause: BusFault on a vector table read during exception processing.\n");
-    }
-
-    for (uint32_t i = 0; i < sizeof(cfsr_msgs) / sizeof(cfsr_msgs[0]); i++)
-    {
-        if (((cfsr & (1 << i)) != 0) && (cfsr_msgs[i] != NULL))
-        {
-            printf("Cause: %s.\n", (char*)cfsr_msgs[i]);
-        }
-    }
-
-    if (cfsr & CFSR_MMARVALID)
-    {
-        printf("MemManage Fault Address: 0x%08X\n", (unsigned int)SCB->MMFAR);
-    }
-
-    if (cfsr & CFSR_BFARVALID)
-    {
-        printf("Bus Fault Address: 0x%08X\n", (unsigned int)SCB->BFAR);
-    }
-    */
-
-    HardFault_process((HardFault_stack_t *)p_stack_address);
-}
 
 void MWU_IRQHandler(void)
 {
@@ -323,25 +67,11 @@ void MWU_IRQHandler(void)
     NRF_MWU->EVENTS_REGION[1].RA = 0;
 }
 
-int main(void)
+*/
+
+void mwu_init()
 {
-
-    bsp_board_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS);
-    bsp_board_led_on(1);
-    bsp_board_led_off(2);
-    APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
-    NRF_LOG_DEFAULT_BACKENDS_INIT();
-	
-    NRF_LOG_INFO("NRF Log Initialized");
-
-    uart_init();
-
-    NRF_LOG_INFO("NRF Uart Initialized");
-    printf("\n\n");
-    printf("----------------------------------\n");
-    printf("UART Initialized\n");
-    printf("---------------------------------\n");
-
+    /*
     NRF_MWU->REGION[0].START = 0x2003f000;
     NRF_MWU->REGION[0].END   = 0x2003f100;
     NRF_MWU->REGIONENSET = (1 << MWU_REGIONENSET_RGN0RA_Pos) | (1 << MWU_REGIONENSET_RGN0WA_Pos);
@@ -354,12 +84,57 @@ int main(void)
     NRF_MWU->INTENSET = (1<<2) | (1<<3);
 
     NRFX_IRQ_ENABLE(nrfx_get_irq_number(NRF_MWU));
-    // NRFX_IRQ_PRIORITY_SET(nrfx_get_irq_number(NRF_MWU), 5);
+    */
+}
+
+void app_error_handler_bare(uint32_t code)
+{
+    printf("nRF app_error\n");
+}
+
+
+void clock_initialization()
+{
+    /* Start 16 MHz crystal oscillator */
+    NRF_CLOCK_S->EVENTS_HFCLKSTARTED = 0;
+    NRF_CLOCK_S->TASKS_HFCLKSTART    = 1;
+    while (!NRF_CLOCK_S->EVENTS_HFCLKSTARTED) { }
+
+    // Start 192Mhz clock. Shouldn't be necessary to do manually
+    NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED = 0;
+    NRF_CLOCK_S->TASKS_HFCLK192MSTART = 1;
+    while (!NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED) {}
+
+    // Set HF clock divider from 2 to 1
+    NRF_CLOCK_S->HFCLKCTRL = 0;
+
+}
+
+int main(void)
+{
+    clock_initialization();
+
+    N_uart_init();
+
+    printf("\n\n");
+    printf("----------------------------------\n");
+    printf("UART Initialized\n");
+    printf("---------------------------------\n");
+
+    uint32_t *VOLTAGEFSMSTATE = (uint32_t*)(0x50038000+0x408);
+
+    printf("VFS state: %lx\n", *VOLTAGEFSMSTATE);
+
+    NRF_CACHE_S->ENABLE = 1;
 
     N_qspi_init();
 
     N_fs_init();
+
+    N_ButtonsInit();
+    
     M_ArgvInit();
+
     D_DoomMain();
 
     while (true)

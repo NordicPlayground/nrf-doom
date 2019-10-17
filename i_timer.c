@@ -20,6 +20,7 @@
 
 #undef PACKED_STRUCT
 #include "nrf_delay.h"
+#include "board_config.h"
 
 //
 // I_GetTime
@@ -84,6 +85,7 @@ void I_InitTimer(void)
     // fTIMER = 16 MHz / (2*PRESCALER)
     // 2**8 = 256
     // fTIMER = 62.5Khz;
+    // NOTE: If timer is changed, update HU_Ticker (or make global variable)
     NRF_TIMER0->TASKS_START = 1;
 }
 

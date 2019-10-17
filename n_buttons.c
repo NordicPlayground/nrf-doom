@@ -1,25 +1,51 @@
 
 #include "nrf.h"
-#include "bsp.h"
+#include "board_config.h"
 
 #undef PACKED_STRUCT
 
 #include "doomkeys.h"
 #include "d_event.h"
+#include "i_system.h"
 
-bool button_prev_state[4];
+boolean button_prev_state[4];
 
 char button_map[] = {KEY_UPARROW, KEY_DOWNARROW, KEY_ENTER, KEY_BACKSPACE};
 
+void N_ButtonsInit()
+{
+    NRF_P0_S->PIN_CNF[BUTTON_PIN_0] = (3<<2);
+    NRF_P0_S->PIN_CNF[BUTTON_PIN_1] = (3<<2);
+    NRF_P0_S->PIN_CNF[BUTTON_PIN_2] = (3<<2);
+    NRF_P0_S->PIN_CNF[BUTTON_PIN_3] = (3<<2);
+}
+
+int N_ButtonStateRaw(int id)
+{
+    switch(id) {
+        case 0:
+        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_0)) == 0;
+        case 1:
+        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_1)) == 0;
+        case 2:
+        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_2)) == 0;
+        case 3:
+        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_3)) == 0;
+    }
+    I_Error("N_ButtonStateRaw: Invalid button\n");
+    return 0;
+}
+
 void N_ReadButtons() 
 {
+    
     static event_t event;
 
-    bool button_state[4];
-    bool button_posedge[4];
-    bool button_negedge[4];
+    boolean button_state[4];
+    boolean button_posedge[4];
+    boolean button_negedge[4];
     for (int i=0; i<4; i++) {
-        button_state[i] = bsp_board_button_state_get(i);
+        button_state[i] = N_ButtonStateRaw(i);
         button_posedge[i] = button_state[i] && !button_prev_state[i];
         button_negedge[i] = !button_state[i] && button_prev_state[i];
     }
@@ -44,7 +70,6 @@ void N_ReadButtons()
     for (int i=0; i<4; i++) {
         button_prev_state[i] = button_state[i];
     }
-
 
 }
 

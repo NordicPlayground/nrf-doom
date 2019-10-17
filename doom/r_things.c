@@ -266,11 +266,11 @@ void R_InitSpriteDefs ()
 
         boolean copyFrames = false;
 
-        printf("  Sprite %d: %.4s\n", i, spritename);
-        if (!strncasecmp(spritename, "PISG", 4)) {
-            printf("    Pistol!\n");
-            copyFrames = true;
-        }
+        // printf("  Sprite %d: %.4s\n", i, spritename);
+        // if (!strncasecmp(spritename, "PISG", 4)) {
+        //     printf("    Pistol!\n");
+        //     copyFrames = true;
+        // }
 
         // NRFD-TODO: Should we do something like this?
         // memset (sprtemp,-1, sizeof(sprtemp));

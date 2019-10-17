@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "board_config.h"
 #include "nrf.h"
 #include "nrf_delay.h"
 
@@ -11,14 +12,6 @@
 volatile int display_spi_tip; // transfer-in-progress
 volatile uint8_t display_spi_txd_buf[BUF_MAXCNT];
 volatile uint8_t display_spi_rxd_buf[BUF_MAXCNT];
-
-
-const int PIN_SCK  = 3;
-const int PIN_MISO = 4;
-const int PIN_MOSI = 28;
-const int PIN_CS_N = 29;
-const int PIN_INT  = 30;
-const int PIN_PD_N = 31;
 
 
 void pin_set(int pin) {
@@ -37,10 +30,16 @@ void N_display_gpiote_end_to_cs() {
   const int TASK_MODE = 3;
   const int LO_TO_HI = 1;
   const int OUT_INIT_LOW = 0;
-  NRF_PPI->CH[0].EEP = (uint32_t)&NRF_SPIM3->EVENTS_END;
-  NRF_PPI->CH[0].TEP = (uint32_t)&NRF_GPIOTE->TASKS_OUT[0];
-  NRF_PPI->CHENSET = 1;
-  NRF_GPIOTE->CONFIG[0] = (TASK_MODE << 0) | (PIN_CS_N << 8) | (LO_TO_HI << 16) | (OUT_INIT_LOW << 20);
+
+  NRF_GPIOTE->CONFIG[0] = (TASK_MODE << 0) | (DISPLAY_PIN_CS_N << 8) | (LO_TO_HI << 16) | (OUT_INIT_LOW << 20);
+
+  // NRF_PPI->CH[0].EEP = (uint32_t)&NRF_SPIM->EVENTS_END;
+  // NRF_PPI->CH[0].TEP = (uint32_t)&NRF_GPIOTE->TASKS_OUT[0];
+  // NRF_PPI->CHENSET = 1;
+
+  NRF_GPIOTE->SUBSCRIBE_OUT[0] = 0 | GPIOTE_SUBSCRIBE_OUT_EN_Msk;
+  NRF_SPIM->PUBLISH_END = 0 | SPIM_PUBLISH_END_EN_Msk;
+  NRF_DPPIC_S->CHENSET = 1;
 }
 
 void N_display_gpiote_clear() {
@@ -51,53 +50,53 @@ void N_display_spi_init() {
 
   // Set up GPIO pins
   //                            High drv.  Inp/Out
-  NRF_GPIO->PIN_CNF[PIN_SCK] =  (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[PIN_MOSI] = (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[PIN_MISO] = 0; 
-  NRF_GPIO->PIN_CNF[PIN_CS_N] = (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[PIN_PD_N] = 3;
+  NRF_GPIO->PIN_CNF[DISPLAY_PIN_SCK] =  (3 << 8)   | 3;
+  NRF_GPIO->PIN_CNF[DISPLAY_PIN_MOSI] = (3 << 8)   | 3;
+  NRF_GPIO->PIN_CNF[DISPLAY_PIN_MISO] = 0; 
+  NRF_GPIO->PIN_CNF[DISPLAY_PIN_CS_N] = (3 << 8)   | 3;
+  NRF_GPIO->PIN_CNF[DISPLAY_PIN_PD_N] = 3;
   
-  pin_set(PIN_CS_N);
-  pin_set(PIN_PD_N);
+  pin_set(DISPLAY_PIN_CS_N);
+  pin_set(DISPLAY_PIN_PD_N);
 
   // Configure SPI Master
-  NRF_SPIM3->PSEL.SCK = PIN_SCK;
-  NRF_SPIM3->PSEL.MOSI = PIN_MOSI;
-  NRF_SPIM3->PSEL.MISO = PIN_MISO;
+  NRF_SPIM->PSEL.SCK  = DISPLAY_PIN_SCK;
+  NRF_SPIM->PSEL.MOSI = DISPLAY_PIN_MOSI;
+  NRF_SPIM->PSEL.MISO = DISPLAY_PIN_MISO;
   //                  SCK pol    SCK phase  Bit Order (Msb First)
-  NRF_SPIM3->CONFIG = (0 << 2) | (0 << 1) | (0 << 0);
-  NRF_SPIM3->FREQUENCY = 0x14000000; // 0x14 = 32Mbps 0x20.. = 2mbps, 0x08.. = 500kbps
-  NRF_SPIM3->ORC = 0; // Over-Read Character
+  NRF_SPIM->CONFIG = (0 << 2) | (0 << 1) | (0 << 0);
+  NRF_SPIM->FREQUENCY = 0x14000000; // 0x14 = 32Mbps 0x20.. = 2mbps, 0x08.. = 500kbps
+  NRF_SPIM->ORC = 0; // Over-Read Character
 
-  NRF_SPIM3->ENABLE = 7;
+  NRF_SPIM->ENABLE = 7;
 
-  NRF_SPIM3->TXD.PTR = 0xFFFFFFFF;
+  NRF_SPIM->TXD.PTR = 0xFFFFFFFF;
 
   display_spi_tip = 0;
 
 }
 
 void N_display_power_reset() {
-  pin_clr(PIN_PD_N);
+  pin_clr(DISPLAY_PIN_PD_N);
   nrf_delay_ms(50);
-  pin_set(PIN_PD_N);
+  pin_set(DISPLAY_PIN_PD_N);
   nrf_delay_ms(50);
 }
 
 void N_display_spi_setup(int txdMaxCnt, volatile uint8_t * txdPtr, 
                        int rxdMaxCnt, volatile uint8_t * rxdPtr) {
 
-  NRF_SPIM3->TXD.MAXCNT = txdMaxCnt;
-  NRF_SPIM3->TXD.PTR = (uint32_t)txdPtr;
-  NRF_SPIM3->RXD.MAXCNT = rxdMaxCnt;
-  NRF_SPIM3->RXD.PTR = (uint32_t)rxdPtr;
+  NRF_SPIM->TXD.MAXCNT = txdMaxCnt;
+  NRF_SPIM->TXD.PTR = (uint32_t)txdPtr;
+  NRF_SPIM->RXD.MAXCNT = rxdMaxCnt;
+  NRF_SPIM->RXD.PTR = (uint32_t)rxdPtr;
 }
 
 void N_display_spi_transfer_finish() {
   if (display_spi_tip) {
-    while (NRF_SPIM3->EVENTS_END == 0) { 
+    while (NRF_SPIM->EVENTS_END == 0) { 
     }
-    NRF_SPIM3->EVENTS_END = 0;
+    NRF_SPIM->EVENTS_END = 0;
     display_spi_tip = 0;
     N_display_gpiote_clear();
   }
@@ -105,28 +104,28 @@ void N_display_spi_transfer_finish() {
 
 void N_display_spi_transfer_start() {
   N_display_spi_transfer_finish();
-  pin_clr(PIN_CS_N);
+  pin_clr(DISPLAY_PIN_CS_N);
 }
 
 void N_display_spi_transfer_data() {
-  NRF_SPIM3->EVENTS_END = 0;
-  NRF_SPIM3->TASKS_START = 1;
-  while (NRF_SPIM3->EVENTS_END == 0) { 
+  NRF_SPIM->EVENTS_END = 0;
+  NRF_SPIM->TASKS_START = 1;
+  while (NRF_SPIM->EVENTS_END == 0) { 
   }
-  NRF_SPIM3->EVENTS_END = 0;
+  NRF_SPIM->EVENTS_END = 0;
 }
 
 void N_display_spi_transfer_data_end() {
-  NRF_SPIM3->EVENTS_END = 0;
+  NRF_SPIM->EVENTS_END = 0;
 
   N_display_gpiote_end_to_cs();
 
-  NRF_SPIM3->TASKS_START = 1;
+  NRF_SPIM->TASKS_START = 1;
   display_spi_tip = 1;
 }
 
 void N_display_spi_transfer_end() {
-  pin_set(PIN_CS_N);
+  pin_set(DISPLAY_PIN_CS_N);
 }
 
 void N_display_spi_transfer() {
@@ -215,9 +214,9 @@ void N_display_spi_wr(uint32_t addr, int dataSize, uint8_t *data) {
 }
 
 // void N_display_spi_transfer_data_async() {
-//   NRF_SPIM3->EVENTS_END = 0;
-//   NRF_SPIM3->TASKS_START = 1;
-//   while (NRF_SPIM3->EVENTS_END == 0) { 
+//   NRF_SPIM->EVENTS_END = 0;
+//   NRF_SPIM->TASKS_START = 1;
+//   while (NRF_SPIM->EVENTS_END == 0) { 
 //   }
 // }
 
@@ -304,6 +303,8 @@ void N_display_init()
   N_display_spi_wr8 (FT810_REG_PWM_DUTY,  0xFF ); // Backlight PWM duty cycle
 
   N_display_spi_wr8 (FT810_REG_PCLK,      2   ); // Pixel Clock
+
+  N_display_spi_wr8 (FT810_REG_ROTATE,  1   ); // inverted (up-down)
 
 }
 

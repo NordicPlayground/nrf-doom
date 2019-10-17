@@ -35,10 +35,10 @@ const int key_up = KEY_UPARROW;
 const int key_down = KEY_DOWNARROW; 
 const int key_strafeleft = ',';
 const int key_straferight = '.';
-const int key_fire = KEY_RCTRL;
-const int key_use = ' ';
+const int key_fire = 'h';
+const int key_use = 'j';
 const int key_strafe = KEY_RALT;
-const int key_speed = KEY_RSHIFT; 
+const int key_speed = 'k'; 
 
 // 
 // Heretic keyboard controls
@@ -141,7 +141,7 @@ const int key_map_east      = KEY_RIGHTARROW;
 const int key_map_west      = KEY_LEFTARROW;
 const int key_map_zoomin    = '=';
 const int key_map_zoomout   = '-';
-const int key_map_toggle    = KEY_TAB;
+const int key_map_toggle    = 'm';
 const int key_map_maxzoom   = '0';
 const int key_map_follow    = 'f';
 const int key_map_grid      = 'g';

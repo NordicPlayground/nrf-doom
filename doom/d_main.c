@@ -78,6 +78,7 @@
 #include "d_main.h"
 
 #include "n_fs.h"
+#include "n_nxc.h"
 
 //
 // D-DoomLoop()
@@ -129,6 +130,10 @@ boolean         main_loop_started = false;
 
 const int             show_endoom = 1;
 const int             show_diskicon = 1;
+
+uint32_t frame_time_prev;
+uint32_t frame_time_delta;
+
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
@@ -473,9 +478,12 @@ void D_DoomLoop (void)
         wipegamestate = gamestate;
     }
     */
-
+    frame_time_prev = I_GetTimeRaw();
     while (1)
     {
+        int frame_time = I_GetTimeRaw();
+        frame_time_delta = frame_time-frame_time_prev;
+
         N_ldbg("=== LOOP START ===\n");
         // frame syncronous IO operations
         I_StartFrame ();
@@ -489,6 +497,7 @@ void D_DoomLoop (void)
             D_Display ();
 
         N_ldbg("=== LOOP END ===\n");
+        frame_time_prev = frame_time;
     }
     
 }
@@ -1957,7 +1966,9 @@ void D_DoomMain (void)
 
     // All data should've been copied, we can shut down file system to release memory
     // NRFD-TODO: Remove if save game is implemented
-    // N_fs_shutdown();
+    N_fs_shutdown();
+
+    N_nxc_init(); // Shares resource with N_fs, so must be inited here
 
     D_DoomLoop ();  // never returns
 }

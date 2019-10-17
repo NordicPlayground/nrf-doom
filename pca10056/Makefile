@@ -150,6 +150,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/external/protothreads/pt-1.4 \
+  $(SDK_ROOT)/external/protothreads \
   $(SDK_ROOT)/components/libraries/balloc \
   $(SDK_ROOT)/components/libraries/ringbuf \
   $(SDK_ROOT)/external/fatfs/src \
@@ -157,7 +158,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/bsp \
   $(SDK_ROOT)/components/libraries/uart \
   $(SDK_ROOT)/components/libraries/log \
-  $(SDK_ROOT)/external/protothreads \
   $(SDK_ROOT)/modules/nrfx \
   $(SDK_ROOT)/components/libraries/experimental_section_vars \
   $(SDK_ROOT)/integration/nrfx/legacy \
