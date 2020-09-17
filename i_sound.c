@@ -77,6 +77,9 @@ extern char *music_pack_path;
 extern char *timidity_cfg_path;
 */
 
+
+extern sound_module_t sound_i2s_module;
+
 // DOS-specific options: These are unused but should be maintained
 // so that the config file can be shared between chocolate
 // doom and doom.exe
@@ -88,10 +91,11 @@ static int snd_mport = 0;
 
 // Compiled-in sound modules:
 
-static sound_module_t *sound_modules[] = 
+static sound_module_t *sound_modules[] =
 {
     // NRFD-TODO?
-    //&sound_sdl_module,
+    &sound_i2s_module,
+    // &sound_sdl_module,
     //&sound_pcsound_module,
     NULL,
 };
@@ -133,6 +137,7 @@ static void InitSfxModule(boolean use_sfx_prefix)
 
     sound_module = NULL;
 
+    /* NRFD-Exclude
     for (i=0; sound_modules[i] != NULL; ++i)
     {
         // Is the sfx device in the list of devices supported by
@@ -143,14 +148,19 @@ static void InitSfxModule(boolean use_sfx_prefix)
                             sound_modules[i]->num_sound_devices))
         {
             // Initialize the module
-
+    */
+        if (1) { // NRFD-TODO: Setting?
+            i = 0;
             if (sound_modules[i]->Init(use_sfx_prefix))
             {
                 sound_module = sound_modules[i];
                 return;
             }
         }
+    /*
+        }
     }
+    */
 }
 
 // Initialize music according to snd_musicdevice.
@@ -197,7 +207,7 @@ void I_InitSound(boolean use_sfx_prefix)
     // Disable all sound output.
     //
 
-    nosound = M_CheckParm("-nosound") > 0;
+    nosound = false; //M_CheckParm("-nosound") > 0;
 
     //!
     // @vanilla
@@ -205,7 +215,7 @@ void I_InitSound(boolean use_sfx_prefix)
     // Disable sound effects. 
     //
 
-    nosfx = M_CheckParm("-nosfx") > 0;
+    nosfx = false; //M_CheckParm("-nosfx") > 0;
 
     //!
     // @vanilla
@@ -213,23 +223,24 @@ void I_InitSound(boolean use_sfx_prefix)
     // Disable music.
     //
 
-    nomusic = M_CheckParm("-nomusic") > 0;
+    // NRFD-TODO: Music
+    nomusic = true; //M_CheckParm("-nomusic") > 0;
 
     // Initialize the sound and music subsystems.
-    printf("NRFD-TODO: I_InitSound\n");
-    /*
-    if (!nosound && !screensaver_mode)
-    {
-        // This is kind of a hack. If native MIDI is enabled, set up
-        // the TIMIDITY_CFG environment variable here before SDL_mixer
-        // is opened.
 
-        if (!nomusic
-         && (snd_musicdevice == SNDDEVICE_GENMIDI
-          || snd_musicdevice == SNDDEVICE_GUS))
-        {
-            I_InitTimidityConfig();
-        }
+    // NRD-Exclude:
+    // if (!nosound && !screensaver_mode)
+    // {
+    //     // This is kind of a hack. If native MIDI is enabled, set up
+    //     // the TIMIDITY_CFG environment variable here before SDL_mixer
+    //     // is opened.
+
+    //     if (!nomusic
+    //      && (snd_musicdevice == SNDDEVICE_GENMIDI
+    //       || snd_musicdevice == SNDDEVICE_GUS))
+    //     {
+    //         I_InitTimidityConfig();
+    //     }
 
         if (!nosfx)
         {
@@ -240,8 +251,8 @@ void I_InitSound(boolean use_sfx_prefix)
         {
             InitMusicModule();
         }
-    }
-    */
+    // }
+
 }
 
 void I_ShutdownSound(void)
@@ -436,33 +447,6 @@ boolean I_MusicIsPlaying(void)
 
 void I_BindSoundVariables(void)
 {
-    /* NRFD-TODO?
-    extern char *snd_dmxoption;
-    extern int use_libsamplerate;
-    extern float libsamplerate_scale;
-    */
-    
-    // NRFD-TODO?
-    
-    // M_BindIntVariable("snd_musicdevice",         &snd_musicdevice);
-    // M_BindIntVariable("snd_sfxdevice",           &snd_sfxdevice);
-    // M_BindIntVariable("snd_sbport",              &snd_sbport);
-    // M_BindIntVariable("snd_sbirq",               &snd_sbirq);
-    // M_BindIntVariable("snd_sbdma",               &snd_sbdma);
-    // M_BindIntVariable("snd_mport",               &snd_mport);
-    // M_BindIntVariable("snd_maxslicetime_ms",     &snd_maxslicetime_ms);
-    // M_BindStringVariable("snd_musiccmd",         &snd_musiccmd);
-    // M_BindIntVariable("snd_samplerate",          &snd_samplerate);
-    // M_BindIntVariable("snd_cachesize",           &snd_cachesize);
-    
-    //M_BindStringVariable("snd_dmxoption",        &snd_dmxoption);
-    //M_BindIntVariable("opl_io_port",             &opl_io_port);
-    //M_BindIntVariable("snd_pitchshift",          &snd_pitchshift);
-    //M_BindStringVariable("music_pack_path",      &music_pack_path);
-    //M_BindStringVariable("timidity_cfg_path",    &timidity_cfg_path);
-    //M_BindStringVariable("gus_patch_path",       &gus_patch_path);
-    //M_BindIntVariable("gus_ram_kb",              &gus_ram_kb);
-    //M_BindIntVariable("use_libsamplerate",       &use_libsamplerate);
-    //M_BindFloatVariable("libsamplerate_scale",   &libsamplerate_scale);
+    // NRFD-Exclude
 }
 

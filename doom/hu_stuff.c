@@ -465,7 +465,7 @@ void HU_Erase(void)
 
 #include <stdlib.h>
 
-extern uint32_t frame_time_delta;
+extern uint32_t frame_time_fps;
 
 void HU_Ticker(void)
 {
@@ -473,10 +473,9 @@ void HU_Ticker(void)
     char c;
 
     // Hard-coded timer value. Sync up with D_DoomLoop and I_InitTimer
-    int fps = 62500/frame_time_delta;
     char fps_buffer[16];
     fps_buffer[0] = 0;
-    itoa(fps, fps_buffer, 10);
+    itoa(frame_time_fps, fps_buffer, 10);
 
     HUlib_addMessageToSText(&w_fps, "FPS: ", fps_buffer);
 

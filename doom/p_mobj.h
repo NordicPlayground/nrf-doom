@@ -222,7 +222,7 @@ typedef struct __attribute__((packed)) mobj_s
     short               block;
     struct mobj_s*      bnext;
     // struct mobj_s*      bprev;
-    
+
     struct subsector_s* subsector;
 
     // The closest interval over all contacted Sectors.
@@ -231,7 +231,7 @@ typedef struct __attribute__((packed)) mobj_s
 
     // For movement checking.
     fixed_t             radius;
-    fixed_t             height; 
+    fixed_t             height;
 
     // Momentums, used to update position.
     fixed_t             momx;
@@ -243,7 +243,7 @@ typedef struct __attribute__((packed)) mobj_s
 
     mobjtype_t          type;
     const mobjinfo_t*   info;   // &mobjinfo[mobj->type]
-    
+
     int                 tics;   // state tic counter
     const state_t*      state;
     int                 flags;
@@ -270,14 +270,14 @@ typedef struct __attribute__((packed)) mobj_s
     struct player_s*    player;  // NRFD-TODO: Optimize away
 
     // Player number last looked for.
-    int8_t              lastlook;       
+    int8_t              lastlook;
 
     // For nightmare respawn.
     // mapthing_t          spawnpoint; // NRFD-TODO: nightmare
 
     // Thing being chased/attacked for tracers.
-    struct mobj_s*      tracer; 
-    
+    struct mobj_s*      tracer;
+
 } mobj_t;
 
 

@@ -42,13 +42,19 @@
 
 #include "nrf.h"
 
+#include "FT810.h"
+#include "n_display.h"
+
 #include "n_uart.h"
 #include "n_qspi.h"
 #include "n_fs.h"
 #include "n_buttons.h"
-#include "n_nxc.h"
+#include "n_rjoy.h"
+#include "n_i2s.h"
 
 #include "nrf_delay.h"
+
+int no_sdcard = 1;
 
 void D_DoomMain (void);
 void M_ArgvInit(void);
@@ -110,6 +116,42 @@ void clock_initialization()
 
 }
 
+void boot_net()
+{
+    printf("Booting NetMCU\n");
+
+    // Network owns 30/31 (LED3/4)
+    NRF_P0_S->PIN_CNF[30] |= (1 << 28);
+    NRF_P0_S->PIN_CNF[31] |= (1 << 28);
+
+    // Hand over UART GPIOs to NetMcu
+    // NRF_P0_S->PIN_CNF[20] |= (1 << 28);
+    // NRF_P0_S->PIN_CNF[22] |= (1 << 28);
+
+    // Set NetMcu as secure
+    NRF_SPU_S->EXTDOMAIN[0].PERM = 2 | (1<<4);
+
+    // Wake up NetMcu
+    NRF_RESET_S->NETWORK.FORCEOFF = 0;
+}
+
+
+
+void writeDisplayList(uint8_t color)
+{
+    dl_start();
+
+    dl(FT810_CLEAR_COLOR_RGB(0x00, 0x00, 0x00));
+    dl(FT810_CLEAR(1,1,1));  // Clear color, stencil, tag
+    dl(FT810_CLEAR_COLOR_RGB(color, 0x00, 0x00)); 
+    dl(FT810_CLEAR(1,0,0));  // Clear color
+
+    dl_end();
+
+    N_display_dlswap_frame();
+}
+
+
 int main(void)
 {
     clock_initialization();
@@ -121,18 +163,42 @@ int main(void)
     printf("UART Initialized\n");
     printf("---------------------------------\n");
 
+/*
+
+    N_display_init();
+
+    while (1) {
+        writeDisplayList(0x00);
+        nrf_delay_ms(20);
+        writeDisplayList(0xFF);
+        nrf_delay_ms(20);
+    }
+    */
+    
     uint32_t *VOLTAGEFSMSTATE = (uint32_t*)(0x50038000+0x408);
 
     printf("VFS state: %lx\n", *VOLTAGEFSMSTATE);
 
     NRF_CACHE_S->ENABLE = 1;
 
+    NRF_P0_S->PIN_CNF[28] = 3;
+    NRF_P0_S->PIN_CNF[10] = 3;
+    NRF_P0_S->OUT = (1<<28);
+    //
+
+        //
+    boot_net();
+
     N_qspi_init();
 
-    N_fs_init();
+    if (!no_sdcard) {
+        N_fs_init();
+    }
 
     N_ButtonsInit();
-    
+
+    N_I2S_init();
+
     M_ArgvInit();
 
     D_DoomMain();

@@ -1418,11 +1418,10 @@ boolean M_Responder (event_t* ev)
     }
 
     // key is the key pressed, ch is the actual character typed
-  
+
     ch = 0;
     key = -1;
 
-/* NRFD-TODO: Joystick
     if (ev->type == ev_joystick)
     {
         // Simulate key presses from joystick events to interact with the menu.
@@ -1437,7 +1436,7 @@ boolean M_Responder (event_t* ev)
             key = key_menu_down;
             joywait = I_GetTime() + 5;
         }
-            
+
         if (ev->data2 < 0)
         {
             key = key_menu_left;
@@ -1500,7 +1499,6 @@ boolean M_Responder (event_t* ev)
         }
     }
     else
-    */
     {
         /* NRFD-TODO: Mouse
         if (ev->type == ev_mouse && mousewait < I_GetTime())

@@ -1378,7 +1378,7 @@ void AM_drawCrosshair(int color)
 void AM_Drawer (void)
 {
     if (!automapactive) return;
-
+    fb = I_VideoBuffer;
     AM_clearFB(BACKGROUND);
     if (grid)
         AM_drawGrid(GRIDCOLORS);

@@ -183,7 +183,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     for ( ; col<w ; x++, col++, desttop++)
     {
         column = (volatile column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-        I_SleepUS(1);
+        I_SleepUS(1); // NRFD-TODO: remove?
 
         // step through the posts in a column
         while (column->topdelta != 0xff)

@@ -52,10 +52,10 @@ void N_display_spi_init() {
   //                            High drv.  Inp/Out
   NRF_GPIO->PIN_CNF[DISPLAY_PIN_SCK] =  (3 << 8)   | 3;
   NRF_GPIO->PIN_CNF[DISPLAY_PIN_MOSI] = (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[DISPLAY_PIN_MISO] = 0; 
+  NRF_GPIO->PIN_CNF[DISPLAY_PIN_MISO] = 0;
   NRF_GPIO->PIN_CNF[DISPLAY_PIN_CS_N] = (3 << 8)   | 3;
   NRF_GPIO->PIN_CNF[DISPLAY_PIN_PD_N] = 3;
-  
+
   pin_set(DISPLAY_PIN_CS_N);
   pin_set(DISPLAY_PIN_PD_N);
 
@@ -65,7 +65,7 @@ void N_display_spi_init() {
   NRF_SPIM->PSEL.MISO = DISPLAY_PIN_MISO;
   //                  SCK pol    SCK phase  Bit Order (Msb First)
   NRF_SPIM->CONFIG = (0 << 2) | (0 << 1) | (0 << 0);
-  NRF_SPIM->FREQUENCY = 0x14000000; // 0x14 = 32Mbps 0x20.. = 2mbps, 0x08.. = 500kbps
+  NRF_SPIM->FREQUENCY = 0x01400000; // 0x14 = 32Mbps 0x0A = 16Mbps, 0x20.. = 2mbps, 0x08.. = 500kbps
   NRF_SPIM->ORC = 0; // Over-Read Character
 
   NRF_SPIM->ENABLE = 7;

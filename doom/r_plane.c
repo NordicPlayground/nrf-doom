@@ -43,7 +43,7 @@ planefunction_t         ceilingfunc;
 
 // Here comes the obnoxious "visplane".
 // NRFD-TODO: 
-#define MAXVISPLANES    44 // 128
+#define MAXVISPLANES    50 // 128
 visplane_t              visplanes[MAXVISPLANES];
 visplane_t*             lastvisplane;
 visplane_t*             floorplane;

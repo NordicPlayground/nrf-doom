@@ -34,8 +34,9 @@
 // when zero, stop the wipe
 static boolean	go = 0;
 
-static pixel_t*	wipe_scr_start;
-static pixel_t*	wipe_scr_end;
+// NRFD-TODO: Memory optimization
+static pixel_t	wipe_scr_start[SCREENWIDTH*SCREENHEIGHT];
+static pixel_t	wipe_scr_end[SCREENWIDTH*SCREENHEIGHT];
 static pixel_t*	wipe_scr;
 
 
@@ -49,15 +50,15 @@ wipe_shittyColMajorXform
     int		y;
     dpixel_t*	dest;
 
-    dest = (dpixel_t*) Z_Malloc(width*height*sizeof(*dest), PU_STATIC, 0);
+    // Use the back buffer temporarily for transform
+    dest = (dpixel_t*)I_VideoBackBuffer;//(dpixel_t*) Z_Malloc(width*height*sizeof(*dest), PU_STATIC, 0);
 
     for(y=0;y<height;y++)
 	for(x=0;x<width;x++)
 	    dest[x*height+y] = array[y*width+x];
 
     memcpy(array, dest, width*height*sizeof(*dest));
-
-    Z_Free(dest);
+    // Z_Free(dest);
 
 }
 
@@ -148,6 +149,7 @@ wipe_initMelt
     // setup initial column positions
     // (y<0 => not ready to scroll yet)
     y = (int *) Z_Malloc(width*sizeof(int), PU_STATIC, 0);
+
     y[0] = -(M_Random()%16);
     for (i=1;i<width;i++)
     {
@@ -222,8 +224,8 @@ wipe_exitMelt
   int	ticks )
 {
     Z_Free(y);
-    Z_Free(wipe_scr_start);
-    Z_Free(wipe_scr_end);
+    // Z_Free(wipe_scr_start); // NRFD-TODO: Memory optimization
+    // Z_Free(wipe_scr_end); // NRFD-TODO: Memory optimization
     return 0;
 }
 
@@ -234,10 +236,9 @@ wipe_StartScreen
   int	width,
   int	height )
 {
-  printf("NRFD-TODO: wipe_StartScreen\n");
-  /*
-    wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
-    I_ReadScreen(wipe_scr_start);*/
+    printf("NRFD-TODO: wipe_StartScreen\n");
+    // wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    I_ReadScreen(wipe_scr_start);
     return 0;
 }
 
@@ -248,12 +249,10 @@ wipe_EndScreen
   int	width,
   int	height )
 {
-  printf("NRFD-TODO: wipe_EndScreen\n");
-  /*(
-    wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    printf("NRFD-TODO: wipe_EndScreen\n");
+    // wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
     V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
-    */
     return 0;
 }
 
@@ -281,6 +280,7 @@ wipe_ScreenWipe
 	wipe_scr = I_VideoBuffer;
 	(*wipes[wipeno*3])(width, height, ticks);
     }
+
 
     // do a piece of wipe-in
     V_MarkRect(0, 0, width, height);

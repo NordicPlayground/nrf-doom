@@ -13,8 +13,12 @@
 void I_Error (char *error, ...);
 
 #define QSPI_STD_CMD_WRSR        0x01
+#define QSPI_STD_CMD_RDSR        0x05
+#define QSPI_STD_CMD_RDCR        0x15
 #define QSPI_STD_CMD_RSTEN       0x66
 #define QSPI_STD_CMD_RST         0x99
+#define QSPI_STD_CMD_RDID        0x9F
+#define QSPI_STD_CMD_CE          0x60
 
 #define QSPI_SR_QUAD_ENABLE_BYTE 0x40
 
@@ -37,6 +41,9 @@ static void qspi_handler(nrfx_qspi_evt_t event, void * p_context)
 static void configure_memory(void)
 {
     uint32_t err_code;
+    uint8_t rxdata[4];
+    uint8_t data[4];
+
     nrf_qspi_cinstr_conf_t cinstr_cfg = {
         .opcode    = QSPI_STD_CMD_RSTEN,
         .length    = NRF_QSPI_CINSTR_LEN_1B,
@@ -46,6 +53,48 @@ static void configure_memory(void)
         .wren      = true
     };
 
+
+    // Send reset enable
+    printf("N_qspi: Send reset enable\n");
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, NULL, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    // Send reset command
+    printf("N_qspi: Send reset command\n");
+    cinstr_cfg.opcode = QSPI_STD_CMD_RST;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, NULL, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    printf("N_qspi: Read ID\n");
+    cinstr_cfg.opcode = QSPI_STD_CMD_RDID;
+    cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_3B;
+    data[0] = 0;
+    data[1] = 0;
+    data[2] = 0;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, rxdata);
+    APP_ERROR_CHECK(err_code);
+    printf("N_qspi:   %x %x %x\n", rxdata[0], rxdata[1], rxdata[2]);
+
+
+    printf("N_qspi: Read status\n");
+    cinstr_cfg.opcode = QSPI_STD_CMD_RDSR;
+    cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_2B;
+    data[0] = 0;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, rxdata);
+    APP_ERROR_CHECK(err_code);
+    printf("N_qspi:   %x\n", rxdata[0]);
+
+
+    printf("N_qspi: Read Conf\n");
+    cinstr_cfg.opcode = QSPI_STD_CMD_RDCR;
+    cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_3B;
+    data[0] = 0;
+    data[2] = 0;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, rxdata);
+    APP_ERROR_CHECK(err_code);
+    printf("N_qspi:   %x %x\n", rxdata[0], rxdata[1]);
+
+    /*
     // Send reset enable
     err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, NULL, NULL);
     APP_ERROR_CHECK(err_code);
@@ -64,7 +113,7 @@ static void configure_memory(void)
     cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_4B;
     err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, NULL);
     APP_ERROR_CHECK(err_code);
-
+*/
     // Switch to qspi mode
     /*
     data = QSPI_SR_QUAD_ENABLE_BYTE;
@@ -109,6 +158,7 @@ void N_qspi_init() {
     APP_ERROR_CHECK(err_code);
 
     NRF_QSPI_S->IFTIMING = (1 << 8);
+
     printf("QSPI initialized %ld %ld\n", (NRF_QSPI_S->IFTIMING>>8), ((NRF_QSPI_S->IFCONFIG1>>28)&0xF));
 
 

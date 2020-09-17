@@ -60,6 +60,8 @@ typedef PACKED_STRUCT (
 #include "n_qspi.h"
 #include "n_mem.h"
 
+
+extern int no_sdcard; //NRFD-NOTE: from main.c
 //
 // GLOBALS
 //
@@ -173,14 +175,15 @@ wad_file_t *W_AddFile (char *filename)
     printf("W_AddFile: Reading %s\n", filename);
     // Open the file and add to directory
     // wad_file = W_OpenFile(filename);
-    wad_file = N_fs_open(filename);
-    wad_file_data = Z_Malloc(sizeof(wad_file_t), PU_STATIC, 0);
-
-    if (wad_file == NULL)
-    {
-        printf (" couldn't open %s\n", filename);
-        return NULL;
+    if (!no_sdcard) {
+        wad_file = N_fs_open(filename);
+        if (wad_file == NULL)
+        {
+            printf (" couldn't open %s\n", filename);
+            return NULL;
+        }
     }
+    wad_file_data = Z_Malloc(sizeof(wad_file_t), PU_STATIC, 0);
 
     if (strcasecmp(filename+strlen(filename)-3 , "wad" ) )
     {
@@ -208,53 +211,56 @@ wad_file_t *W_AddFile (char *filename)
     {
         // Copy entire WAD file to Flash memory
 
-        long file_size = N_fs_size(wad_file);
-        printf("File size: %ldKB\n", file_size/1024);
-
-        
-        int num_blocks = (file_size + N_QSPI_BLOCK_SIZE - 1) / N_QSPI_BLOCK_SIZE;
-        uint8_t *block_data = N_malloc(N_QSPI_BLOCK_SIZE);
-        int block_loc = 0;
-        uint8_t *qspi_data = N_qspi_data_pointer(0);
-        boolean data_mismatch = do_wad_transfer;
-
-        N_qspi_reserve_blocks(num_blocks);
-        
-        /*
-        for (i = 0; i<num_blocks; i++) {
-            printf("Verifying block %d of %d\n", i, num_blocks);
-            int block_next = block_loc + N_QSPI_BLOCK_SIZE;
-            int block_size = block_next > file_size ? (file_size%N_QSPI_BLOCK_SIZE) : N_QSPI_BLOCK_SIZE;
-            printf("N_fs_read\n");
-            N_fs_read(wad_file, block_loc, block_data, block_size);
-            printf("Comparing...\n");
-            for (int j = 0; j<block_size; j++) {
-                if (block_data[j] != qspi_data[block_loc+j]) {
-                    data_mismatch = true;
-                    printf("Found mismatch in byte %d\n", block_loc+j);
-                    break;
-                }
-            }
-            if (data_mismatch) break;
-            block_loc = block_next;
+        long file_size = 4196366;
+        if (!no_sdcard) {
+            file_size = N_fs_size(wad_file);
         }
-        */
-        
-        if (data_mismatch) {
-            printf("Uploading WAD data to QSPI flash memory..");
-            block_loc = 0;
+        printf("File size: %ld\n", file_size);
+
+        int num_blocks = (file_size + N_QSPI_BLOCK_SIZE - 1) / N_QSPI_BLOCK_SIZE;
+        N_qspi_reserve_blocks(num_blocks);
+        if (!no_sdcard) {
+            uint8_t *block_data = N_malloc(N_QSPI_BLOCK_SIZE);
+            int block_loc = 0;
+            uint8_t *qspi_data = N_qspi_data_pointer(0);
+            boolean data_mismatch = do_wad_transfer;
+
+            /*
             for (i = 0; i<num_blocks; i++) {
-                printf("Copying block %d of %d\n", i, num_blocks);
+                printf("Verifying block %d of %d\n", i, num_blocks);
                 int block_next = block_loc + N_QSPI_BLOCK_SIZE;
                 int block_size = block_next > file_size ? (file_size%N_QSPI_BLOCK_SIZE) : N_QSPI_BLOCK_SIZE;
                 printf("N_fs_read\n");
                 N_fs_read(wad_file, block_loc, block_data, block_size);
-                printf("N_qspi_write_block\n");
-                N_qspi_write_block(block_loc, block_data, block_size);
+                printf("Comparing...\n");
+                for (int j = 0; j<block_size; j++) {
+                    if (block_data[j] != qspi_data[block_loc+j]) {
+                        data_mismatch = true;
+                        printf("Found mismatch in byte %d\n", block_loc+j);
+                        break;
+                    }
+                }
+                if (data_mismatch) break;
                 block_loc = block_next;
             }
+            */
+            
+            if (data_mismatch) {
+                printf("Uploading WAD data to QSPI flash memory..");
+                block_loc = 0;
+                for (i = 0; i<num_blocks; i++) {
+                    printf("Copying block %d of %d\n", i, num_blocks);
+                    int block_next = block_loc + N_QSPI_BLOCK_SIZE;
+                    int block_size = block_next > file_size ? (file_size%N_QSPI_BLOCK_SIZE) : N_QSPI_BLOCK_SIZE;
+                    printf("N_fs_read\n");
+                    N_fs_read(wad_file, block_loc, block_data, block_size);
+                    printf("N_qspi_write_block\n");
+                    N_qspi_write_block(block_loc, block_data, block_size);
+                    block_loc = block_next;
+                }
+            }
+            N_free(block_data);
         }
-        N_free(block_data);
         
 
         wadinfo_t *header_ptr = N_qspi_data_pointer(0);

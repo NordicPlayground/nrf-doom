@@ -78,7 +78,12 @@
 #include "d_main.h"
 
 #include "n_fs.h"
-#include "n_nxc.h"
+#include "n_rjoy.h"
+
+#include "nrf.h"
+
+
+extern int no_sdcard; //NRFD-NOTE: from main.c
 
 //
 // D-DoomLoop()
@@ -132,7 +137,7 @@ const int             show_endoom = 1;
 const int             show_diskicon = 1;
 
 uint32_t frame_time_prev;
-uint32_t frame_time_delta;
+uint32_t frame_time_fps;
 
 
 void D_ConnectNetGame(void);
@@ -248,6 +253,7 @@ void D_Display (void)
         break;
     }
 
+
     // draw buffered stuff to screen
     I_UpdateNoBlit ();
     
@@ -296,7 +302,7 @@ void D_Display (void)
     viewactivestate = viewactive;
     inhelpscreensstate = inhelpscreens;
     oldgamestate = wipegamestate = gamestate;
-    
+
     // draw pause pic
     if (paused)
     {
@@ -322,12 +328,13 @@ void D_Display (void)
         I_FinishUpdate ();              // page flip or blit buffer
         return;
     }
-    /* NRFD-TODO: wipe
+
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
     wipestart = I_GetTime () - 1;
 
+    tics = 0;
     do
     {
         do
@@ -336,15 +343,14 @@ void D_Display (void)
             tics = nowtime - wipestart;
             I_Sleep(1);
         } while (tics <= 0);
-        
         wipestart = nowtime;
         done = wipe_ScreenWipe(wipe_Melt
                                , 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
         I_UpdateNoBlit ();
         M_Drawer ();                            // menu is drawn even on top of wipes
-        I_FinishUpdate ();                      // page flip or blit buffer
+        I_FinishUpdate ();                      // page flip or blit buffe
+
     } while (!done);
-    */
 }
 
 static void EnableLoadingDisk(void)
@@ -482,9 +488,12 @@ void D_DoomLoop (void)
     while (1)
     {
         int frame_time = I_GetTimeRaw();
-        frame_time_delta = frame_time-frame_time_prev;
+        frame_time_fps = I_RawTimeToFps(frame_time-frame_time_prev);
 
-        N_ldbg("=== LOOP START ===\n");
+        // printf("=== LOOP START ===\n");
+        NRF_P0_S->OUT = NRF_P0_S->OUT^(1<<28);
+        NRF_P0_S->OUT = NRF_P0_S->OUT^(1<<10);
+
         // frame syncronous IO operations
         I_StartFrame ();
 
@@ -499,7 +508,7 @@ void D_DoomLoop (void)
         N_ldbg("=== LOOP END ===\n");
         frame_time_prev = frame_time;
     }
-    
+
 }
 
 
@@ -1446,7 +1455,12 @@ void D_DoomMain (void)
     I_AtExit(M_SaveDefaults, false);
 
     // Find main IWAD file and load it.
-    iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
+    if (no_sdcard) {
+        iwadfile = "doom.wad";
+    }
+    else {
+        iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
+    }
 
     // None found?
 
@@ -1968,7 +1982,7 @@ void D_DoomMain (void)
     // NRFD-TODO: Remove if save game is implemented
     N_fs_shutdown();
 
-    N_nxc_init(); // Shares resource with N_fs, so must be inited here
+    N_rjoy_init(); 
 
     D_DoomLoop ();  // never returns
 }

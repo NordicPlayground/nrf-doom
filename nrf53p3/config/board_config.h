@@ -25,9 +25,9 @@
 #define QSPI_IO3_PIN 16
 
 
-#define SDC_SCK_PIN     NRF_GPIO_PIN_MAP(1, 15)
+#define SDC_SCK_PIN     NRF_GPIO_PIN_MAP(1, 14)
 #define SDC_MOSI_PIN    NRF_GPIO_PIN_MAP(1, 13)
-#define SDC_MISO_PIN    NRF_GPIO_PIN_MAP(1, 14)
+#define SDC_MISO_PIN    NRF_GPIO_PIN_MAP(1, 15)
 #define SDC_CS_PIN      NRF_GPIO_PIN_MAP(1, 12)
 
 
@@ -40,9 +40,27 @@
 // #define DISPLAY_PIN_INT  30
 // #define DISPLAY_PIN_PD_N  31
 
-#define DISPLAY_PIN_SCK  4
-#define DISPLAY_PIN_MISO 5
-#define DISPLAY_PIN_MOSI 6
+#define DISPLAY_PIN_SCK  8 //4
+#define DISPLAY_PIN_MISO 10 //5
+#define DISPLAY_PIN_MOSI 9 //6
 #define DISPLAY_PIN_CS_N 7
-#define DISPLAY_PIN_INT  25
+// #define DISPLAY_PIN_INT  25
 #define DISPLAY_PIN_PD_N 26
+
+// #define MAX98357
+#define PCM5102
+
+#ifdef PCM5102
+#define I2S_PIN_SCK     NRF_GPIO_PIN_MAP(1, 9)
+#define I2S_PIN_BCK     NRF_GPIO_PIN_MAP(1, 8)
+#define I2S_PIN_DIN     NRF_GPIO_PIN_MAP(1, 7)
+#define I2S_PIN_LRCK    NRF_GPIO_PIN_MAP(1, 6)
+#endif
+
+#ifdef MAX98357
+#define I2S_PIN_SD      NRF_GPIO_PIN_MAP(0, 10);
+#define I2S_PIN_GAIN    NRF_GPIO_PIN_MAP(0, 9);
+#define I2S_PIN_DIN      NRF_GPIO_PIN_MAP(1, 0);
+#define I2S_PIN_BCK      NRF_GPIO_PIN_MAP(0, 24); // BCLK
+#define I2S_PIN_LRCK     NRF_GPIO_PIN_MAP(0, 22); // LRC
+#endif

@@ -260,8 +260,9 @@
 #define ST_MAPHEIGHT            1
 
 // graphics are drawn to a backing screen and blitted to the real screen
+// NRFD-TODO: Memory optimizations?
 pixel_t                 st_backing_screen[ST_WIDTH*ST_HEIGHT];
-            
+
 // main player in game
 static player_t*        plyr; 
 
@@ -377,7 +378,7 @@ static boolean  oldweaponsowned[NUMWEAPONS];
 static int      st_facecount = 0;
 
 // current face index, used by w_faces
-static short      st_faceindex = 0;
+short      st_faceindex = 0;
 
 // holds key-type for each key box on bar
 static short      keyboxes[3]; 
@@ -764,7 +765,8 @@ void ST_updateFaceWidget(void)
             // being attacked
             priority = 7;
             
-            if (plyr->health - st_oldhealth > ST_MUCHPAIN)
+            // NRFD-TODO: To fix or not? https://doom.fandom.com/wiki/Ouch_face
+            if (st_oldhealth - plyr->health > ST_MUCHPAIN)
             {
                 st_facecount = ST_TURNCOUNT;
                 st_faceindex = ST_calcPainOffset() + ST_OUCHOFFSET;

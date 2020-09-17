@@ -32,6 +32,8 @@ int I_GetTime (void);
 int I_GetTimeMS (void);
 uint32_t I_GetTimeRaw (void);
 
+uint32_t I_RawTimeToFps(uint32_t time_delta);
+
 // Pause for a specified number of ms
 void I_Sleep(int ms);
 
@@ -43,6 +45,8 @@ void I_InitTimer(void);
 
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
+
+
 
 #endif
 

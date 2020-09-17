@@ -34,8 +34,9 @@
 int  I_GetTime (void)
 {
     NRF_TIMER0->TASKS_CAPTURE[0] = 1;
-    uint32_t cc = NRF_TIMER0->CC[0];
-    return (cc * TICRATE)*10/625/1000; 
+    uint64_t cc = NRF_TIMER0->CC[0];
+    uint64_t tickTime = (cc * TICRATE)*10/312/1000;
+    return tickTime;
 }
 
 //
@@ -45,9 +46,14 @@ int  I_GetTime (void)
 int I_GetTimeMS(void)
 {
     NRF_TIMER0->TASKS_CAPTURE[0] = 1;
-    uint32_t cc = NRF_TIMER0->CC[0];
-    cc = cc*10/625;
+    uint64_t cc = NRF_TIMER0->CC[0];
+    cc = cc*10/312;
     return cc;
+}
+
+uint32_t I_RawTimeToFps(uint32_t time_delta)
+{
+    return 31200/time_delta;
 }
 
 uint32_t I_GetTimeRaw(void)
@@ -81,10 +87,10 @@ void I_InitTimer(void)
     // initialize timer
     NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer;
     NRF_TIMER0->BITMODE = TIMER_BITMODE_BITMODE_32Bit;
-    NRF_TIMER0->PRESCALER = 8;
+    NRF_TIMER0->PRESCALER = 9;
     // fTIMER = 16 MHz / (2*PRESCALER)
-    // 2**8 = 256
-    // fTIMER = 62.5Khz;
+    // 2**9 = 512
+    // fTIMER = 31.25Khz;
     // NOTE: If timer is changed, update HU_Ticker (or make global variable)
     NRF_TIMER0->TASKS_START = 1;
 }

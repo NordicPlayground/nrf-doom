@@ -10,14 +10,14 @@
 
 boolean button_prev_state[4];
 
-char button_map[] = {KEY_UPARROW, KEY_DOWNARROW, KEY_ENTER, KEY_BACKSPACE};
+char button_map[] = {KEY_UPARROW, KEY_DOWNARROW, KEY_ENTER, KEY_ESCAPE};
 
 void N_ButtonsInit()
 {
     NRF_P0_S->PIN_CNF[BUTTON_PIN_0] = (3<<2);
     NRF_P0_S->PIN_CNF[BUTTON_PIN_1] = (3<<2);
-    NRF_P0_S->PIN_CNF[BUTTON_PIN_2] = (3<<2);
-    NRF_P0_S->PIN_CNF[BUTTON_PIN_3] = (3<<2);
+    // NRF_P0_S->PIN_CNF[BUTTON_PIN_2] = (3<<2);
+    // NRF_P0_S->PIN_CNF[BUTTON_PIN_3] = (3<<2);
 }
 
 int N_ButtonStateRaw(int id)
@@ -28,9 +28,9 @@ int N_ButtonStateRaw(int id)
         case 1:
         return (NRF_P0_S->IN  & (1 << BUTTON_PIN_1)) == 0;
         case 2:
-        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_2)) == 0;
+        return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_2)) == 0;
         case 3:
-        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_3)) == 0;
+        return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_3)) == 0;
     }
     I_Error("N_ButtonStateRaw: Invalid button\n");
     return 0;

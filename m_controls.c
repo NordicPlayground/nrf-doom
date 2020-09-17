@@ -180,21 +180,21 @@ const int key_menu_screenshot = 0;
 // Joystick controls
 //
 
-const int joybfire = 0;
-const int joybstrafe = 1;
+const int joybfire = 5;
+const int joybstrafe = -1;
 const int joybuse = 3;
 const int joybspeed = 2;
 
-const int joybstrafeleft = -1;
-const int joybstraferight = -1;
+const int joybstrafeleft = 0;
+const int joybstraferight = 1;
 
 const int joybjump = -1;
 
 const int joybprevweapon = -1;
-const int joybnextweapon = -1;
+const int joybnextweapon = 4;
 
 const int joybmenu = -1;
-const int joybautomap = -1;
+const int joybautomap = 6;
 
 // Control whether if a mouse button is double clicked, it acts like 
 // "use" has been pressed
