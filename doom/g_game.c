@@ -128,18 +128,17 @@ int             displayplayer;          // view being displayed
 int             levelstarttic;          // gametic at level start
 int             totalkills, totalitems, totalsecret;    // for intermission
 
-const boolean         demoplayback = false;
+boolean         demoplayback = false;
 const boolean         demorecording = false;
 const boolean         netdemo;
 
-/* NRFD-TODO: demo
 char           *demoname;
 boolean         longtics;               // cph's doom 1.91 longtics hack
 boolean         lowres_turn;            // low resolution turning for longtics
 byte*           demobuffer;
 byte*           demo_p;
 byte*           demoend;
-*/
+
 // NRFD-EXCLUDE
 const boolean         singledemo = false;               // quit after playing a demo from cmdline
 
@@ -670,8 +669,6 @@ void G_DoLoadLevel (void)
     //  we look for an actual index, instead of simply
     //  setting one.
 
-    printf("sky flat num\n");
-
     skyflatnum = R_FlatNumForName(DEH_String(SKYFLATNAME));
 
     // The "Sky never changes in Doom II" bug was fixed in
@@ -706,8 +703,6 @@ void G_DoLoadLevel (void)
 
     gamestate = GS_LEVEL;
 
-    printf("clear player frags\n");
-
     for (i=0 ; i<MAXPLAYERS ; i++)
     {
         turbodetected[i] = false;
@@ -724,7 +719,6 @@ void G_DoLoadLevel (void)
 
     // clear cmd building stuff
 
-    printf("clear IO\n");
     // memset (gamekeydown, 0, sizeof(gamekeydown));
     gamekeydown_clear();
 
@@ -1799,7 +1793,7 @@ G_DeferedInitNew
 
 void G_DoNewGame (void)
 {
-    // demoplayback = false;  NRFD-TODO: demo
+    demoplayback = false;
     // netdemo = false; NRFD-TODO: demo
     netgame = false;
     deathmatch = false;
@@ -1821,7 +1815,7 @@ G_InitNew
 {
     char *skytexturename;
     int             i;
-    printf("G_InitNew\n");
+    printf("G_InitNew %0d %0d %0d\n", skill, episode, map);
     if (paused)
     {
         paused = false;
@@ -1969,7 +1963,6 @@ G_InitNew
 
 void G_ReadDemoTiccmd (ticcmd_t* cmd)
 {
-    /* NRFD-TODO: demo
     if (*demo_p == DEMOMARKER)
     {
         // end of demo data stream
@@ -1992,7 +1985,6 @@ void G_ReadDemoTiccmd (ticcmd_t* cmd)
     }
 
     cmd->buttons = (unsigned char)*demo_p++;
-    */
 }
 
 // Increase the size of the demo buffer to allow unlimited demos
@@ -2087,7 +2079,7 @@ void G_WriteDemoTiccmd (ticcmd_t* cmd)
 //
 void G_RecordDemo (char *name)
 {
-    /* NRFD-TODO: demo
+    /* NRFD-EXCLUDE: demo recording
     size_t demoname_size;
     int i;
     int maxsize;
@@ -2137,7 +2129,7 @@ int G_VanillaVersionCode(void)
 
 void G_BeginRecording (void)
 {
-    /* NRFD-TODO: demo
+    /* NRFD-EXCLUDE: demo recording
     int             i;
 
     demo_p = demobuffer;
@@ -2182,14 +2174,13 @@ void G_BeginRecording (void)
 // G_PlayDemo
 //
 
-// NRFD-TODO: Demo
-// char*   defdemoname;
+char*   defdemoname;
 
 void G_DeferedPlayDemo (char* name)
 {
-    // NRFD-TODO: demo
-    // defdemoname = name;
-    // gameaction = ga_playdemo;
+    printf("G_DeferedPlayDemo: %s\n", name);
+    defdemoname = name;
+    gameaction = ga_playdemo;
 }
 
 // Generate a string describing a demo version
@@ -2235,7 +2226,7 @@ static char *DemoVersionDescription(int version)
 
 void G_DoPlayDemo (void)
 {
-    /* NRFD-TODO demo
+    printf("G_DoPlayDemo\n");
     skill_t skill;
     int i, lumpnum, episode, map;
     int demoversion;
@@ -2283,22 +2274,23 @@ void G_DoPlayDemo (void)
     for (i=0 ; i<MAXPLAYERS ; i++)
         playeringame[i] = *demo_p++;
 
+    /* NRFD-TODO: demo
     if (playeringame[1] || M_CheckParm("-solo-net") > 0
                         || M_CheckParm("-netdemo") > 0)
     {
         netgame = true;
         netdemo = true;
     }
+    */
 
     // don't spend a lot of time in loadlevel
-    precache = false;
+    // precache = false; NRFD-TODO?
     G_InitNew (skill, episode, map);
-    precache = true;
+    // precache = true; NRFD-TODO?
     starttime = I_GetTime ();
 
     usergame = false;
     demoplayback = true;
-    */
 }
 
 //
@@ -2336,7 +2328,6 @@ void G_TimeDemo (char* name)
 
 boolean G_CheckDemoStatus (void)
 {
-    /* NRFD-TODO demo
     int             endtime;
 
     if (timingdemo)
@@ -2360,7 +2351,7 @@ boolean G_CheckDemoStatus (void)
     {
         W_ReleaseLumpName(defdemoname);
         demoplayback = false;
-        netdemo = false;
+        // netdemo = false; // NRFD-TODO?
         netgame = false;
         deathmatch = false;
         playeringame[1] = playeringame[2] = playeringame[3] = 0;
@@ -2377,6 +2368,7 @@ boolean G_CheckDemoStatus (void)
         return true;
     }
 
+    /* NRFD-EXCLUDE: demo recording
     if (demorecording)
     {
         *demo_p++ = DEMOMARKER;
@@ -2385,7 +2377,7 @@ boolean G_CheckDemoStatus (void)
         demorecording = false;
         I_Error ("Demo %s recorded",demoname);
     }
-        */
+    */
     return false;
 }
 

@@ -550,8 +550,6 @@ R_DrawVisSprite
 //
 void R_ProjectSprite (mobj_t* thing)
 {
-    if (thing->type == MT_TROOP)
-      printf("Project: %d\n", thing->type);
     fixed_t             tr_x;
     fixed_t             tr_y;
     

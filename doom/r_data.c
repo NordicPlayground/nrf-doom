@@ -343,7 +343,7 @@ void R_GenerateInit(int texture_storage_size)
     N_ReadButtons();
     I_Sleep(1);
     N_ReadButtons();
-    generate_to_flash = N_ButtonState(1);
+    generate_to_flash = 0; //N_ButtonState(1);
 
     generate_buffer = (byte*)I_VideoBuffers;
     store_loc = N_qspi_alloc_block();
@@ -372,7 +372,6 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
     int height = R_TextureHeight(texture);
     size_t texture_size = width*height;
     maptexture_t *mtex = texture->wad_texture;
-    // printf("    %.8s\n", mtex->name);
 
     size_t texture_loc = store_loc;
     store_loc += texture_size;
@@ -387,7 +386,6 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
     int patchcount = SHORT(mtex->patchcount);
     for (i=0; i<patchcount; i++)
     {
-        // printf("P");
         int          x;
         int          x1;
         int          x2;
@@ -416,11 +414,8 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         if (x2 > width)
             x2 = width;
 
-        // printf("      %d - %d\n", x1, x2);
-
         for ( ; x<x2 ; x++)
         {
-            // printf(".");
             column_t*       firstcol;
             byte* dest_col = generate_buffer + (height*x);
             int col_num = x-x1;
@@ -431,15 +426,6 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             int colofs = columnofs[col_num]; // LONG(...)
             firstcol = (column_t *)((byte *)realpatch + colofs);
             column_t* col_ptr = firstcol;
-
-            // if (num==14 && x==64 && i==0) {
-            //     printf("XXX\n");
-            // }
-            // if ((uint32_t)(col_ptr) < 0x12000000 || (uint32_t)(col_ptr) > 0x20000000) {
-            //     printf("\n         %lx %lx %lx %d %d %d %d\n",
-            //             (uint32_t)(realpatch), (uint32_t)(col_ptr), (uint32_t)(columnofs), col_num, colofs, i, x);
-            //     I_Error("R_GenerateComposite_N");
-            // }
 
             while (col_ptr->topdelta != 0xff)
             {
@@ -464,7 +450,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             }
         }
     }
-        // printf("\n");
+
     if (generate_to_flash) {
         N_qspi_write(texture_loc, generate_buffer, texture_size);
     }

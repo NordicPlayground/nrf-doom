@@ -138,7 +138,7 @@ void Z_Init (void)
 //
 void Z_Free (void* ptr)
 {
-    printf("Z_Free\n");
+    // printf("Z_Free\n");
     memblock_t*		block;
 
     block = (memblock_t *) ((byte *)ptr - sizeof(memblock_t));

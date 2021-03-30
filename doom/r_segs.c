@@ -106,13 +106,13 @@ R_RenderMaskedSegRange
     // Use different light tables
     //   for horizontal / vertical / diagonal. Diagonal?
     // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
+    curline = ds->curline;
     side_t *sidedef = SegSideDef(curline);
     line_t *linedef = SegLineDef(curline);
-    curline = ds->curline;
     frontsector = SegFrontSector(curline);
     backsector = SegBackSector(curline);
     texnum = texturetranslation[sidedef->midtexture];
-        
+
     lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
 
     vertex_t *v1 = SegV1(curline);
@@ -176,14 +176,15 @@ R_RenderMaskedSegRange
             dc_iscale = 0xffffffffu / (unsigned)spryscale;
             
 
-            /*
+            
             // draw the texture
+            // NRFD-Exclude: Replaced due to new composite texture generation
+            /* 
             col = (column_t *)(R_GetColumn(texnum, maskedtexturecol[dc_x]));
-
-            // R_DrawMaskedColumn (col);
-            R_DrawMaskedColumn2 (col);
+            R_DrawMaskedColumn (col);
             */
 
+            // printf("%d\n", texnum);
             byte *coldata = R_GetCachedColumn(texnum, maskedtexturecol[dc_x]);
             // NRFD-NOTE: Rewrite of R_DrawMaskedColumn
             {
@@ -207,7 +208,7 @@ R_RenderMaskedSegRange
                 {
                     dc_source = (byte *)coldata;
                     // Drawn by either R_DrawColumn or R_DrawFuzzColumn.
-                    // colfunc (); // NRFD-TODO
+                    // colfunc (); // NRFD-TODO?
                     R_DrawTransColumn();
                 }
             }

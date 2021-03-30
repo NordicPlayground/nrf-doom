@@ -185,7 +185,7 @@ extern  int leveltime;  // tics in game play for par
 extern  boolean usergame;
 
 //?
-extern const boolean   demoplayback;
+boolean   demoplayback;
 extern const boolean   demorecording;
 
 // Round angleturn in ticcmds to the nearest 256.  This is used when

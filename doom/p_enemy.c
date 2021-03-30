@@ -101,9 +101,7 @@ P_RecursiveSound
 ( sector_t*     sec,
   int           soundblocks )
 {
-    // printf("NRFD-TODO: P_RecursiveSound\n");
-    // TODO: Infinite recursion issue
-    /*
+    // printf("P_RecursiveSound\n");
     int         i;
     line_t*     check;
     sector_t*   other;
@@ -147,7 +145,7 @@ P_RecursiveSound
         }
         else
             P_RecursiveSound (other, soundblocks);
-    }*/
+    }
 }
 
 

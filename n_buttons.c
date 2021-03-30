@@ -1,4 +1,6 @@
 
+#include <stdio.h>
+
 #include "nrf.h"
 #include "nrf_gpio.h"
 #include "board_config.h"
@@ -19,19 +21,23 @@ void N_ButtonsInit()
     nrf_gpio_cfg_input(BUTTON_PIN_2, NRF_GPIO_PIN_PULLUP);
     nrf_gpio_cfg_input(BUTTON_PIN_3, NRF_GPIO_PIN_PULLUP);
     nrf_gpio_cfg_input(BUTTON_PIN_4, NRF_GPIO_PIN_PULLUP);
+    button_prev_state[0] = 0;
+    button_prev_state[1] = 0;
+    button_prev_state[2] = 0;
+    button_prev_state[3] = 0;
 }
 
 int N_ButtonStateRaw(int id)
 {
     switch(id) {
         case 0:
-        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_1)) == 0;
+        return !nrf_gpio_pin_read(BUTTON_PIN_1);
         case 1:
-        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_2)) == 0;
+        return !nrf_gpio_pin_read(BUTTON_PIN_2);
         case 2:
-        return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_3)) == 0;
+        return !nrf_gpio_pin_read(BUTTON_PIN_3);
         case 3:
-        return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_4)) == 0;
+        return !nrf_gpio_pin_read(BUTTON_PIN_4);
     }
     I_Error("N_ButtonStateRaw: Invalid button\n");
     return 0;

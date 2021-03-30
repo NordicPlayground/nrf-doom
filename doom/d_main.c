@@ -342,6 +342,7 @@ void D_Display (void)
         {
             nowtime = I_GetTime ();
             tics = nowtime - wipestart;
+            I_UpdateSound(); // NRFD-NOTE: Reduce sound glitches during wipes
             I_Sleep(1);
         } while (tics <= 0);
         wipestart = nowtime;
@@ -350,6 +351,7 @@ void D_Display (void)
         I_UpdateNoBlit ();
         M_Drawer ();                            // menu is drawn even on top of wipes
         I_FinishUpdate ();                      // page flip or blit buffe
+        I_UpdateSound(); // NRFD-NOTE: Reduce sound glitches during wipes
 
     } while (!done);
 }

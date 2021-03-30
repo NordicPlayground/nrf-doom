@@ -108,6 +108,7 @@ int columnofs(int x)
 
 byte column_buffer[SCREENHEIGHT+3];
 
+// Draw column with transparent pixels
 void R_DrawTransColumn (void) 
 { 
     int                 count; 

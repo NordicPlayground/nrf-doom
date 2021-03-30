@@ -516,7 +516,7 @@ P_CrossSpecialLine
   int           side,
   mobj_t*       thing )
 {
-    printf("P_CrossSpecialLine\n");
+    // printf("P_CrossSpecialLine\n");
     line_t*     line;
     int         ok;
 
