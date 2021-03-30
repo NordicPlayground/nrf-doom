@@ -405,11 +405,8 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         // NOTE: Having some trouble with reliable reading of this data from QSPI
         memcpy(columnofs, realpatch->columnofs, 256*sizeof(int));
 
-        asm volatile("nop");
         x1 = SHORT(mpatch->originx);
-        asm volatile("nop");
         x2 = x1 + SHORT(realpatch->width);
-        asm volatile("nop");
 
         if (x1<0)
             x = 0;

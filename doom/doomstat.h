@@ -185,8 +185,8 @@ extern  int leveltime;  // tics in game play for par
 extern  boolean usergame;
 
 //?
-const boolean   demoplayback;
-const boolean   demorecording;
+extern const boolean   demoplayback;
+extern const boolean   demorecording;
 
 // Round angleturn in ticcmds to the nearest 256.  This is used when
 // recording Vanilla demos in netgames.

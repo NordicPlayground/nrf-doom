@@ -42,17 +42,16 @@ planefunction_t         ceilingfunc;
 //
 
 // Here comes the obnoxious "visplane".
-// NRFD-TODO: 
-#define MAXVISPLANES    50 // 128
+// NRFD-TODO: Find max for Doom 1 (and/or Doom 2?)
+#define MAXVISPLANES    64 // 128
 visplane_t              visplanes[MAXVISPLANES];
 visplane_t*             lastvisplane;
 visplane_t*             floorplane;
 visplane_t*             ceilingplane;
 
 
-// ?
-// NRFD-TODO: 
-#define MAXOPENINGS     SCREENWIDTH*8 //SCREENWIDTH*64
+// NRFD-TODO:  Find max for Doom 1 (and/or Doom 2?)
+#define MAXOPENINGS     SCREENWIDTH*32 // *64
 short                   openings[MAXOPENINGS];
 short*                  lastopening;
 

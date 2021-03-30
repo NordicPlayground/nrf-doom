@@ -179,7 +179,8 @@ R_InstallSpriteLump
         for (r=0 ; r<8 ; r++)
         {
             sprtemp[frame].lump[r] = lump - firstspritelump;
-            sprtemp[frame].flip |= (byte)(flipped<<r);
+            sprtemp[frame].flip |= (byte)((flipped?1:0)<<r);
+            // sprtemp[frame].flip[r] = (byte)flipped;
         }
         return;
     }
@@ -199,8 +200,9 @@ R_InstallSpriteLump
                  spritename, 'A'+frame, '1'+rotation);
                 
     sprtemp[frame].lump[rotation] = lump - firstspritelump;
-    sprtemp[frame].flip &= (1<<rotation);
-    sprtemp[frame].flip |= (byte)(1<<flipped);
+    sprtemp[frame].flip &= ~(1<<rotation);
+    sprtemp[frame].flip |= (byte)(flipped<<rotation);
+    // sprtemp[frame].flip[rotation] = (byte)flipped;
 }
 
 
@@ -487,6 +489,7 @@ R_DrawVisSprite
   int                   x2 )
 {
     // N_ldbg("R_DrawVisSprite\n");
+
     column_t*           column;
     int                 texturecolumn;
     fixed_t             frac;
@@ -547,6 +550,8 @@ R_DrawVisSprite
 //
 void R_ProjectSprite (mobj_t* thing)
 {
+    if (thing->type == MT_TROOP)
+      printf("Project: %d\n", thing->type);
     fixed_t             tr_x;
     fixed_t             tr_y;
     
@@ -903,7 +908,7 @@ void R_DrawPlayerSprites (void)
 void R_SortVisSprites (void)
 {
     int count = vissprite_p - vissprites;
-
+    // printf("R_SortVisSprites: %d\n", count);
     // NRFD-NOTE: Completely rewritten for singly-linked list
     // printf("R_SortVisSprites: %d\n", count);
 
@@ -1057,6 +1062,7 @@ void R_DrawSprite (vissprite_t* spr)
         if (gzt <= ds->tsilheight)
             silhouette &= ~SIL_TOP;
                         
+
         if (silhouette == 1)
         {
             // bottom sil
@@ -1147,8 +1153,10 @@ void R_DrawMasked (void)
 }
 
 
-
+// NRFD-NOTE: Function added to aid memory-optimization
 boolean R_SpriteGetFlip(spriteframe_t *sprite, int num) 
 {
     return (sprite->flip >> num)&1;
+    // NRFD-NOTE: Was:
+      // return sprite->flip[num];
 }

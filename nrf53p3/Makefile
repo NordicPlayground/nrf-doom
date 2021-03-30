@@ -159,6 +159,9 @@ CFLAGS += -fno-builtin -fshort-enums
 CFLAGS += -Wno-unused-variable
 CFLAGS += -Wno-unused-function
 CFLAGS += -Wno-unused-but-set-variable
+#CFLAGS += -Wno-error=char-subscripts
+#CFLAGS += -Wno-error=address-of-packed-member
+
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
 
@@ -215,7 +218,7 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 .PHONY: flash erase
 
 # Flash the program
-flash: default
+flash:
 	@echo Flashing: $(OUTPUT_DIRECTORY)/doom_nrf53p3.hex
 	nrfjprog -f nrf53 --coprocessor CP_APPLICATION --program $(OUTPUT_DIRECTORY)/doom_nrf53p3.hex --sectorerase
 	nrfjprog -f nrf53 --reset

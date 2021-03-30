@@ -2,7 +2,7 @@
 #define NRF_UARTE  NRF_UARTE1_S
 
 // Display
-#define NRF_SPIM   NRF_SPIM2_S
+#define NRF_SPIM   NRF_SPIM4_S
 #define NRF_GPIOTE NRF_GPIOTE0_S
 
 #define NRF_TIMER0 NRF_TIMER0_S
@@ -40,11 +40,18 @@
 // #define DISPLAY_PIN_INT  30
 // #define DISPLAY_PIN_PD_N  31
 
-#define DISPLAY_PIN_SCK  8 //4
-#define DISPLAY_PIN_MISO 10 //5
-#define DISPLAY_PIN_MOSI 9 //6
-#define DISPLAY_PIN_CS_N 7
-// #define DISPLAY_PIN_INT  25
+// nrf53 PDK
+// #define DISPLAY_PIN_SCK  8 //4
+// #define DISPLAY_PIN_MISO 10 //5
+// #define DISPLAY_PIN_MOSI 9 //6
+// #define DISPLAY_PIN_CS_N 7
+// // #define DISPLAY_PIN_INT  25
+// #define DISPLAY_PIN_PD_N 25
+
+#define DISPLAY_PIN_SCK  NRF_GPIO_PIN_MAP(0, 6)
+#define DISPLAY_PIN_MISO NRF_GPIO_PIN_MAP(0, 5)
+#define DISPLAY_PIN_MOSI NRF_GPIO_PIN_MAP(0, 25)
+#define DISPLAY_PIN_CS_N NRF_GPIO_PIN_MAP(0, 7)
 #define DISPLAY_PIN_PD_N 26
 
 // #define MAX98357

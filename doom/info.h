@@ -1298,7 +1298,6 @@ typedef enum {
     NUMMOBJTYPES,
     MT_ALLOC,
     MT_FREE
-
 } mobjtype_t;
 
 typedef struct __attribute__((packed))

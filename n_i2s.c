@@ -8,8 +8,6 @@
 
 #define NRF_I2S NRF_I2S0_S
 
-
-
 #define BUFFER_SIZE 512
 #define NUM_BUFFERS 5
 #define SAMPLE_RATE 10870
@@ -52,8 +50,10 @@ void N_I2S_init()
     printf("N_I2S_init\n");
 
     // Pull SCK down
+    /* FIXME
     NRF_P1_S->PIN_CNF[I2S_PIN_SCK&0x1F] = 3;
     NRF_P1_S->OUT = NRF_P1_S->OUT & ~(1<<(I2S_PIN_SCK&0x1F));
+    */
 
     NRF_I2S->PSEL.SCK   = I2S_PIN_BCK;
     NRF_I2S->PSEL.LRCK  = I2S_PIN_LRCK;

@@ -559,14 +559,11 @@ P_BlockLinesIterator
     short offset = *offset_ptr;
     short *list = blockmaplump+offset;
 
-    asm volatile("nop");
 
     short line_num;
     for( ; (line_num = *list) != -1; list++)
     {        
-        asm volatile("nop");
         if (line_num < 0 || line_num >= numlines) I_Error("P_BlockLinesIterator: line_num overflow %d vs %d", line_num, numlines);
-        asm volatile("nop");
         line_t *ld = &lines[line_num]; // TODO: Seperate with nop for QSPI loading
 
         // NRFD-TODO: validcount

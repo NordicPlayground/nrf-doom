@@ -324,30 +324,16 @@ static inline node_t GetNode(unsigned short num)
     int         k;
     mapnode_t *mn = &mapnodes[num];
     node_t     no;
-        asm volatile("nop");
-    asm volatile("nop");
 
     no.x = SHORT(mn->x)<<FRACBITS;
-    asm volatile("nop");
-    asm volatile("nop");
     no.y = SHORT(mn->y)<<FRACBITS;
-    asm volatile("nop");
-    asm volatile("nop");
     no.dx = SHORT(mn->dx)<<FRACBITS;
-    asm volatile("nop");
-    asm volatile("nop");
     no.dy = SHORT(mn->dy)<<FRACBITS;
-    asm volatile("nop");
-    asm volatile("nop");
     for (j=0 ; j<2 ; j++)
     {
-    asm volatile("nop");
         no.children[j] = SHORT(mn->children[j]);
-    asm volatile("nop");
         for (k=0 ; k<4 ; k++) {
-    asm volatile("nop");
             no.bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
-    asm volatile("nop");
         }
     }
     return no;
@@ -478,6 +464,7 @@ typedef struct  __attribute__((packed))
     short   lump[8];
 
     // Flip bit (1 = flip) to use for view angles 0-7.
+    // NRFD-NOTE: Optimized for memory, used to be: byte flip[8];
     byte    flip;
     
 } spriteframe_t;

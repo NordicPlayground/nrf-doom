@@ -520,7 +520,7 @@ R_StoreWallRange
         {
             ds_p->silhouette = SIL_BOTTOM;
             ds_p->bsilheight = INT_MAX;
-            ds_p->sprbottomclip = (short*)negonearray;
+            // ds_p->sprbottomclip = (short*)negonearray; // DON'T UNCOMMENT!
         }
         
         if (frontsector->ceilingheight < backsector->ceilingheight)
@@ -532,7 +532,7 @@ R_StoreWallRange
         {
             ds_p->silhouette |= SIL_TOP;
             ds_p->tsilheight = INT_MIN;
-            ds_p->sprtopclip = (short*)screenheightarray;
+            // ds_p->sprtopclip = (short*)screenheightarray; // DON'T UNCOMMENT!
         }
                 
         if (backsector->ceilingheight <= frontsector->floorheight)

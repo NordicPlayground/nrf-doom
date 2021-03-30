@@ -6,6 +6,7 @@
 #include <board_config.h>
 
 #include <nrf.h>
+#include <nrf_gpio.h>
 #include <nrfx_qspi.h>
 #include <nordic_common.h>
 #include <app_error.h>
@@ -132,35 +133,43 @@ void N_qspi_init() {
     uint32_t err_code = NRF_SUCCESS;
 
     // Set high-drive for QuadSpi pins
-    // TODO: Update for nRF52 and nRF53 final product?
-    NRF_P0_S->PIN_CNF[13] = (3<<8);
-    NRF_P0_S->PIN_CNF[14] = (3<<8);
-    NRF_P0_S->PIN_CNF[15] = (3<<8);
-    NRF_P0_S->PIN_CNF[16] = (3<<8);
-    NRF_P0_S->PIN_CNF[17] = (3<<8);
-    NRF_P0_S->PIN_CNF[18] = (3<<8);
+    nrf_gpio_cfg(QSPI_SCK_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+    nrf_gpio_cfg(QSPI_CSN_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+    nrf_gpio_cfg(QSPI_IO0_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+    nrf_gpio_cfg(QSPI_IO1_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+    nrf_gpio_cfg(QSPI_IO2_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+    nrf_gpio_cfg(QSPI_IO3_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
 
     // Set QSPI peripheral with default configuration.
-    nrfx_qspi_config_t config = NRFX_QSPI_DEFAULT_CONFIG;
+    nrfx_qspi_config_t config = NRFX_QSPI_DEFAULT_CONFIG(
+                                     QSPI_SCK_PIN, // _pin_sck
+                                     QSPI_CSN_PIN, // _pin_csn
+                                     QSPI_IO0_PIN, // _pin_io0
+                                     QSPI_IO1_PIN, // _pin_io1
+                                     QSPI_IO2_PIN, // _pin_io2
+                                     QSPI_IO3_PIN  // _pin_io3
+                                    );
 
-    // Set QSPI pins to pins related to connected board.
-    config.pins.sck_pin = QSPI_SCK_PIN;
-    config.pins.csn_pin = QSPI_CSN_PIN;
-    config.pins.io0_pin = QSPI_IO0_PIN;
-    config.pins.io1_pin = QSPI_IO1_PIN;
-    config.pins.io2_pin = QSPI_IO2_PIN;
-    config.pins.io3_pin = QSPI_IO3_PIN;
-
-    config.phy_if.sck_freq = 0;
+    // Set SCK frequency to max
+    config.prot_if.readoc     = (nrf_qspi_readoc_t)NRFX_QSPI_CONFIG_READOC;
+    config.prot_if.writeoc    = (nrf_qspi_writeoc_t)NRFX_QSPI_CONFIG_WRITEOC;
+    config.prot_if.addrmode   = (nrf_qspi_addrmode_t)NRFX_QSPI_CONFIG_ADDRMODE;
+    config.prot_if.dpmconfig  = false;
+    config.phy_if.sck_delay    = NRFX_QSPI_CONFIG_SCK_DELAY;
+    config.phy_if.dpmen       = false;
+    config.phy_if.spi_mode    = (nrf_qspi_spi_mode_t)NRFX_QSPI_CONFIG_MODE;
+    config.phy_if.sck_freq    = (nrf_qspi_frequency_t)NRFX_QSPI_CONFIG_FREQUENCY;
 
     // Try to initialize QSPI peripheral in blocking mode.
     err_code = nrfx_qspi_init(&config, qspi_handler, NULL);
     APP_ERROR_CHECK(err_code);
 
-    NRF_QSPI_S->IFTIMING = (1 << 8);
+    // Set RXDELAY to 1
+    // TODO: Use define if MDK is updated to include it
+    NRF_QSPI_S->IFTIMING = (1 << 8); 
 
+    printf("QSPI initialized\n");
     printf("QSPI initialized %ld %ld\n", (NRF_QSPI_S->IFTIMING>>8), ((NRF_QSPI_S->IFCONFIG1>>28)&0xF));
-
 
     // Restart and configure external memory to use quad line mode for data exchange.
     configure_memory();

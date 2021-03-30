@@ -1,5 +1,6 @@
 
 #include "nrf.h"
+#include "nrf_gpio.h"
 #include "board_config.h"
 
 #undef PACKED_STRUCT
@@ -14,23 +15,23 @@ char button_map[] = {KEY_UPARROW, KEY_DOWNARROW, KEY_ENTER, KEY_ESCAPE};
 
 void N_ButtonsInit()
 {
-    NRF_P0_S->PIN_CNF[BUTTON_PIN_0] = (3<<2);
-    NRF_P0_S->PIN_CNF[BUTTON_PIN_1] = (3<<2);
-    // NRF_P0_S->PIN_CNF[BUTTON_PIN_2] = (3<<2);
-    // NRF_P0_S->PIN_CNF[BUTTON_PIN_3] = (3<<2);
+    nrf_gpio_cfg_input(BUTTON_PIN_1, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_input(BUTTON_PIN_2, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_input(BUTTON_PIN_3, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_input(BUTTON_PIN_4, NRF_GPIO_PIN_PULLUP);
 }
 
 int N_ButtonStateRaw(int id)
 {
     switch(id) {
         case 0:
-        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_0)) == 0;
-        case 1:
         return (NRF_P0_S->IN  & (1 << BUTTON_PIN_1)) == 0;
+        case 1:
+        return (NRF_P0_S->IN  & (1 << BUTTON_PIN_2)) == 0;
         case 2:
-        return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_2)) == 0;
-        case 3:
         return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_3)) == 0;
+        case 3:
+        return 0; //(NRF_P0_S->IN  & (1 << BUTTON_PIN_4)) == 0;
     }
     I_Error("N_ButtonStateRaw: Invalid button\n");
     return 0;

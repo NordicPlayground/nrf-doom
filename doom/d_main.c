@@ -81,6 +81,7 @@
 #include "n_rjoy.h"
 
 #include "nrf.h"
+#include "nrf_cache.h"
 
 
 extern int no_sdcard; //NRFD-NOTE: from main.c
@@ -485,14 +486,17 @@ void D_DoomLoop (void)
     }
     */
     frame_time_prev = I_GetTimeRaw();
+    // nrf_cache_profiling_set(NRF_CACHE_S, 1);
     while (1)
     {
+        nrf_cache_profiling_counters_clear(NRF_CACHE_S);
         int frame_time = I_GetTimeRaw();
         frame_time_fps = I_RawTimeToFps(frame_time-frame_time_prev);
 
-        // printf("=== LOOP START ===\n");
-        NRF_P0_S->OUT = NRF_P0_S->OUT^(1<<28);
-        NRF_P0_S->OUT = NRF_P0_S->OUT^(1<<10);
+        // printf("== LOOP START  ==\n");
+
+        // Toggle GPIO pin for measuring frame-rate
+        // NRF_P0_S->OUT = NRF_P0_S->OUT^(1<<28);
 
         // frame syncronous IO operations
         I_StartFrame ();
@@ -504,6 +508,21 @@ void D_DoomLoop (void)
         // Update display, next frame, with current state.
         if (screenvisible)
             D_Display ();
+
+        /*
+        int fih = nrf_cache_instruction_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
+        int fim = nrf_cache_instruction_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
+        int fdh = nrf_cache_data_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
+        int fdm = nrf_cache_data_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
+
+        int xih = nrf_cache_instruction_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_XIP);
+        int xim = nrf_cache_instruction_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_XIP);
+        int xdh = nrf_cache_data_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_XIP);
+        int xdm = nrf_cache_data_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_XIP);
+
+        printf("fih = %d | fim = %d | fdh = %d | fdm = %d\n", fih, fim, fdh, fdm);
+        printf("xih = %d | xim = %d | xdh = %d | xdm = %d\n", xih, xim, xdh, xdm);
+        */
 
         N_ldbg("=== LOOP END ===\n");
         frame_time_prev = frame_time;

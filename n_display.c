@@ -4,6 +4,7 @@
 #include "board_config.h"
 #include "nrf.h"
 #include "nrf_delay.h"
+#include "nrf_gpio.h"
 
 #include "FT810.h"
 
@@ -13,90 +14,72 @@ volatile int display_spi_tip; // transfer-in-progress
 volatile uint8_t display_spi_txd_buf[BUF_MAXCNT];
 volatile uint8_t display_spi_rxd_buf[BUF_MAXCNT];
 
-
-void pin_set(int pin) {
-  NRF_GPIO->OUTSET = (1<<pin);
-}
-
-void pin_clr(int pin) {
-  NRF_GPIO->OUTCLR = (1<<pin);
-}
-
-void pin_tgl(int pin) {
-  NRF_GPIO->OUT ^= (1<<pin);
-}
-
 void N_display_gpiote_end_to_cs() {
   const int TASK_MODE = 3;
   const int LO_TO_HI = 1;
   const int OUT_INIT_LOW = 0;
 
-  NRF_GPIOTE->CONFIG[0] = (TASK_MODE << 0) | (DISPLAY_PIN_CS_N << 8) | (LO_TO_HI << 16) | (OUT_INIT_LOW << 20);
-
-  // NRF_PPI->CH[0].EEP = (uint32_t)&NRF_SPIM->EVENTS_END;
-  // NRF_PPI->CH[0].TEP = (uint32_t)&NRF_GPIOTE->TASKS_OUT[0];
-  // NRF_PPI->CHENSET = 1;
-
-  NRF_GPIOTE->SUBSCRIBE_OUT[0] = 0 | GPIOTE_SUBSCRIBE_OUT_EN_Msk;
-  NRF_SPIM->PUBLISH_END = 0 | SPIM_PUBLISH_END_EN_Msk;
+  // TODO: Confgigurable GPIOTE/DPPI channel
+  NRF_DISPLAY_GPIOTE->CONFIG[0] = (TASK_MODE << 0) | (DISPLAY_PIN_CS_N << 8) | (LO_TO_HI << 16) | (OUT_INIT_LOW << 20);
+  NRF_DISPLAY_GPIOTE->SUBSCRIBE_OUT[0] = 0 | GPIOTE_SUBSCRIBE_OUT_EN_Msk;
+  NRF_DISPLAY_SPIM->PUBLISH_END = 0 | SPIM_PUBLISH_END_EN_Msk;
   NRF_DPPIC_S->CHENSET = 1;
 }
 
 void N_display_gpiote_clear() {
-  NRF_GPIOTE->CONFIG[0] = 0;
+  NRF_DISPLAY_GPIOTE->CONFIG[0] = 0;
 }
 
 void N_display_spi_init() {
 
   // Set up GPIO pins
-  //                            High drv.  Inp/Out
-  NRF_GPIO->PIN_CNF[DISPLAY_PIN_SCK] =  (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[DISPLAY_PIN_MOSI] = (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[DISPLAY_PIN_MISO] = 0;
-  NRF_GPIO->PIN_CNF[DISPLAY_PIN_CS_N] = (3 << 8)   | 3;
-  NRF_GPIO->PIN_CNF[DISPLAY_PIN_PD_N] = 3;
+  nrf_gpio_cfg(DISPLAY_PIN_SCK, NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+  nrf_gpio_cfg(DISPLAY_PIN_MOSI,NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+  nrf_gpio_cfg(DISPLAY_PIN_MISO,NRF_GPIO_PIN_DIR_INPUT , NRF_GPIO_PIN_INPUT_CONNECT   , NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+  nrf_gpio_cfg(DISPLAY_PIN_CS_N,NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_H0H1, NRF_GPIO_PIN_NOSENSE);
+  nrf_gpio_cfg(DISPLAY_PIN_PD_N,NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT, NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
 
-  pin_set(DISPLAY_PIN_CS_N);
-  pin_set(DISPLAY_PIN_PD_N);
+  nrf_gpio_pin_set(DISPLAY_PIN_CS_N);
+  nrf_gpio_pin_set(DISPLAY_PIN_PD_N);
 
   // Configure SPI Master
-  NRF_SPIM->PSEL.SCK  = DISPLAY_PIN_SCK;
-  NRF_SPIM->PSEL.MOSI = DISPLAY_PIN_MOSI;
-  NRF_SPIM->PSEL.MISO = DISPLAY_PIN_MISO;
+  NRF_DISPLAY_SPIM->PSEL.SCK  = DISPLAY_PIN_SCK;
+  NRF_DISPLAY_SPIM->PSEL.MOSI = DISPLAY_PIN_MOSI;
+  NRF_DISPLAY_SPIM->PSEL.MISO = DISPLAY_PIN_MISO;
   //                  SCK pol    SCK phase  Bit Order (Msb First)
-  NRF_SPIM->CONFIG = (0 << 2) | (0 << 1) | (0 << 0);
-  NRF_SPIM->FREQUENCY = 0x01400000; // 0x14 = 32Mbps 0x0A = 16Mbps, 0x20.. = 2mbps, 0x08.. = 500kbps
-  NRF_SPIM->ORC = 0; // Over-Read Character
+  NRF_DISPLAY_SPIM->CONFIG = (0 << 2) | (0 << 1) | (0 << 0);
+  NRF_DISPLAY_SPIM->FREQUENCY = 0x01400000; // 0x14 = 32Mbps 0x0A = 16Mbps, 0x20.. = 2mbps, 0x08.. = 500kbps
+  NRF_DISPLAY_SPIM->ORC = 0; // Over-Read Character
 
-  NRF_SPIM->ENABLE = 7;
+  NRF_DISPLAY_SPIM->ENABLE = 7;
 
-  NRF_SPIM->TXD.PTR = 0xFFFFFFFF;
+  NRF_DISPLAY_SPIM->TXD.PTR = 0xFFFFFFFF;
 
   display_spi_tip = 0;
 
 }
 
 void N_display_power_reset() {
-  pin_clr(DISPLAY_PIN_PD_N);
+  nrf_gpio_pin_clear(DISPLAY_PIN_PD_N);
   nrf_delay_ms(50);
-  pin_set(DISPLAY_PIN_PD_N);
+  nrf_gpio_pin_set(DISPLAY_PIN_PD_N);
   nrf_delay_ms(50);
 }
 
 void N_display_spi_setup(int txdMaxCnt, volatile uint8_t * txdPtr, 
                        int rxdMaxCnt, volatile uint8_t * rxdPtr) {
 
-  NRF_SPIM->TXD.MAXCNT = txdMaxCnt;
-  NRF_SPIM->TXD.PTR = (uint32_t)txdPtr;
-  NRF_SPIM->RXD.MAXCNT = rxdMaxCnt;
-  NRF_SPIM->RXD.PTR = (uint32_t)rxdPtr;
+  NRF_DISPLAY_SPIM->TXD.MAXCNT = txdMaxCnt;
+  NRF_DISPLAY_SPIM->TXD.PTR = (uint32_t)txdPtr;
+  NRF_DISPLAY_SPIM->RXD.MAXCNT = rxdMaxCnt;
+  NRF_DISPLAY_SPIM->RXD.PTR = (uint32_t)rxdPtr;
 }
 
 void N_display_spi_transfer_finish() {
   if (display_spi_tip) {
-    while (NRF_SPIM->EVENTS_END == 0) { 
+    while (NRF_DISPLAY_SPIM->EVENTS_END == 0) { 
     }
-    NRF_SPIM->EVENTS_END = 0;
+    NRF_DISPLAY_SPIM->EVENTS_END = 0;
     display_spi_tip = 0;
     N_display_gpiote_clear();
   }
@@ -104,28 +87,28 @@ void N_display_spi_transfer_finish() {
 
 void N_display_spi_transfer_start() {
   N_display_spi_transfer_finish();
-  pin_clr(DISPLAY_PIN_CS_N);
+  nrf_gpio_pin_clear(DISPLAY_PIN_CS_N);
 }
 
 void N_display_spi_transfer_data() {
-  NRF_SPIM->EVENTS_END = 0;
-  NRF_SPIM->TASKS_START = 1;
-  while (NRF_SPIM->EVENTS_END == 0) { 
+  NRF_DISPLAY_SPIM->EVENTS_END = 0;
+  NRF_DISPLAY_SPIM->TASKS_START = 1;
+  while (NRF_DISPLAY_SPIM->EVENTS_END == 0) { 
   }
-  NRF_SPIM->EVENTS_END = 0;
+  NRF_DISPLAY_SPIM->EVENTS_END = 0;
 }
 
 void N_display_spi_transfer_data_end() {
-  NRF_SPIM->EVENTS_END = 0;
+  NRF_DISPLAY_SPIM->EVENTS_END = 0;
 
   N_display_gpiote_end_to_cs();
 
-  NRF_SPIM->TASKS_START = 1;
+  NRF_DISPLAY_SPIM->TASKS_START = 1;
   display_spi_tip = 1;
 }
 
 void N_display_spi_transfer_end() {
-  pin_set(DISPLAY_PIN_CS_N);
+  nrf_gpio_pin_set(DISPLAY_PIN_CS_N);
 }
 
 void N_display_spi_transfer() {
@@ -214,9 +197,9 @@ void N_display_spi_wr(uint32_t addr, int dataSize, uint8_t *data) {
 }
 
 // void N_display_spi_transfer_data_async() {
-//   NRF_SPIM->EVENTS_END = 0;
-//   NRF_SPIM->TASKS_START = 1;
-//   while (NRF_SPIM->EVENTS_END == 0) { 
+//   NRF_DISPLAY_SPIM->EVENTS_END = 0;
+//   NRF_DISPLAY_SPIM->TASKS_START = 1;
+//   while (NRF_DISPLAY_SPIM->EVENTS_END == 0) { 
 //   }
 // }
 

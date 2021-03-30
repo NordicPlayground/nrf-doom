@@ -255,55 +255,22 @@ void P_LoadSegs (int lump)
 
 seg_t *GetSeg(int num)
 {
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     return (seg_t*)&mapsegs[num];
 }
 
 sector_t *SegFrontSector(seg_t *seg) {
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     // NRFD-TODO: Optimize: Use numbers insteadof pointers?
     side_t *sidedef = SegSideDef(seg);
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     return SideSector(sidedef);
 }
 sector_t *SegBackSector(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     line_t *linedef = SegLineDef(seg);
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     if (LineFlags(linedef) & ML_TWOSIDED) {
         int side = SHORT(ms->side);
-        asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-        asm volatile("nop");
         side = side ^ 1;
-        asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-        asm volatile("nop");
             // NRFD-TODO: Optimize: Use numbers insteadof pointers?
         side_t *line_side = LineSide(linedef, side);
-        asm volatile("nop");
-        asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-        asm volatile("nop");
         return SideSector(line_side);
     }
     else {
@@ -314,83 +281,39 @@ sector_t *SegBackSector(seg_t *seg) {
 // NRFD-TODO: Consider returning data instead of pointer?
 vertex_t *SegV1(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
-            asm volatile("nop");
-        asm volatile("nop");
 
-        asm volatile("nop");
 
     int v1_num = SHORT(ms->v1);
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     return &vertexes[v1_num];
 }
 vertex_t *SegV2(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
-            asm volatile("nop");
-    asm volatile("nop");
-        asm volatile("nop");
-        asm volatile("nop");
 
     int v2_num = SHORT(ms->v2);
-        asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     return &vertexes[v2_num];
 }
 angle_t SegAngle(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
-    asm volatile("nop");
-            asm volatile("nop");
-        asm volatile("nop");
-        asm volatile("nop");
 
     return (SHORT(ms->angle))<<FRACBITS;
 }
 fixed_t SegOffset(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
-            asm volatile("nop");
-        asm volatile("nop");
-        asm volatile("nop");
-    asm volatile("nop");
 
     return (SHORT(ms->offset))<<FRACBITS;
 }
 line_t *SegLineDef(seg_t *seg)
 {
     mapseg_t *ms = (mapseg_t*)seg;
-        asm volatile("nop");
-        asm volatile("nop");
-    asm volatile("nop");
-        asm volatile("nop");
     int num = ms->linedef;
-        asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     return &lines[num];
 }
 side_t *SegSideDef(seg_t *seg)
 {
     mapseg_t *ms = (mapseg_t*)seg;
-    asm volatile("nop");
-        asm volatile("nop");
 
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     short side = SHORT(ms->side);
-    asm volatile("nop");
-        asm volatile("nop");
-        asm volatile("nop");
-    asm volatile("nop");
-asm volatile("nop");
     line_t *ldef = SegLineDef(seg);
-        asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
-    asm volatile("nop");
     return LineSide(ldef, side);
 }
 //
@@ -671,15 +594,11 @@ void P_LoadLineDefs (int lump)
 vertex_t LineV1(line_t *line)
 {
     short v1_num = SHORT(line->mld->v1);
-    asm volatile("nop");
-    asm volatile("nop");
     return vertexes[v1_num];
 }
 vertex_t LineV2(line_t *line)
 {
     short v2_num = SHORT(line->mld->v2);
-    asm volatile("nop");
-    asm volatile("nop");
     return vertexes[v2_num];
 }
 short LineFlags(line_t *line)
@@ -696,8 +615,6 @@ boolean LineIsMapped(line_t *line)
 }
 short LineTag(line_t *line)
 {
-    asm volatile("nop");
-    asm volatile("nop");
     return SHORT(line->mld->tag);
 }
 void LineTagSet666(line_t *line)
@@ -706,17 +623,12 @@ void LineTagSet666(line_t *line)
 }
 short   LineSideNum(line_t *line, int num)
 {
-    asm volatile("nop");
-    asm volatile("nop");
     return  SHORT(line->mld->sidenum[num]);
 }
 side_t*   LineSide(line_t *line, int num)
 {
-    asm volatile("nop");
-    asm volatile("nop");
     short sn = SHORT(line->mld->sidenum[num]);
     if (sn == -1) return NULL;
-    asm volatile("nop");
     return &sides[sn];
 }
 
@@ -724,8 +636,6 @@ sector_t *LineFrontSector(line_t *ld)
 {
     // NRFD-TODO: Optimize: Use numbers insteadof pointers?
     side_t *side = LineSide(ld,0);
-    asm volatile("nop");
-    asm volatile("nop");
     if (side)
         return SideSector(side);
     else
@@ -735,8 +645,6 @@ sector_t *LineBackSector(line_t *ld)
 {
     // NRFD-TODO: Optimize: Use numbers insteadof pointers?
     side_t *side = LineSide(ld,1);
-    asm volatile("nop");
-    asm volatile("nop");
     if (side)
         return SideSector(side);
     else
@@ -865,9 +773,6 @@ sector_t* SideNumSector(int sidenum)
 {
     return &sectors[sides[sidenum].sector_num];
     // mapsidedef_t *msd = &mapsides[sidenum];
-    // asm volatile("nop");
-    // asm volatile("nop");
-    // asm volatile("nop");
     // return &sectors[SHORT(msd->sector)];
 }
 

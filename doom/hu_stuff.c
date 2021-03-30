@@ -15,7 +15,8 @@
 // DESCRIPTION:  Heads-up displays
 //
 
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 
 #include "doomdef.h"
@@ -475,7 +476,7 @@ void HU_Ticker(void)
     // Hard-coded timer value. Sync up with D_DoomLoop and I_InitTimer
     char fps_buffer[16];
     fps_buffer[0] = 0;
-    itoa(frame_time_fps, fps_buffer, 10);
+    snprintf(fps_buffer, 10, "%ld", frame_time_fps);
 
     HUlib_addMessageToSText(&w_fps, "FPS: ", fps_buffer);
 

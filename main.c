@@ -53,13 +53,18 @@
 #include "n_i2s.h"
 
 #include "nrf_delay.h"
+#include "nrf_clock.h"
+#include "nrf_gpio.h"
+#include "nrfx_clock.h"
+
+#include "board_config.h"
 
 int no_sdcard = 1;
 
 void D_DoomMain (void);
 void M_ArgvInit(void);
-/*
 
+/*
 void MWU_IRQHandler(void)
 {
     printf("!!!!!!Stack or Heap Overflow!!!!!!: %d %d %d %d\n", 
@@ -101,15 +106,18 @@ void app_error_handler_bare(uint32_t code)
 
 void clock_initialization()
 {
-    /* Start 16 MHz crystal oscillator */
-    NRF_CLOCK_S->EVENTS_HFCLKSTARTED = 0;
-    NRF_CLOCK_S->TASKS_HFCLKSTART    = 1;
-    while (!NRF_CLOCK_S->EVENTS_HFCLKSTARTED) { }
+    nrfx_clock_hfclk_start();
+    nrf_clock_hfclk_div_set(NRF_CLOCK_S, NRF_CLOCK_HFCLK_DIV_1);
 
-    // Start 192Mhz clock. Shouldn't be necessary to do manually
-    NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED = 0;
-    NRF_CLOCK_S->TASKS_HFCLK192MSTART = 1;
-    while (!NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED) {}
+    // /* Start 16 MHz crystal oscillator */
+    // NRF_CLOCK_S->EVENTS_HFCLKSTARTED = 0;
+    // NRF_CLOCK_S->TASKS_HFCLKSTART    = 1;
+    // while (!NRF_CLOCK_S->EVENTS_HFCLKSTARTED) { }
+
+    // // Start 192Mhz clock. Shouldn't be necessary to do manually
+    // NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED = 0;
+    // NRF_CLOCK_S->TASKS_HFCLK192MSTART = 1;
+    // while (!NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED) {}
 
     // Set HF clock divider from 2 to 1
     NRF_CLOCK_S->HFCLKCTRL = 0;
@@ -121,10 +129,12 @@ void boot_net()
     printf("Booting NetMCU\n");
 
     // Network owns 30/31 (LED3/4)
-    NRF_P0_S->PIN_CNF[30] |= (1 << 28);
-    NRF_P0_S->PIN_CNF[31] |= (1 << 28);
+    nrf_gpio_pin_mcu_select(LED_PIN_3, NRF_GPIO_PIN_MCUSEL_NETWORK);
+    nrf_gpio_pin_mcu_select(LED_PIN_4, NRF_GPIO_PIN_MCUSEL_NETWORK);
 
     // Hand over UART GPIOs to NetMcu
+    nrf_gpio_pin_mcu_select(LED_PIN_3, NRF_GPIO_PIN_MCUSEL_NETWORK);
+    nrf_gpio_pin_mcu_select(LED_PIN_4, NRF_GPIO_PIN_MCUSEL_NETWORK);
     // NRF_P0_S->PIN_CNF[20] |= (1 << 28);
     // NRF_P0_S->PIN_CNF[22] |= (1 << 28);
 
@@ -163,30 +173,8 @@ int main(void)
     printf("UART Initialized\n");
     printf("---------------------------------\n");
 
-/*
-
-    N_display_init();
-
-    while (1) {
-        writeDisplayList(0x00);
-        nrf_delay_ms(20);
-        writeDisplayList(0xFF);
-        nrf_delay_ms(20);
-    }
-    */
-    
-    uint32_t *VOLTAGEFSMSTATE = (uint32_t*)(0x50038000+0x408);
-
-    printf("VFS state: %lx\n", *VOLTAGEFSMSTATE);
-
     NRF_CACHE_S->ENABLE = 1;
 
-    NRF_P0_S->PIN_CNF[28] = 3;
-    NRF_P0_S->PIN_CNF[10] = 3;
-    NRF_P0_S->OUT = (1<<28);
-    //
-
-        //
     boot_net();
 
     N_qspi_init();

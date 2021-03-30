@@ -33,8 +33,8 @@
 
 int  I_GetTime (void)
 {
-    NRF_TIMER0->TASKS_CAPTURE[0] = 1;
-    uint64_t cc = NRF_TIMER0->CC[0];
+    NRF_DOOM_TIMER->TASKS_CAPTURE[0] = 1;
+    uint64_t cc = NRF_DOOM_TIMER->CC[0];
     uint64_t tickTime = (cc * TICRATE)*10/312/1000;
     return tickTime;
 }
@@ -45,8 +45,8 @@ int  I_GetTime (void)
 
 int I_GetTimeMS(void)
 {
-    NRF_TIMER0->TASKS_CAPTURE[0] = 1;
-    uint64_t cc = NRF_TIMER0->CC[0];
+    NRF_DOOM_TIMER->TASKS_CAPTURE[0] = 1;
+    uint64_t cc = NRF_DOOM_TIMER->CC[0];
     cc = cc*10/312;
     return cc;
 }
@@ -58,8 +58,8 @@ uint32_t I_RawTimeToFps(uint32_t time_delta)
 
 uint32_t I_GetTimeRaw(void)
 {
-    NRF_TIMER0->TASKS_CAPTURE[0] = 1;
-    uint32_t cc = NRF_TIMER0->CC[0];
+    NRF_DOOM_TIMER->TASKS_CAPTURE[0] = 1;
+    uint32_t cc = NRF_DOOM_TIMER->CC[0];
     return cc;
 }
 
@@ -85,13 +85,13 @@ void I_WaitVBL(int count)
 void I_InitTimer(void)
 {
     // initialize timer
-    NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer;
-    NRF_TIMER0->BITMODE = TIMER_BITMODE_BITMODE_32Bit;
-    NRF_TIMER0->PRESCALER = 9;
+    NRF_DOOM_TIMER->MODE = TIMER_MODE_MODE_Timer;
+    NRF_DOOM_TIMER->BITMODE = TIMER_BITMODE_BITMODE_32Bit;
+    NRF_DOOM_TIMER->PRESCALER = 9;
     // fTIMER = 16 MHz / (2*PRESCALER)
     // 2**9 = 512
     // fTIMER = 31.25Khz;
     // NOTE: If timer is changed, update HU_Ticker (or make global variable)
-    NRF_TIMER0->TASKS_START = 1;
+    NRF_DOOM_TIMER->TASKS_START = 1;
 }
 
