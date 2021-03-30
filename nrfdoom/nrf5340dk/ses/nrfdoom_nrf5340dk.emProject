@@ -1,0 +1,153 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="nrfdoom_nrf5340dk" target="8" version="2">
+  <project Name="nrfdoom_nrf5340dk">
+    <configuration
+      Name="Common"
+      arm_architecture="v8M_Mainline"
+      arm_core_type="Cortex-M33"
+      arm_endian="Little"
+      arm_fp_abi="Hard"
+      arm_fpu_type="FPv5-SP-D16"
+      arm_linker_heap_size="65536"
+      arm_linker_process_stack_size="0"
+      arm_linker_stack_size="2048"
+      arm_linker_treat_warnings_as_errors="No"
+      arm_simulator_memory_simulation_parameter="RX 00ff8000,00001000,FFFFFFFF;RWX 20000000,00080000,CDCDCDCD"
+      arm_target_device_name="nRF5340_xxAA_APP"
+      arm_target_interface_type="SWD"
+      c_user_include_directories="../../../config;../../source;../../source/config;../../../nRF5_SDK/components;../../../nRF5_SDK/components/boards;../../../nRF5_SDK/components/drivers_nrf/nrf_soc_nosd;../../../nRF5_SDK/components/libraries/atomic;../../../nRF5_SDK/components/libraries/balloc;../../../nRF5_SDK/components/libraries/bsp;../../../nRF5_SDK/components/libraries/delay;../../../nRF5_SDK/components/libraries/experimental_section_vars;../../../nRF5_SDK/components/libraries/log;../../../nRF5_SDK/components/libraries/log/src;../../../nRF5_SDK/components/libraries/memobj;../../../nRF5_SDK/components/libraries/ringbuf;../../../nRF5_SDK/components/libraries/strerror;../../../nRF5_SDK/components/libraries/util;../../../nRF5_SDK/components/toolchain/cmsis/include;../../..;../../../nRF5_SDK/external/fprintf;../../../nRF5_SDK/modules/nrfx;../../../nRF5_SDK/modules/nrfx/hal;../../../nRF5_SDK/modules/nrfx/drivers/include;../../../nRF5_SDK/modules/nrfx/mdk;../config;../../../nRF5_SDK/external/fatfs/src;../../../nRF5_SDK/external/fatfs/port;../../../nRF5_SDK/components/libraries/block_dev;../../../nRF5_SDK/components/libraries/block_dev/sdc;../../../nRF5_SDK/components/libraries/sdcard;../../../nRF5_SDK/integration/nrfx/legacy;../../../nRF5_SDK/external/protothreads/pt-1.4;../../../nRF5_SDK/external/protothreads"
+      c_preprocessor_definitions="BSP_DEFINES_ONLY;FLOAT_ABI_HARD;NO_VTOR_CONFIG;NRF5340_XXAA_APPLICATION;SEGGER"
+      debug_target_connection="J-Link"
+      gcc_entry_point="Reset_Handler"
+      macros="CMSIS_CONFIG_TOOL=../../../nRF5_SDK/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar"
+      debug_register_definition_file="../../../nRF5_SDK/modules/nrfx/mdk/nrf52840.svd"
+      debug_start_from_entry_point_symbol="No"
+      gcc_debugging_level="Level 3"      linker_output_format="hex"
+      linker_printf_width_precision_supported="Yes"
+      linker_printf_fmt_level="long"
+      linker_scanf_fmt_level="long"
+      linker_section_placement_macros="FLASH_PH_START=0x0;FLASH_PH_SIZE=0x100000;RAM_PH_START=0x20000000;RAM_PH_SIZE=0x80000;FLASH_START=0x0;FLASH_SIZE=0x100000;RAM_START=0x20000000;RAM_SIZE=0x80000"
+      linker_section_placement_file="flash_placement.xml"      
+      linker_section_placements_segments="FLASH RX 0x0 0x100000;RAM1 RWX 0x20000000 0x80000"
+      project_directory=""
+      project_type="Executable" />
+      <folder Name="Segger Startup Files">
+        <file file_name="$(StudioDir)/source/thumb_crt0.s" />
+      </folder>
+    <folder Name="Nordic Doom Source">
+       <file file_name="../../source/main.c" />
+       <file file_name="../../source/retarget.c" />
+       <file file_name="../../source/n_uart.c" />
+       <file file_name="../../source/n_qspi.c" />
+       <file file_name="../../source/n_fs.c" />
+       <file file_name="../../source/n_mem.c" />
+       <file file_name="../../source/n_buttons.c" />
+       <file file_name="../../source/n_display.c" />
+       <file file_name="../../source/n_rjoy.c" />
+       <file file_name="../../source/n_i2s.c" />
+       <file file_name="../../source/n_i2s_sound.c" />
+    </folder>
+    <folder Name="Doom Engine Source">
+      <file file_name="../../source/deh_main.c" />
+      <file file_name="../../source/d_event.c" />
+      <file file_name="../../source/d_iwad.c" />
+      <file file_name="../../source/d_mode.c" />
+      <file file_name="../../source/d_loop.c" />
+      <file file_name="../../source/i_timer.c" />
+      <file file_name="../../source/i_system.c" />
+      <file file_name="../../source/i_input.c" />
+      <file file_name="../../source/i_video.c" />
+      <file file_name="../../source/i_joystick.c" />
+      <file file_name="../../source/i_sound.c" />
+      <file file_name="../../source/m_argv.c" />
+      <file file_name="../../source/m_bbox.c" />
+      <file file_name="../../source/m_cheat.c" />
+      <file file_name="../../source/m_config.c" />
+      <file file_name="../../source/m_fixed.c" />
+      <file file_name="../../source/m_misc.c" />
+      <file file_name="../../source/m_controls.c" />
+      <file file_name="../../source/net_client.c" />
+      <file file_name="../../source/net_server.c" />
+      <file file_name="../../source/tables.c" />
+      <file file_name="../../source/v_diskicon.c" />
+      <file file_name="../../source/v_video.c" />
+      <file file_name="../../source/w_checksum.c" />
+      <file file_name="../../source/w_file.c" />
+      <file file_name="../../source/w_file_fatfs.c" />
+      <file file_name="../../source/w_main.c" />
+      <file file_name="../../source/w_wad.c" />
+      <file file_name="../../source/z_native.c" />
+      <file file_name="../../source/doom/am_map.c" />
+    </folder>
+    <folder Name="Doom Game Source">
+      <file file_name="../../source/doom/doomstat.c" />
+      <file file_name="../../source/doom/d_main.c" />
+      <file file_name="../../source/doom/d_net.c" />
+      <file file_name="../../source/doom/d_items.c" />
+      <file file_name="../../source/doom/dstrings.c" />
+      <file file_name="../../source/doom/f_wipe.c" />
+      <file file_name="../../source/doom/f_finale.c" />
+      <file file_name="../../source/doom/g_game.c" />
+      <file file_name="../../source/doom/hu_lib.c" />
+      <file file_name="../../source/doom/hu_stuff.c" />
+      <file file_name="../../source/doom/info.c" />
+      <file file_name="../../source/doom/m_menu.c" />
+      <file file_name="../../source/doom/m_random.c" />
+      <file file_name="../../source/doom/p_doors.c" />
+      <file file_name="../../source/doom/p_ceilng.c" />
+      <file file_name="../../source/doom/p_enemy.c" />
+      <file file_name="../../source/doom/p_floor.c" />
+      <file file_name="../../source/doom/p_lights.c" />
+      <file file_name="../../source/doom/p_plats.c" />
+      <file file_name="../../source/doom/p_telept.c" />
+      <file file_name="../../source/doom/p_setup.c" />
+      <file file_name="../../source/doom/p_sight.c" />
+      <file file_name="../../source/doom/p_saveg.c" />
+      <file file_name="../../source/doom/p_map.c" />
+      <file file_name="../../source/doom/p_maputl.c" />
+      <file file_name="../../source/doom/p_mobj.c" />
+      <file file_name="../../source/doom/p_inter.c" />
+      <file file_name="../../source/doom/p_tick.c" />
+      <file file_name="../../source/doom/p_spec.c" />
+      <file file_name="../../source/doom/p_switch.c" />
+      <file file_name="../../source/doom/p_pspr.c" />
+      <file file_name="../../source/doom/p_user.c" />
+      <file file_name="../../source/doom/r_bsp.c" />
+      <file file_name="../../source/doom/r_main.c" />
+      <file file_name="../../source/doom/r_data.c" />
+      <file file_name="../../source/doom/r_draw.c" />
+      <file file_name="../../source/doom/r_plane.c" />
+      <file file_name="../../source/doom/r_segs.c" />
+      <file file_name="../../source/doom/r_sky.c" />
+      <file file_name="../../source/doom/r_things.c" />
+      <file file_name="../../source/doom/s_sound.c" />
+      <file file_name="../../source/doom/st_lib.c" />
+      <file file_name="../../source/doom/st_stuff.c" />
+      <file file_name="../../source/doom/statdump.c" />
+      <file file_name="../../source/doom/sounds.c" />
+      <file file_name="../../source/doom/wi_stuff.c" />
+    </folder>
+    <folder Name="nRF_SDK">
+     <file file_name="../../../nRF5_SDK/modules/nrfx/drivers/src/nrfx_qspi.c" />
+     <file file_name="../../../nRF5_SDK/modules/nrfx/drivers/src/nrfx_spim.c" />
+     <file file_name="../../../nRF5_SDK/modules/nrfx/drivers/src/nrfx_clock.c" />
+     <file file_name="../../../nRF5_SDK/integration/nrfx/legacy/nrf_drv_spi.c" />
+     <file file_name="../../../nRF5_SDK/components/libraries/block_dev/sdc/nrf_block_dev_sdc.c" />
+     <file file_name="../../../nRF5_SDK/components/libraries/sdcard/app_sdcard.c" />
+     <file file_name="../../../nRF5_SDK/external/fatfs/port/diskio_blkdev.c" />
+     <file file_name="../../../nRF5_SDK/external/fatfs/src/ff.c" />
+    </folder>
+    <folder Name="Startup">
+      <file file_name="../../../nRF5_SDK/modules/nrfx/mdk/ses_startup_nrf5340_application.s" />
+      <file file_name="../../../nRF5_SDK/modules/nrfx/mdk/ses_startup_nrf_common.s" />
+      <file file_name="../../../nRF5_SDK/modules/nrfx/mdk/system_nrf5340_application.c" />
+    </folder>
+  </project>
+  <configuration Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    link_time_optimization="No"    gcc_optimization_level="Optimize For Size" />
+  <configuration Name="Debug"
+    c_preprocessor_definitions="DEBUG; DEBUG_NRF"
+    gcc_optimization_level="None"/>
+
+</solution>
