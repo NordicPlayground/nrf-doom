@@ -32,19 +32,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+extern const uint32_t __HeapLimit;
+const uint32_t heapLimit = (uint32_t)&__HeapLimit;
 
 void *N_malloc(size_t size)
 {
     void *result;
     result = malloc(size);
     size_t end = (size_t)result + size;
-    /*
-    printf("A %d at %X - %X\n", size, (size_t)result, end);
-    if (end > 0x2003f700) { // NRFD-TODO: Get actual heap limit
+    
+    // printf("A %d at %X - %X - %lX\n", size, (size_t)result, end, heapLimit);
+    if (end > heapLimit) {
         printf("Heap Overflow!!\n");
         return NULL;
     }
-    */
+
     return result;
 }
 
