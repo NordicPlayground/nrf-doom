@@ -179,9 +179,9 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 
-doom_nrf53p3: CFLAGS += -D__HEAP_SIZE=65536
+doom_nrf53p3: CFLAGS += -D__HEAP_SIZE=262144
 doom_nrf53p3: CFLAGS += -D__STACK_SIZE=2048
-doom_nrf53p3: ASMFLAGS += -D__HEAP_SIZE=65536
+doom_nrf53p3: ASMFLAGS += -D__HEAP_SIZE=262144
 doom_nrf53p3: ASMFLAGS += -D__STACK_SIZE=2048
 
 # Add standard libraries at the very end of the linker input, after all objects
