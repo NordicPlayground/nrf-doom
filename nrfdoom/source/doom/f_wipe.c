@@ -27,6 +27,8 @@
 
 #include "f_wipe.h"
 
+#define INCLUDE_WIPE
+
 //
 //                       SCREEN WIPE PACKAGE
 //
@@ -35,8 +37,8 @@
 static boolean	go = 0;
 
 // NRFD-TODO: Memory optimization
-static pixel_t	wipe_scr_start[SCREENWIDTH*SCREENHEIGHT];
-static pixel_t	wipe_scr_end[SCREENWIDTH*SCREENHEIGHT];
+static pixel_t*	wipe_scr_start; //[SCREENWIDTH*SCREENHEIGHT];
+static pixel_t*	wipe_scr_end; //[SCREENWIDTH*SCREENHEIGHT];
 static pixel_t*	wipe_scr;
 
 
@@ -224,8 +226,8 @@ wipe_exitMelt
   int	ticks )
 {
     Z_Free(y);
-    // Z_Free(wipe_scr_start); // NRFD-TODO: Memory optimization
-    // Z_Free(wipe_scr_end); // NRFD-TODO: Memory optimization
+    Z_Free(wipe_scr_start); // NRFD-TODO: Memory optimization
+    Z_Free(wipe_scr_end); // NRFD-TODO: Memory optimization
     return 0;
 }
 
@@ -236,9 +238,11 @@ wipe_StartScreen
   int	width,
   int	height )
 {
+  #ifdef INCLUDE_WIPE
     printf("NRFD-TODO: wipe_StartScreen\n");
-    // wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_start);
+  #endif
     return 0;
 }
 
@@ -249,10 +253,12 @@ wipe_EndScreen
   int	width,
   int	height )
 {
+  #ifdef INCLUDE_WIPE
     printf("NRFD-TODO: wipe_EndScreen\n");
-    // wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
     V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
+  #endif
     return 0;
 }
 
@@ -265,6 +271,7 @@ wipe_ScreenWipe
   int	height,
   int	ticks )
 {
+  #ifdef INCLUDE_WIPE
     int rc;
     static int (*wipes[])(int, int, int) =
     {
@@ -295,5 +302,8 @@ wipe_ScreenWipe
     }
 
     return !go;
+  #else
+    return 1;
+  #endif
 }
 

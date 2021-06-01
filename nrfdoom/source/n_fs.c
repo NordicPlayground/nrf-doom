@@ -126,12 +126,12 @@ void N_fs_init()
             }
             else
             {
-                // printf("%9lu  %s", fno.fsize, (uint32_t)fno.fname);
+                printf("%9lu  %s\n", fno.fsize, fno.fname);
             }
         }
     }
     while (fno.fname[0]);
-    printf("----");
+    printf("----\n \n");
     return;
 }
 

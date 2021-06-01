@@ -228,7 +228,7 @@ void S_Start(void)
     int cnum;
     int mnum;
 
-     printf("NRFD-TODO: S_Start\n");
+    printf("S_Start\n");
 
     // kill all playing sounds at start of level
     //  (trust me - a good idea)

@@ -83,9 +83,11 @@ static lumpindex_t *lumphash = NULL;
 N_FILE wad_file;
 int first_lump_pos;
 
+/*
 int debugLumpCount = 0;
 int debugLumpNums[12];
 void *debugLumpCache[12];
+*/
 
 // Variables for the reload hack: filename of the PWAD to reload, and the
 // lumps from WADs before the reload file, so we can resent numlumps and
@@ -552,6 +554,7 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
     // have it cached; otherwise, load it into memory.
 
     // result = lump->cache;
+    /*
     for (int i=0;i<debugLumpCount;i++) {
         if (debugLumpNums[i]==lumpnum) {
             byte *cache = debugLumpCache[i];
@@ -564,6 +567,7 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
             return cache;
         }
     }
+    */
     result = W_LumpDataPointer(lumpnum);
     // N_ldbg("W_CacheLumpNum: %.8s\n", lump->name);
 
@@ -796,7 +800,7 @@ void W_Reload(void)
     */
 }
 
-
+/*
 void W_DebugLump(int lump)
 {
     return;
@@ -818,3 +822,4 @@ void W_DebugLump(int lump)
     debugLumpCache[debugLumpCount] = cache;
     debugLumpCount++;
 }
+*/

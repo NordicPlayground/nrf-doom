@@ -12,8 +12,8 @@ Table of Contents
 
 - `Status`_
 - `Software`_
-- `Hardware`_ 
-- `Pin Mapping`_ 
+- `Hardware`_
+- `Pin Mapping`_
 
 
 Status

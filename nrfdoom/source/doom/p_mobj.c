@@ -33,7 +33,8 @@
 
 #include "doomstat.h"
 
-#define MAX_MOBJ  261
+// NRFD-TODO: Max mobj?
+#define MAX_MOBJ  290
 
 mobj_t  mobjs[MAX_MOBJ];
 
@@ -542,7 +543,7 @@ mobj_t* P_AllocMobj (void)
         }
     }
 
-    printf("P_AllocMobj: Out of free mobjs");
+    printf("P_AllocMobj: Out of free mobjs\n");
     mobj = Z_Malloc (sizeof(*mobj), PU_LEVEL, NULL);
     memset (mobj, 0, sizeof (*mobj));
     return mobj;

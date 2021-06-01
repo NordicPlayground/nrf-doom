@@ -267,14 +267,6 @@ void R_InitSpriteDefs ()
         spritename = DEH_String((char*)sprnames[i]);
         sprtemp = &spriteframes[spriteframe_count];
 
-        boolean copyFrames = false;
-
-        // printf("  Sprite %d: %.4s\n", i, spritename);
-        // if (!strncasecmp(spritename, "PISG", 4)) {
-        //     printf("    Pistol!\n");
-        //     copyFrames = true;
-        // }
-
         // NRFD-TODO: Should we do something like this?
         // memset (sprtemp,-1, sizeof(sprtemp));
                 
@@ -295,8 +287,6 @@ void R_InitSpriteDefs ()
                 else
                     patched = l;
 
-                if (copyFrames) W_DebugLump(patched);
-
                 // printf("  Frame %d rot %d: %.8s - %d\n", frame, rotation, lumpName, patched);
                 R_InstallSpriteLump (patched, frame, rotation, false);
 
@@ -306,8 +296,6 @@ void R_InitSpriteDefs ()
                     rotation = lumpName[7] - '0';
                     // printf("  Frame %d rot %d: %.8s - %d\n", frame, rotation, lumpName, l);
                     R_InstallSpriteLump (l, frame, rotation, true);
-
-                    if (copyFrames) W_DebugLump(l);
                 }
             }
         }

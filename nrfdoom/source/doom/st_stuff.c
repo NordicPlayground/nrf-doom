@@ -261,7 +261,7 @@
 
 // graphics are drawn to a backing screen and blitted to the real screen
 // NRFD-TODO: Memory optimizations?
-pixel_t                 st_backing_screen[ST_WIDTH*ST_HEIGHT];
+pixel_t                 *st_backing_screen; //[ST_WIDTH*ST_HEIGHT];
 
 // main player in game
 static player_t*        plyr; 
@@ -1440,6 +1440,6 @@ void ST_Init (void)
 {
     printf("ST_Init\n");
     ST_loadData();
-    // st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
+    st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 

@@ -157,7 +157,8 @@ typedef struct __attribute__((packed))
 #define MAXINTERCEPTS_ORIGINAL 128
 #define MAXINTERCEPTS          (MAXINTERCEPTS_ORIGINAL + 61)
 */
-#define MAXINTERCEPTS_ORIGINAL 128
+// NRFD-TODO: Use original?
+#define MAXINTERCEPTS_ORIGINAL 64 //128
 #define MAXINTERCEPTS          (MAXINTERCEPTS_ORIGINAL)
 
 extern intercept_t  intercepts[MAXINTERCEPTS];
@@ -222,7 +223,8 @@ extern  line_t*     ceilingline;
 // We keep the original limit, to detect what variables in memory were
 // overwritten (see SpechitOverrun())
 
-#define MAXSPECIALCROSS         20
+// NRFD-TODO?
+#define MAXSPECIALCROSS         8 //20
 #define MAXSPECIALCROSS_ORIGINAL    8
 
 extern  line_t* spechit[MAXSPECIALCROSS];

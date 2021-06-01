@@ -345,7 +345,7 @@ void R_GenerateInit(int texture_storage_size)
     N_ReadButtons();
     I_Sleep(1);
     N_ReadButtons();
-    generate_to_flash = 0; //N_ButtonState(1);
+    generate_to_flash = N_ButtonState(1);
 
     generate_buffer = (byte*)I_VideoBuffers;
     store_loc = N_qspi_alloc_block();

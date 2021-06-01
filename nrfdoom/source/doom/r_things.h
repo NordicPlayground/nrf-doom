@@ -21,7 +21,7 @@
 #define __R_THINGS__
 
 // NRFD-TODO: 
-#define MAXVISSPRITES   128
+#define MAXVISSPRITES   64
 // #define MAXVISSPRITES   128
 
 extern vissprite_t      vissprites[MAXVISSPRITES];

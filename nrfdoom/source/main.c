@@ -109,18 +109,6 @@ void clock_initialization()
     nrfx_clock_hfclk_start();
     nrf_clock_hfclk_div_set(NRF_CLOCK_S, NRF_CLOCK_HFCLK_DIV_1);
 
-    // /* Start 16 MHz crystal oscillator */
-    // NRF_CLOCK_S->EVENTS_HFCLKSTARTED = 0;
-    // NRF_CLOCK_S->TASKS_HFCLKSTART    = 1;
-    // while (!NRF_CLOCK_S->EVENTS_HFCLKSTARTED) { }
-
-    // // Start 192Mhz clock. Shouldn't be necessary to do manually
-    // NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED = 0;
-    // NRF_CLOCK_S->TASKS_HFCLK192MSTART = 1;
-    // while (!NRF_CLOCK_S->EVENTS_HFCLK192MSTARTED) {}
-
-    // Set HF clock divider from 2 to 1
-    NRF_CLOCK_S->HFCLKCTRL = 0;
 
 }
 
@@ -135,8 +123,6 @@ void boot_net()
     // Hand over UART GPIOs to NetMcu
     nrf_gpio_pin_mcu_select(LED_PIN_3, NRF_GPIO_PIN_MCUSEL_NETWORK);
     nrf_gpio_pin_mcu_select(LED_PIN_4, NRF_GPIO_PIN_MCUSEL_NETWORK);
-    // NRF_P0_S->PIN_CNF[20] |= (1 << 28);
-    // NRF_P0_S->PIN_CNF[22] |= (1 << 28);
 
     // Set NetMcu as secure
     NRF_SPU_S->EXTDOMAIN[0].PERM = 2 | (1<<4);
@@ -144,23 +130,6 @@ void boot_net()
     // Wake up NetMcu
     NRF_RESET_S->NETWORK.FORCEOFF = 0;
 }
-
-
-
-void writeDisplayList(uint8_t color)
-{
-    dl_start();
-
-    dl(FT810_CLEAR_COLOR_RGB(0x00, 0x00, 0x00));
-    dl(FT810_CLEAR(1,1,1));  // Clear color, stencil, tag
-    dl(FT810_CLEAR_COLOR_RGB(color, 0x00, 0x00)); 
-    dl(FT810_CLEAR(1,0,0));  // Clear color
-
-    dl_end();
-
-    N_display_dlswap_frame();
-}
-
 
 int main(void)
 {
