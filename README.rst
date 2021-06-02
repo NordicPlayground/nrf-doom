@@ -11,6 +11,7 @@ Table of Contents
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 - `Status`_
+- `Getting started`_
 - `Software`_
 - `Hardware`_
 - `Pin Mapping`_
@@ -48,11 +49,44 @@ nRF-Doom has only been tested with shareware version of Doom 1 for now
 ======================= ================= ================================
 Doom 1 Shareware        OK                
 ----------------------- ----------------- --------------------------------
-Doom 1 Full Version     Not Tested        External flash too small, but should theoretically work
+Doom 1 Full Version     Not Tested        External flash memory too small, but should theoretically work
 ----------------------- ----------------- --------------------------------
-Doom 2                  Not Tested        External flash too small. Should theoretically work, but may struggle with larger levels
+Doom 2                  Not Tested        External flash memory too small. Should theoretically work, but may struggle with larger levels
 ======================= ================= ================================
 
+
+Getting started
+-------------------------------------------------------
+
+If you want to build this project, you'll need:
+
+* `GNU Arm Embedded Toolchain <https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm>`_
+* Make (eg. Cygwin on Windows)
+* `Segger J-Link Software <https://www.segger.com/downloads/jlink/>`_
+* `nrfjprog <https://www.nordicsemi.com/Software-and-tools/Development-Tools/nRF-Command-Line-Tools>`_
+* `nRF5 SDK <https://www.nordicsemi.com/Software-and-tools/Software/nRF5-SDK/Download#infotabs>`_ (Tested with 17.0.2)
+* * Must be installed in the top directory, under a folder named "nRF5_SDK"
+* `nrfx <https://github.com/NordicSemiconductor/nrfx>`_ (Tested with 2.4.0)
+* * Must be installed in nRF5_SDK/modules/nrfx (replaced the one that came with nRF5 SDK)
+
+Steps to build
+"""""""""""""""""""""
+
+* Make sure you have make and GCC in your environment/path (for Windows there's a powershell file you can modify and use in nrfdoom/nrf5340dk/env.ps1)
+* Make sure devkit is connected 
+
+**Network processor code**:
+
+* Open a terminal in nrfdoom_net
+* Type ``make`` to compile
+* Type ``make flash`` to upload to device
+* * NOTE: After flashing the network processor you'll always need to program the application processor again
+
+**Application processor code**:
+
+* Open a terminal in nrfdoom/nrf5340dk/armgcc
+* Type ``make`` to compile
+* Type ``make flash`` to upload to device
 
 Software
 -------------------------------------------------------
@@ -63,7 +97,7 @@ The project is forked from `Chocolate Doom`_ version 3.0.0
 
 Most changes are related to reducing memory usage, and replacing IO/Video/Sound interfaces with new ones for nRF5340 and external peripherals.
 
-All the drivers/modules specific to this project is prefixed with n_ in the sourcecode. 
+All the drivers/modules specific to this project is prefixed with n\_ in the sourcecode. 
 
 Summary of Changes
 """""""""""""""""""""
@@ -115,6 +149,8 @@ Only used for gamepad support for now
 Memory
 """""""""""""""""""""""""
 
+The original system requirements for Doom was 8MB RAM. The biggest challenge with this project has been fitting the game in the memory available to nRF5340. This table gives an overview of how the data has been ditsributed.
+
 ======================= ================= ================================
  Memory                  Size              Usage
 ======================= ================= ================================
@@ -122,18 +158,20 @@ App Single-cycle RAM    256KiB            Main static memory and stack for game,
 ----------------------- ----------------- --------------------------------
 App Multi-cycle RAM     256KiB            Main heap memory for game
 ----------------------- ----------------- --------------------------------
-App Flash NVM           1MiB              Game code and static data        
+App Flash NVM           1MiB              Game code and static data
+----------------------- ----------------- --------------------------------
+App Cache               8KiB              Caches access to NVM and external QSPI flash
 ----------------------- ----------------- --------------------------------
 Network RAM             64KiB             Only used for network firmware to communicate with gamepad
 ----------------------- ----------------- --------------------------------
 Network Flash NVM       256KiB            Only used for network firmware to communicate with gamepad
 ----------------------- ----------------- --------------------------------
-External QSPI flash     8MiB              Used for fast access to WAD, and pre-generated composite textures
+External QSPI flash     8MiB              Used for fast memory-mapped access to WAD, and pre-generated composite textures
 ----------------------- ----------------- --------------------------------
 External SD-card        Variable          Used to transfer WAD from PC
 ======================= ================= ================================
 
-The external QSPI flash is accessed through the Excecute-In-Place (XIP) functionality, so that the data can be accessed through a memory mapped region.
+The external QSPI flash is accessed through the Excecute-In-Place (XIP) functionality, so that the data can be accessed through a memory mapped region, and have it cached.
 
 Display
 """"""""""""""""""""""""
